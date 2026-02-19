@@ -183,7 +183,10 @@ btnCancelTranscription.addEventListener('click', () => {
 // Voice: Web Speech API
 // ---------------------------------------------------------------------------
 
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+// iOS devices report webkitSpeechRecognition but it doesn't reliably fire results.
+// Force the MediaRecorder + Whisper path on iOS.
+const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+const SpeechRecognition = isIOS ? null : (window.SpeechRecognition || window.webkitSpeechRecognition);
 
 /**
  * Use Web Speech API to get a transcript.
