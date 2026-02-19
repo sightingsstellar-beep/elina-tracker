@@ -329,3 +329,192 @@
   color: var(--text-secondary);
   font-style: italic;
 }
+
+/* ============================================================
+   Accordion sections — expand/collapse per category
+   ============================================================ */
+
+/* Make the section header tappable */
+.accordion-section .section-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  cursor: pointer;
+  gap: 10px;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.accordion-section .section-header:active {
+  opacity: 0.75;
+}
+
+/* Takes up the remaining width beside the chevron */
+.section-header-content {
+  flex: 1;
+  min-width: 0;
+}
+
+/* Chevron — rotates 90° when open */
+.section-chevron {
+  font-size: 0.6rem;
+  color: var(--text-secondary);
+  flex-shrink: 0;
+  margin-top: 2px;
+  line-height: 1;
+  display: inline-block;
+  transition: transform 0.25s ease;
+}
+
+.accordion-section.open .section-chevron {
+  transform: rotate(90deg);
+}
+
+/* ---- Detail panel (collapsible) ---- */
+
+.section-detail {
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height 0.3s ease;
+}
+
+.accordion-section.open .section-detail {
+  max-height: 900px; /* generous — accommodates all content */
+}
+
+.section-detail-inner {
+  border-top: 1px solid var(--border);
+  padding: 10px 0 2px;
+}
+
+/* ---- Detail list rows (shared across all sections) ---- */
+
+.h-detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.h-detail-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+.h-detail-time {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  min-width: 68px;
+  flex-shrink: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.h-detail-icon {
+  flex-shrink: 0;
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.h-detail-label {
+  color: var(--text);
+  font-weight: 500;
+  flex: 1;
+}
+
+.h-detail-value {
+  color: var(--text-secondary);
+  font-size: 0.82rem;
+  font-weight: 500;
+  flex-shrink: 0;
+}
+
+.h-detail-empty {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-style: italic;
+  margin: 0;
+}
+
+/* ---- Output summary (collapsed state) ---- */
+
+.h-output-summary {
+  font-size: 0.88rem;
+  color: var(--text);
+}
+
+.h-dot {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+/* ---- Gag detail rows ---- */
+
+.h-gag-detail-row .h-detail-label {
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+/* ---- Wellness summary states ---- */
+
+.h-wellness-ok {
+  font-size: 0.88rem;
+  color: var(--green);
+  font-weight: 600;
+}
+
+.h-wellness-partial {
+  font-size: 0.88rem;
+  color: var(--yellow);
+  font-weight: 500;
+}
+
+/* ---- Wellness detail (expanded) ---- */
+
+.h-wellness-check {
+  margin-bottom: 12px;
+}
+
+.h-wellness-check:last-child {
+  margin-bottom: 0;
+}
+
+.h-wellness-check-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin-bottom: 7px;
+}
+
+.h-wellness-check-none {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.h-wellness-scores {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 5px 12px;
+}
+
+.h-wellness-score {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+}
+
+.h-score-label {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  flex: 1;
+}
+
+.h-score-val {
+  font-weight: 700;
+  color: var(--text);
+  font-size: 0.92rem;
+}
