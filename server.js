@@ -146,6 +146,187 @@ app.get('/logout', (req, res) => {
   req.session.destroy(() => res.redirect('/login'));
 });
 
+// ---------------------------------------------------------------------------
+// Alexa Skill endpoint (public — authenticated via Skill ID, not session)
+// ---------------------------------------------------------------------------
+
+/**
+ * Build an Alexa JSON response with SSML speech output.
+ */
+function alexaResponse(ssml, shouldEndSession = true, repromptSsml = null) {
+  const resp = {
+    version: '1.0',
+    response: {
+      outputSpeech: { type: 'SSML', ssml: `<speak>${ssml}</speak>` },
+      shouldEndSession,
+    },
+  };
+  if (repromptSsml) {
+    resp.response.reprompt = {
+      outputSpeech: { type: 'SSML', ssml: `<speak>${repromptSsml}</speak>` },
+    };
+  }
+  return resp;
+}
+
+/**
+ * Convert a day summary into a spoken confirmation string.
+ */
+function buildAlexaSpeech(summary) {
+  const limit = getDailyLimit();
+  const pct = Math.round((summary.totalIntake / limit) * 100);
+  const totalOut = summary.outputs.reduce((sum, o) => sum + (o.amount_ml || 0), 0);
+  let speech = `Logged. Total in: ${summary.totalIntake} of ${limit} milliliters, ${pct} percent.`;
+  if (totalOut > 0) speech += ` Total out: ${totalOut} milliliters.`;
+  return speech;
+}
+
+app.post('/api/alexa', async (req, res) => {
+  try {
+    // Verify the request came from our skill (set ALEXA_SKILL_ID in Railway env)
+    const skillId = process.env.ALEXA_SKILL_ID;
+    const incomingId =
+      req.body?.session?.application?.applicationId ||
+      req.body?.context?.System?.application?.applicationId;
+    if (skillId && incomingId !== skillId) {
+      console.warn('[alexa] Rejected request from unknown skill ID:', incomingId);
+      return res.status(403).json({ error: 'Forbidden' });
+    }
+
+    const request = req.body?.request;
+    if (!request) return res.status(400).json({ error: 'Invalid Alexa request' });
+
+    // -- LaunchRequest: skill opened with no command
+    if (request.type === 'LaunchRequest') {
+      return res.json(alexaResponse(
+        'Wellness tracker ready. What would you like to log?',
+        false,
+        'You can say things like: log 120 milliliters pediasure, or log pee 85 milliliters.'
+      ));
+    }
+
+    // -- SessionEndedRequest: Alexa closed the session
+    if (request.type === 'SessionEndedRequest') {
+      return res.json({ version: '1.0', response: {} });
+    }
+
+    if (request.type !== 'IntentRequest') {
+      return res.json(alexaResponse("Sorry, I didn't understand that."));
+    }
+
+    const intentName = request.intent?.name;
+
+    // Built-in intents
+    if (intentName === 'AMAZON.HelpIntent') {
+      return res.json(alexaResponse(
+        'To log fluid intake, say: log 120 milliliters pediasure. ' +
+        'To log output, say: log pee 80 milliliters. ' +
+        'To log a gag episode, say: log gag. ' +
+        'What would you like to log?',
+        false,
+        'What would you like to log?'
+      ));
+    }
+
+    if (intentName === 'AMAZON.StopIntent' || intentName === 'AMAZON.CancelIntent') {
+      return res.json(alexaResponse('Goodbye.'));
+    }
+
+    if (intentName === 'AMAZON.FallbackIntent') {
+      return res.json(alexaResponse(
+        "I didn't catch that. Try saying: log 120 milliliters pediasure.",
+        false,
+        'What would you like to log?'
+      ));
+    }
+
+    // -- LogEntryIntent: the main logging command
+    if (intentName === 'LogEntryIntent') {
+      const entryText = request.intent?.slots?.entry?.value;
+
+      if (!entryText) {
+        return res.json(alexaResponse(
+          "I didn't catch what you wanted to log. Try saying: log 120 milliliters pediasure.",
+          false,
+          'What would you like to log?'
+        ));
+      }
+
+      // Parse via existing NLP pipeline
+      let parsed;
+      try {
+        parsed = await parseMessage(entryText);
+      } catch (err) {
+        console.error('[alexa] Parser error:', err.message);
+        return res.json(alexaResponse('Sorry, I had trouble processing that. Please try again.'));
+      }
+
+      if (parsed.unparseable || parsed.actions.length === 0) {
+        return res.json(alexaResponse(
+          "I couldn't understand that entry. Try saying things like: " +
+          '120 milliliters pediasure, or pee 80 milliliters.',
+          false,
+          'What would you like to log?'
+        ));
+      }
+
+      // Reject if any input/output is missing an amount
+      const missingAmount = parsed.actions.find(
+        (a) => (a.type === 'input' || a.type === 'output') && !a.amount_ml
+      );
+      if (missingAmount) {
+        const label = formatFluidType(missingAmount.fluid_type);
+        return res.json(alexaResponse(
+          `I need a measurement for ${label}. How many milliliters was it?`,
+          false,
+          `How many milliliters of ${label}?`
+        ));
+      }
+
+      // Persist all actions
+      const now = Date.now();
+      const dayKey = db.getDayKey();
+      for (const action of parsed.actions) {
+        if (action.type === 'input' || action.type === 'output') {
+          db.logEntry({
+            timestamp: now,
+            day_key: dayKey,
+            entry_type: action.type,
+            fluid_type: action.fluid_type,
+            amount_ml: action.amount_ml,
+            source: 'alexa',
+          });
+        } else if (action.type === 'wellness') {
+          db.logWellness({
+            timestamp: now,
+            day_key: dayKey,
+            check_time: action.check_time,
+            appetite: action.appetite,
+            energy: action.energy,
+            mood: action.mood,
+            cyanosis: action.cyanosis,
+            source: 'alexa',
+          });
+        } else if (action.type === 'gag') {
+          db.logGag(action.count, now);
+        }
+      }
+
+      const summary = db.getDaySummary(dayKey);
+      return res.json(alexaResponse(buildAlexaSpeech(summary)));
+    }
+
+    // Unknown intent fallback
+    return res.json(alexaResponse(
+      "I didn't understand that. Try saying: log 120 milliliters pediasure."
+    ));
+
+  } catch (err) {
+    console.error('[alexa] Unhandled error:', err);
+    return res.json(alexaResponse('Something went wrong. Please try again.'));
+  }
+});
+
 // Auth gate — everything below this line requires a valid session
 function requireAuth(req, res, next) {
   if (req.session && req.session.authenticated) return next();

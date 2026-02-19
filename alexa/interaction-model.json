@@ -1,0 +1,43 @@
+{
+  "interactionModel": {
+    "languageModel": {
+      "invocationName": "wellness tracker",
+      "intents": [
+        {
+          "name": "LogEntryIntent",
+          "slots": [
+            {
+              "name": "entry",
+              "type": "AMAZON.SearchQuery"
+            }
+          ],
+          "samples": [
+            "log {entry}",
+            "record {entry}",
+            "note {entry}",
+            "add {entry}",
+            "she {entry}",
+            "Elina {entry}"
+          ]
+        },
+        {
+          "name": "AMAZON.HelpIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.StopIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.CancelIntent",
+          "samples": []
+        },
+        {
+          "name": "AMAZON.FallbackIntent",
+          "samples": []
+        }
+      ],
+      "types": []
+    }
+  }
+}
