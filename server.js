@@ -19,6 +19,10 @@ const { parseMessage } = require('./parser');
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+// Railway (and most PaaS) sit behind a reverse proxy — needed for
+// secure cookies and correct req.ip / req.protocol values.
+app.set('trust proxy', 1);
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -124,7 +128,15 @@ app.post('/login', (req, res) => {
   }
   if (password === correct) {
     req.session.authenticated = true;
-    return res.redirect('/');
+    // Explicitly save before redirecting — guarantees the session is
+    // committed to the store before the browser follows the redirect.
+    return req.session.save((err) => {
+      if (err) {
+        console.error('[auth] Session save error:', err);
+        return res.status(500).send('Session error — please try again.');
+      }
+      res.redirect('/');
+    });
   }
   res.redirect('/login?error=1');
 });
