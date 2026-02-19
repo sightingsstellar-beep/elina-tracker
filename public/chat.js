@@ -298,11 +298,11 @@ function stopMediaRecorder() {
       return;
     }
     mediaRecorder.onstop = () => {
-      const mimeType = currentMimeType || 'audio/webm';
-      const blob = new Blob(audioChunks, { type: mimeType });
-      resolve(blob);
+      setTimeout(() => {
+        const blob = new Blob(audioChunks, { type: currentMimeType || 'audio/mp4' });
+        resolve(blob);
+      }, 100);
     };
-    mediaRecorder.requestData();
     mediaRecorder.stop();
   });
 }
@@ -459,7 +459,7 @@ async function stopRecording(abort = false) {
     // MediaRecorder path
     try {
       const audioBlob = await stopMediaRecorder();
-      if (!audioBlob || audioBlob.size < 1000) {
+      if (!audioBlob || audioBlob.size < 500) {
         hideTranscribing();
         appendMessage('bot', '🎤 Recording was too short or empty. Try again.', 'warn');
         return;
