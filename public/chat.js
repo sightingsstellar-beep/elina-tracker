@@ -78,6 +78,21 @@ function appendMessage(role, text, style = 'normal') {
   row.scrollIntoView({ behavior: 'smooth', block: 'end' });
 }
 
+// Load settings (child name) and show welcome message
+async function loadSettings() {
+  try {
+    const res = await fetch('/api/settings');
+    if (!res.ok) return;
+    const settings = await res.json();
+    const nameEl = document.getElementById('child-name');
+    if (nameEl && settings.child_name) {
+      nameEl.textContent = settings.child_name;
+    }
+  } catch (_) {}
+}
+
+loadSettings();
+
 // Show initial welcome message
 appendMessage(
   'bot',

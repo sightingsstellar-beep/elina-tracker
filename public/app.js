@@ -60,8 +60,22 @@ async function fetchToday() {
   }
 }
 
+// Load child name from settings on page load
+async function loadSettings() {
+  try {
+    const res = await fetch('/api/settings');
+    if (!res.ok) return;
+    const settings = await res.json();
+    const nameEl = document.getElementById('child-name');
+    if (nameEl && settings.child_name) {
+      nameEl.textContent = settings.child_name;
+    }
+  } catch (_) {}
+}
+
 // Auto-refresh every 30 seconds
 setInterval(fetchToday, 30000);
+loadSettings();
 fetchToday();
 
 // ---------------------------------------------------------------------------
@@ -84,6 +98,8 @@ function renderIntake(data) {
 
   document.getElementById('intake-amount').textContent = `${total} ml`;
   document.getElementById('intake-pct').textContent = `${Math.round((total / limit) * 100)}%`;
+  const limitEl = document.getElementById('intake-limit');
+  if (limitEl) limitEl.textContent = `/ ${limit} ml`;
 
   const bar = document.getElementById('progress-bar');
   bar.style.width = `${Math.min(pct, 100)}%`;

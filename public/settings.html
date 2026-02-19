@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="theme-color" content="#1a73e8" />
+  <title>The Smart Patient Wellness Tracker — Settings</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="settings.css" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💙</text></svg>" />
+</head>
+<body>
+  <!-- ========== HEADER ========== -->
+  <header class="header">
+    <div class="header-left">
+      <h1 class="title"><span id="child-name">…</span> <span class="heart">💙</span></h1>
+      <div class="subtitle" id="current-date">Loading...</div>
+    </div>
+    <div class="header-right">
+      <div class="header-btn-row">
+        <a href="/" class="history-toggle-btn" aria-label="Today">📊 Today</a>
+        <a href="/history" class="history-toggle-btn" aria-label="History">📅 History</a>
+        <a href="/chat" class="history-toggle-btn" aria-label="Chat">🎤 Chat</a>
+      </div>
+      <div class="clock" id="current-time">--:--</div>
+    </div>
+  </header>
+
+  <main class="main settings-main">
+    <h2 class="settings-heading">⚙️ Settings</h2>
+
+    <!-- ========== PATIENT ========== -->
+    <section class="card settings-card">
+      <div class="settings-section-title">👶 Patient</div>
+
+      <div class="settings-field">
+        <label for="child_name">Child's name</label>
+        <input type="text" id="child_name" name="child_name" maxlength="50" placeholder="Elina" />
+      </div>
+
+      <div class="settings-field">
+        <label for="child_pronouns">Pronouns</label>
+        <input type="text" id="child_pronouns" name="child_pronouns" maxlength="30" placeholder="she/her" />
+      </div>
+    </section>
+
+    <!-- ========== FLUID TRACKING ========== -->
+    <section class="card settings-card">
+      <div class="settings-section-title">💧 Fluid Tracking</div>
+
+      <div class="settings-field">
+        <label for="daily_limit_ml">Daily fluid limit (ml)</label>
+        <input type="number" id="daily_limit_ml" name="daily_limit_ml" min="100" max="5000" step="50" placeholder="1200" />
+      </div>
+
+      <div class="settings-field">
+        <label for="day_start_hour">Fluid day starts at</label>
+        <select id="day_start_hour" name="day_start_hour">
+          <option value="0">12:00 AM (midnight)</option>
+          <option value="1">1:00 AM</option>
+          <option value="2">2:00 AM</option>
+          <option value="3">3:00 AM</option>
+          <option value="4">4:00 AM</option>
+          <option value="5">5:00 AM</option>
+          <option value="6">6:00 AM</option>
+          <option value="7">7:00 AM</option>
+          <option value="8">8:00 AM</option>
+          <option value="9">9:00 AM</option>
+          <option value="10">10:00 AM</option>
+          <option value="11">11:00 AM</option>
+        </select>
+      </div>
+
+      <div class="settings-field">
+        <label>Units</label>
+        <div class="radio-group">
+          <label class="radio-label">
+            <input type="radio" name="units" value="ml" /> ml
+          </label>
+          <label class="radio-label">
+            <input type="radio" name="units" value="oz" /> oz
+          </label>
+        </div>
+      </div>
+    </section>
+
+    <!-- ========== ALERT THRESHOLDS ========== -->
+    <section class="card settings-card">
+      <div class="settings-section-title">⚠️ Alert Thresholds</div>
+
+      <div class="settings-field">
+        <label for="warn_threshold_yellow">Yellow warning at (% of daily limit)</label>
+        <input type="number" id="warn_threshold_yellow" name="warn_threshold_yellow" min="10" max="100" step="5" placeholder="70" />
+      </div>
+
+      <div class="settings-field">
+        <label for="warn_threshold_red">Red warning at (% of daily limit)</label>
+        <input type="number" id="warn_threshold_red" name="warn_threshold_red" min="10" max="100" step="5" placeholder="90" />
+      </div>
+    </section>
+
+    <!-- ========== REPORT TIMES ========== -->
+    <section class="card settings-card">
+      <div class="settings-section-title">📊 Report Times</div>
+
+      <div class="settings-field">
+        <label for="report_time_1">Handoff report time</label>
+        <input type="time" id="report_time_1" name="report_time_1" />
+      </div>
+
+      <div class="settings-field">
+        <label for="report_time_2">Bedtime report time</label>
+        <input type="time" id="report_time_2" name="report_time_2" />
+      </div>
+    </section>
+
+    <!-- ========== WELLNESS CHECKS ========== -->
+    <section class="card settings-card">
+      <div class="settings-section-title">❤️ Wellness Checks</div>
+
+      <div class="settings-field">
+        <label for="wellness_check_1">Afternoon check time</label>
+        <input type="time" id="wellness_check_1" name="wellness_check_1" />
+      </div>
+
+      <div class="settings-field">
+        <label for="wellness_check_2">Evening check time</label>
+        <input type="time" id="wellness_check_2" name="wellness_check_2" />
+      </div>
+    </section>
+
+    <!-- ========== REGIONAL ========== -->
+    <section class="card settings-card">
+      <div class="settings-section-title">🌍 Regional</div>
+
+      <div class="settings-field">
+        <label for="timezone">Timezone</label>
+        <select id="timezone" name="timezone">
+          <option value="America/New_York">America/New_York (ET)</option>
+          <option value="America/Chicago">America/Chicago (CT)</option>
+          <option value="America/Denver">America/Denver (MT)</option>
+          <option value="America/Los_Angeles">America/Los_Angeles (PT)</option>
+          <option value="Europe/London">Europe/London (GMT/BST)</option>
+          <option value="Europe/Paris">Europe/Paris (CET)</option>
+          <option value="Asia/Baghdad">Asia/Baghdad (AST)</option>
+          <option value="Australia/Sydney">Australia/Sydney (AEST)</option>
+        </select>
+      </div>
+    </section>
+
+    <!-- ========== SAVE ========== -->
+    <div class="settings-save-row">
+      <button class="settings-save-btn" id="save-btn">💾 Save Settings</button>
+      <div class="settings-status" id="settings-status" aria-live="polite"></div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <span>The Smart Patient Wellness Tracker</span>
+  </footer>
+
+  <script src="settings.js"></script>
+</body>
+</html>

@@ -1,0 +1,195 @@
+/* settings.css — Settings page styles */
+
+/* ---- Page layout ---- */
+
+.settings-main {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 16px 12px 32px;
+}
+
+.settings-heading {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #1a73e8;
+  margin: 0 0 16px;
+  padding: 0 4px;
+}
+
+/* ---- Card sections ---- */
+
+.settings-card {
+  margin-bottom: 16px;
+  padding: 16px 18px;
+}
+
+.settings-section-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: #5f6368;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e8eaed;
+}
+
+/* ---- Individual fields ---- */
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-bottom: 14px;
+}
+
+.settings-field:last-child {
+  margin-bottom: 0;
+}
+
+.settings-field label {
+  font-size: 0.92rem;
+  font-weight: 500;
+  color: #3c4043;
+}
+
+.settings-field input[type="text"],
+.settings-field input[type="number"],
+.settings-field input[type="time"],
+.settings-field select {
+  width: 100%;
+  padding: 9px 12px;
+  font-size: 1rem;
+  font-family: inherit;
+  border: 1.5px solid #dadce0;
+  border-radius: 8px;
+  background: #fff;
+  color: #202124;
+  transition: border-color 0.15s, box-shadow 0.15s;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.settings-field select {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24'%3E%3Cpath fill='%235f6368' d='M7 10l5 5 5-5z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 10px center;
+  padding-right: 32px;
+}
+
+.settings-field input:focus,
+.settings-field select:focus {
+  outline: none;
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.15);
+}
+
+/* ---- Radio group ---- */
+
+.radio-group {
+  display: flex;
+  gap: 20px;
+  align-items: center;
+  padding: 4px 0;
+}
+
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 1rem;
+  font-weight: 500;
+  color: #202124;
+  cursor: pointer;
+}
+
+.radio-label input[type="radio"] {
+  width: 18px;
+  height: 18px;
+  accent-color: #1a73e8;
+  cursor: pointer;
+}
+
+/* ---- Save row ---- */
+
+.settings-save-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0 16px;
+}
+
+.settings-save-btn {
+  display: block;
+  width: 100%;
+  max-width: 280px;
+  padding: 14px 24px;
+  font-size: 1rem;
+  font-weight: 600;
+  font-family: inherit;
+  color: #fff;
+  background: #1a73e8;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: background 0.15s, opacity 0.15s, transform 0.1s;
+  text-align: center;
+  letter-spacing: 0.01em;
+}
+
+.settings-save-btn:hover {
+  background: #1557b0;
+}
+
+.settings-save-btn:active {
+  transform: scale(0.97);
+  opacity: 0.9;
+}
+
+.settings-save-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ---- Status messages ---- */
+
+.settings-status {
+  font-size: 0.95rem;
+  font-weight: 500;
+  min-height: 24px;
+  text-align: center;
+}
+
+.settings-status.success {
+  color: #1e8e3e;
+}
+
+.settings-status.error {
+  color: #d93025;
+}
+
+/* ---- Responsive ---- */
+
+@media (min-width: 480px) {
+  .settings-field {
+    flex-direction: row;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .settings-field label {
+    flex: 0 0 200px;
+    text-align: right;
+  }
+
+  .settings-field input,
+  .settings-field select {
+    flex: 1;
+  }
+
+  .radio-group {
+    flex: 1;
+  }
+}

@@ -382,9 +382,26 @@ function buildWellnessSection(wellness, prevWellness) {
 }
 
 // ---------------------------------------------------------------------------
+// Load settings (child name)
+// ---------------------------------------------------------------------------
+
+async function loadSettings() {
+  try {
+    const res = await fetch('/api/settings');
+    if (!res.ok) return;
+    const settings = await res.json();
+    const nameEl = document.getElementById('child-name');
+    if (nameEl && settings.child_name) {
+      nameEl.textContent = settings.child_name;
+    }
+  } catch (_) {}
+}
+
+// ---------------------------------------------------------------------------
 // Init
 // ---------------------------------------------------------------------------
 
+loadSettings();
 loadHistory();
 
 document.getElementById('refresh-btn').addEventListener('click', loadHistory);

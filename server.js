@@ -18,10 +18,29 @@ const { parseMessage } = require('./parser');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DAILY_LIMIT_ML = 1200;
 
 app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
+
+// ---------------------------------------------------------------------------
+// Settings helpers
+// ---------------------------------------------------------------------------
+
+function getDailyLimit() {
+  return parseInt(db.getSetting('daily_limit_ml'), 10) || 1200;
+}
+
+function getChildName() {
+  return db.getSetting('child_name') || 'Elina';
+}
+
+function getWarnYellow() {
+  return parseInt(db.getSetting('warn_threshold_yellow'), 10) || 70;
+}
+
+function getWarnRed() {
+  return parseInt(db.getSetting('warn_threshold_red'), 10) || 90;
+}
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -42,10 +61,13 @@ function formatFluidType(type) {
   return map[type] || type;
 }
 
+function getTimezone() {
+  return db.getSetting('timezone') || process.env.TZ || 'America/New_York';
+}
+
 function formatTimestamp(tsMs) {
-  const tz = process.env.TZ || 'America/New_York';
   return new Date(tsMs).toLocaleTimeString('en-US', {
-    timeZone: tz,
+    timeZone: getTimezone(),
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
@@ -67,9 +89,9 @@ app.get('/api/today', (req, res) => {
     res.json({
       ok: true,
       dayKey,
-      limit_ml: DAILY_LIMIT_ML,
+      limit_ml: getDailyLimit(),
       totalIntake: summary.totalIntake,
-      percent: Math.round((summary.totalIntake / DAILY_LIMIT_ML) * 100),
+      percent: Math.round((summary.totalIntake / getDailyLimit()) * 100),
       intakeByType: summary.intakeByType,
       inputs: summary.inputs.map((l) => ({
         ...l,
@@ -167,7 +189,7 @@ app.get('/api/history', (req, res) => {
   try {
     const days = Math.min(30, Math.max(1, parseInt(req.query.days, 10) || 7));
     const todayKey = db.getDayKey();
-    const tz = process.env.TZ || 'America/New_York';
+    const tz = getTimezone();
 
     // Build list of unique day keys (most recent first)
     const dayKeys = [];
@@ -192,7 +214,7 @@ app.get('/api/history', (req, res) => {
       });
 
       const total_ml = summary.totalIntake;
-      const limit_ml = DAILY_LIMIT_ML;
+      const limit_ml = getDailyLimit();
       const percent = Math.round((total_ml / limit_ml) * 100);
 
       const outputs = summary.outputs.map((o) => ({
@@ -294,8 +316,9 @@ function buildChatConfirmation(actions, totalIntake) {
     }
   }
   const logged = parts.length > 0 ? parts.join(' + ') : 'entry';
-  const pct = Math.round((totalIntake / DAILY_LIMIT_ML) * 100);
-  return `✅ Logged: ${logged} | Total today: ${totalIntake}ml / ${DAILY_LIMIT_ML}ml (${pct}%)`;
+  const limit = getDailyLimit();
+  const pct = Math.round((totalIntake / limit) * 100);
+  return `✅ Logged: ${logged} | Total today: ${totalIntake}ml / ${limit}ml (${pct}%)`;
 }
 
 app.post('/api/chat', async (req, res) => {
@@ -418,6 +441,52 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
   }
 });
 
+// ---------------------------------------------------------------------------
+// Settings API
+// ---------------------------------------------------------------------------
+
+/**
+ * GET /api/settings
+ * Returns all settings as a flat object.
+ */
+app.get('/api/settings', (req, res) => {
+  try {
+    const settings = db.getAllSettings();
+    res.json({ ok: true, ...settings });
+  } catch (err) {
+    console.error('[GET /api/settings]', err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+/**
+ * POST /api/settings
+ * Accepts partial object, updates provided keys, returns updated settings.
+ */
+app.post('/api/settings', (req, res) => {
+  try {
+    const body = req.body;
+    if (!body || typeof body !== 'object') {
+      return res.status(400).json({ ok: false, error: 'Invalid request body' });
+    }
+    for (const [key, value] of Object.entries(body)) {
+      if (value !== undefined && value !== null) {
+        db.setSetting(key, value);
+      }
+    }
+    const settings = db.getAllSettings();
+    res.json({ ok: true, ...settings });
+  } catch (err) {
+    console.error('[POST /api/settings]', err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// Settings page
+app.get('/settings', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'settings.html'));
+});
+
 // History page
 app.get('/history', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'history.html'));
@@ -439,16 +508,17 @@ app.get('*', (req, res) => {
 
 function buildReport(dayKey) {
   const summary = db.getDaySummary(dayKey);
-  const tz = process.env.TZ || 'America/New_York';
+  const tz = getTimezone();
   const now = new Date();
   const dateStr = now.toLocaleDateString('en-US', { timeZone: tz, weekday: 'short', month: 'short', day: 'numeric' });
   const timeStr = now.toLocaleTimeString('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit', hour12: true });
 
-  const percent = Math.round((summary.totalIntake / DAILY_LIMIT_ML) * 100);
+  const percent = Math.round((summary.totalIntake / getDailyLimit()) * 100);
 
-  let report = `📊 Elina's Report — ${dateStr} ${timeStr}\n`;
+  const childName = getChildName();
+  let report = `📊 ${childName}'s Report — ${dateStr} ${timeStr}\n`;
   report += `━━━━━━━━━━━━━━━━━━━━━━━\n`;
-  report += `\n💧 FLUID INTAKE: ${summary.totalIntake}ml / ${DAILY_LIMIT_ML}ml (${percent}%)\n`;
+  report += `\n💧 FLUID INTAKE: ${summary.totalIntake}ml / ${getDailyLimit()}ml (${percent}%)\n`;
 
   if (Object.keys(summary.intakeByType).length > 0) {
     for (const [type, ml] of Object.entries(summary.intakeByType)) {
@@ -490,16 +560,16 @@ function buildReport(dayKey) {
 // Export for use by bot and scheduler
 module.exports.buildReport = buildReport;
 module.exports.formatFluidType = formatFluidType;
-module.exports.DAILY_LIMIT_ML = DAILY_LIMIT_ML;
+module.exports.getDailyLimit = getDailyLimit;
 
 // ---------------------------------------------------------------------------
 // Start server
 // ---------------------------------------------------------------------------
 
 app.listen(PORT, () => {
-  console.log(`[server] Elina Tracker running on port ${PORT}`);
+  console.log(`[server] Smart Patient Wellness Tracker running on port ${PORT}`);
   console.log(`[server] Dashboard: http://localhost:${PORT}`);
-  console.log(`[server] Fluid day TZ: ${process.env.TZ || 'America/New_York'}`);
+  console.log(`[server] Fluid day TZ: ${getTimezone()}`);
 });
 
 // Start Telegram bot (non-fatal if token missing in dev)

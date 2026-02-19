@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
   <meta name="theme-color" content="#1a73e8" />
-  <title>Elina 💙 Tracker</title>
+  <title>The Smart Patient Wellness Tracker</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💙</text></svg>" />
 </head>
@@ -12,13 +12,14 @@
   <!-- ========== HEADER ========== -->
   <header class="header">
     <div class="header-left">
-      <h1 class="title">Elina <span class="heart">💙</span></h1>
+      <h1 class="title"><span id="child-name">…</span> <span class="heart">💙</span></h1>
       <div class="subtitle" id="current-date">Loading...</div>
     </div>
     <div class="header-right">
       <div class="header-btn-row">
         <a href="/history" class="history-toggle-btn" aria-label="View history">📅 History</a>
         <a href="/chat" class="history-toggle-btn" aria-label="Chat &amp; voice log">🎤 Chat</a>
+        <a href="/settings" class="history-toggle-btn" aria-label="Settings">⚙️ Settings</a>
       </div>
       <div class="clock" id="current-time">--:--</div>
       <div class="refresh-indicator" id="refresh-badge" title="Auto-refresh every 30s">🔄</div>
@@ -36,7 +37,7 @@
 
       <div class="intake-totals">
         <span class="intake-amount" id="intake-amount">-- ml</span>
-        <span class="intake-limit">/ 1200 ml</span>
+        <span class="intake-limit" id="intake-limit">/ -- ml</span>
         <span class="intake-pct" id="intake-pct">--%</span>
       </div>
 

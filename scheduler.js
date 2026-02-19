@@ -1,10 +1,9 @@
 /**
  * scheduler.js — Cron jobs for automated reports and day resets
  *
- * Schedule (all times in TZ configured by env):
- *   7:00 AM  — Fluid day rolls over (DB handles this via getDayKey)
- *   7:00 PM  — Send evening report to all authorized users
- *  10:00 PM  — Send night report to all authorized users
+ * Schedule (all times in timezone configured in settings):
+ *   report_time_1 (default 7:00 PM) — evening handoff report
+ *   report_time_2 (default 10:00 PM) — night report
  */
 
 'use strict';
@@ -24,7 +23,8 @@ const AUTHORIZED_IDS = (process.env.AUTHORIZED_USER_IDS || '')
   .filter(Boolean)
   .map((s) => parseInt(s, 10));
 
-const tz = process.env.TZ || 'America/New_York';
+// Read timezone from settings (with env fallback)
+const tz = db.getSetting('timezone') || process.env.TZ || 'America/New_York';
 
 /**
  * Send a report to all authorized users.
@@ -64,30 +64,54 @@ async function sendScheduledReport(label) {
 }
 
 // ---------------------------------------------------------------------------
+// Parse report times from settings
+// ---------------------------------------------------------------------------
+
+/**
+ * Parse "HH:MM" time string into a cron expression "MM HH * * *"
+ * Falls back to provided default if parsing fails.
+ */
+function timeToCron(timeStr, defaultHour, defaultMin) {
+  const parts = (timeStr || '').split(':');
+  const h = parseInt(parts[0], 10);
+  const m = parseInt(parts[1], 10);
+  if (!isNaN(h) && !isNaN(m) && h >= 0 && h < 24 && m >= 0 && m < 60) {
+    return `${m} ${h} * * *`;
+  }
+  return `${defaultMin} ${defaultHour} * * *`;
+}
+
+const report1Time = db.getSetting('report_time_1') || '19:00';
+const report2Time = db.getSetting('report_time_2') || '22:00';
+
+const cron1 = timeToCron(report1Time, 19, 0);
+const cron2 = timeToCron(report2Time, 22, 0);
+
+// ---------------------------------------------------------------------------
 // Cron schedules
 // ---------------------------------------------------------------------------
 
-// 7:00 PM daily — evening handoff report
+// First report (default 7:00 PM) — evening handoff report
 cron.schedule(
-  '0 19 * * *',
+  cron1,
   () => {
-    console.log('[scheduler] Triggering 7pm report');
-    sendScheduledReport('7pm').catch(console.error);
+    console.log(`[scheduler] Triggering ${report1Time} report`);
+    sendScheduledReport(report1Time).catch(console.error);
   },
   { timezone: tz }
 );
 
-// 10:00 PM daily — night report
+// Second report (default 10:00 PM) — night report
 cron.schedule(
-  '0 22 * * *',
+  cron2,
   () => {
-    console.log('[scheduler] Triggering 10pm report');
-    sendScheduledReport('10pm').catch(console.error);
+    console.log(`[scheduler] Triggering ${report2Time} report`);
+    sendScheduledReport(report2Time).catch(console.error);
   },
   { timezone: tz }
 );
 
 console.log(`[scheduler] Cron jobs scheduled (TZ: ${tz})`);
-console.log('[scheduler] Reports will auto-send at 7pm and 10pm');
+console.log(`[scheduler] Reports will auto-send at ${report1Time} and ${report2Time}`);
 
 module.exports = { sendScheduledReport };

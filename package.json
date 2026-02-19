@@ -1,7 +1,7 @@
 {
-  "name": "elina-tracker",
-  "version": "1.0.0",
-  "description": "Fluid intake/output tracker for Elina — hospital-grade daily logging via Telegram bot and web dashboard",
+  "name": "smart-patient-tracker",
+  "version": "1.1.0",
+  "description": "The Smart Patient Wellness Tracker — fluid intake/output, wellness checks, and daily reports via Telegram bot and web dashboard",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",

@@ -1,15 +1,17 @@
-# Elina Tracker 💙
+# The Smart Patient Wellness Tracker 💙
 
-A private, open-source fluid intake/output tracking platform for Elina — a critically ill child in hospital care. Built with love for her family.
+A private, open-source fluid intake/output tracking platform for critically ill children in hospital care. Built with love for families navigating long-term medical journeys.
 
 This tool helps caregivers and nurses accurately log and monitor:
 - **Fluid intake** (water, juice, milk, PediaSure, yogurt drink, vitamin water)
 - **Fluid outputs** (urine, poop, vomit)
 - **Daily wellness checks** (appetite, energy, mood, cyanosis — all 1–10)
 - **Gag episodes**
-- **Automated nurse handoff reports** at 7pm and 10pm
+- **Automated nurse handoff reports** at configurable times
 
 All logging is done via **natural language** through a Telegram bot (powered by OpenAI), with a beautiful **mobile-first dashboard** to view real-time totals.
+
+> 💡 **Child name, daily limits, report times, and all other settings are configurable** from the built-in Settings page at `/settings`. Default settings maintain backward compatibility (name: Elina, limit: 1200ml, 7am day start).
 
 ---
 
@@ -18,8 +20,9 @@ All logging is done via **natural language** through a Telegram bot (powered by 
 - 📱 **Telegram bot** — log entries naturally: "120ml pediasure" or "pee 85ml"
 - 🤖 **OpenAI NLP** — understands natural language, handles batches
 - 📊 **Live dashboard** — color-coded intake bar, output log, wellness gauges
-- 🔔 **Auto-reports** — sent to Telegram at 7pm and 10pm daily
-- 🗓️ **Fluid day logic** — day starts at 7:00 AM, resets automatically
+- 🔔 **Auto-reports** — sent to Telegram at configurable times daily
+- 🗓️ **Fluid day logic** — day starts at configurable hour, resets automatically
+- ⚙️ **Settings page** — configure child name, limits, report times, thresholds, timezone
 - 🔒 **Authorization** — only approved Telegram users can log
 - 🚀 **Railway-ready** — one-click deploy with persistent storage
 
@@ -74,8 +77,32 @@ TZ=America/New_York
 | `OPENAI_API_KEY` | From [platform.openai.com](https://platform.openai.com) |
 | `AUTHORIZED_USER_IDS` | Comma-separated Telegram user IDs |
 | `PORT` | HTTP server port (Railway sets this automatically) |
-| `TZ` | Timezone for day calculation (IANA format) |
+| `TZ` | Default timezone (can also be set in Settings) |
 | `DATA_DIR` | Optional path for SQLite DB (default: `./data/`) |
+
+> **Note:** Most configuration (child name, daily limit, report times, thresholds) is managed through the **Settings page** at `/settings` and stored in the database — no environment variable changes needed.
+
+---
+
+## Settings Page
+
+Visit **`/settings`** in the web app to configure:
+
+| Setting | Default | Description |
+|---|---|---|
+| Child's name | Elina | Shown in dashboard headers and reports |
+| Daily fluid limit | 1200 ml | Triggers color-coded warnings |
+| Day start hour | 7 AM | When the fluid tracking day resets |
+| Units | ml | ml or oz |
+| Yellow warning | 70% | Progress bar turns yellow at this % |
+| Red warning | 90% | Progress bar turns red at this % |
+| Handoff report time | 19:00 | First daily Telegram report |
+| Bedtime report time | 22:00 | Second daily Telegram report |
+| Afternoon wellness check | 17:00 | Reference time for 5pm check |
+| Evening wellness check | 22:00 | Reference time for 10pm check |
+| Timezone | America/New_York | Used for all time displays and cron jobs |
+
+All settings persist across server restarts in SQLite.
 
 ---
 
@@ -152,7 +179,7 @@ SQLite data is lost on redeployment unless you use a persistent volume:
 2. Mount it at `/data`
 3. Add `DATA_DIR=/data` to your Railway environment variables
 
-This keeps Elina's data safe across deployments.
+This keeps patient data safe across deployments.
 
 ---
 
@@ -162,9 +189,9 @@ The web dashboard is served at the root URL (`/`). It:
 
 - Auto-refreshes every 30 seconds
 - Shows a color-coded intake progress bar:
-  - 🟢 Green: 0–70% (safe)
-  - 🟡 Yellow: 70–90% (approaching limit)
-  - 🔴 Red: 90–100% (near limit)
+  - 🟢 Green: 0–70% (safe, configurable)
+  - 🟡 Yellow: 70–90% (approaching limit, configurable)
+  - 🔴 Red: 90–100% (near limit, configurable)
   - 🚨 Flashing: over limit
 - Displays outputs chronologically
 - Shows wellness gauges (color-coded 1–10)
@@ -180,12 +207,21 @@ elina-tracker/
 ├── server.js          # Express app, API routes, report builder
 ├── bot.js             # Telegram bot (polling, commands, NLP dispatch)
 ├── parser.js          # OpenAI gpt-4o-mini NLP parser
-├── db.js              # SQLite schema and all database queries
-├── scheduler.js       # Cron jobs (7pm + 10pm auto-reports)
+├── db.js              # SQLite schema, queries, and settings storage
+├── scheduler.js       # Cron jobs (auto-reports at configured times)
 ├── public/
 │   ├── index.html     # Mobile dashboard
 │   ├── style.css      # Mobile-first styles
-│   └── app.js         # Dashboard JavaScript
+│   ├── app.js         # Dashboard JavaScript
+│   ├── history.html   # 7-day history page
+│   ├── history.css    # History styles
+│   ├── history.js     # History JavaScript
+│   ├── chat.html      # Voice + text chat page
+│   ├── chat.css       # Chat styles
+│   ├── chat.js        # Chat JavaScript
+│   ├── settings.html  # Settings page
+│   ├── settings.css   # Settings styles
+│   └── settings.js    # Settings JavaScript
 ├── .env.example       # Environment variable template
 ├── .env               # Your local credentials (not committed)
 ├── .gitignore
@@ -205,6 +241,8 @@ elina-tracker/
 | `POST` | `/api/log` | Log a fluid entry, wellness check, or gag |
 | `GET` | `/api/history?days=7` | Logs for the last N days |
 | `DELETE` | `/api/log/:id` | Delete a specific log entry |
+| `GET` | `/api/settings` | Get all settings as flat object |
+| `POST` | `/api/settings` | Update one or more settings |
 
 ### POST /api/log examples
 
@@ -228,6 +266,12 @@ elina-tracker/
 { "type": "gag", "count": 2 }
 ```
 
+### POST /api/settings example
+
+```json
+{ "child_name": "Alex", "daily_limit_ml": "1500", "timezone": "America/Chicago" }
+```
+
 ---
 
 ## Open Source
@@ -238,4 +282,4 @@ Pull requests welcome. Please be thoughtful — this is a medical tool.
 
 ---
 
-*Built with love for Elina 💙*
+*Built with love 💙*

@@ -5,6 +5,7 @@
  *   fluid_logs  — intake and output entries
  *   wellness_checks — 5pm / 10pm daily wellness scores
  *   gag_events  — individual gag episodes
+ *   settings    — key-value app configuration
  */
 
 'use strict';
@@ -56,6 +57,11 @@ db.exec(`
     timestamp   INTEGER NOT NULL,
     day_key     TEXT NOT NULL
   );
+
+  CREATE TABLE IF NOT EXISTS settings (
+    key   TEXT PRIMARY KEY,
+    value TEXT NOT NULL
+  );
 `);
 
 // ---------------------------------------------------------------------------
@@ -64,12 +70,20 @@ db.exec(`
 
 /**
  * Given a Date (or now), return the "fluid day" key string "YYYY-MM-DD".
- * If the time (in the configured TZ) is before 07:00 we belong to the
+ * If the time (in the configured TZ) is before day_start_hour we belong to the
  * previous calendar day's fluid day.
  */
 function getDayKey(date = new Date()) {
   // Determine local time in the configured timezone
-  const tz = process.env.TZ || 'America/New_York';
+  // Use settings if available, fallback to env/default
+  let tz;
+  try {
+    tz = (typeof getSetting === 'function' ? getSetting('timezone') : null) ||
+         process.env.TZ || 'America/New_York';
+  } catch (_) {
+    tz = process.env.TZ || 'America/New_York';
+  }
+
   const localStr = date.toLocaleString('en-CA', {
     timeZone: tz,
     hour12: false,
@@ -81,15 +95,21 @@ function getDayKey(date = new Date()) {
   });
   // en-CA gives "YYYY-MM-DD, HH:MM"
   const [datePart, timePart] = localStr.split(', ');
-  const [hStr, mStr] = timePart.split(':');
+  const [hStr] = timePart.split(':');
   const hour = parseInt(hStr, 10);
-  const minute = parseInt(mStr, 10);
 
   const [year, month, day] = datePart.split('-').map(Number);
   const dateObj = new Date(year, month - 1, day);
 
-  // Before 7:00 AM → belongs to the previous fluid day
-  if (hour < 7) {
+  // Before day_start_hour → belongs to the previous fluid day
+  let dayStartHour = 7;
+  try {
+    if (typeof getSetting === 'function') {
+      dayStartHour = parseInt(getSetting('day_start_hour'), 10) || 7;
+    }
+  } catch (_) {}
+
+  if (hour < dayStartHour) {
     dateObj.setDate(dateObj.getDate() - 1);
   }
 
@@ -265,6 +285,60 @@ function getDaySummary(dayKey) {
   };
 }
 
+// ---------------------------------------------------------------------------
+// Settings queries
+// ---------------------------------------------------------------------------
+
+const DEFAULT_SETTINGS = {
+  child_name: 'Elina',
+  child_pronouns: 'she/her',
+  daily_limit_ml: '1200',
+  day_start_hour: '7',
+  report_time_1: '19:00',
+  report_time_2: '22:00',
+  wellness_check_1: '17:00',
+  wellness_check_2: '22:00',
+  warn_threshold_yellow: '70',
+  warn_threshold_red: '90',
+  timezone: 'America/New_York',
+  units: 'ml',
+};
+
+const insertOrIgnoreSetting = db.prepare(
+  'INSERT OR IGNORE INTO settings (key, value) VALUES (@key, @value)'
+);
+
+function initDefaultSettings() {
+  for (const [key, value] of Object.entries(DEFAULT_SETTINGS)) {
+    insertOrIgnoreSetting.run({ key, value });
+  }
+}
+
+function getSetting(key) {
+  const row = db.prepare('SELECT value FROM settings WHERE key = ?').get(key);
+  if (row) return row.value;
+  return DEFAULT_SETTINGS[key] ?? null;
+}
+
+function getAllSettings() {
+  const rows = db.prepare('SELECT key, value FROM settings').all();
+  const result = { ...DEFAULT_SETTINGS };
+  for (const row of rows) {
+    result[row.key] = row.value;
+  }
+  return result;
+}
+
+function setSetting(key, value) {
+  db.prepare('INSERT OR REPLACE INTO settings (key, value) VALUES (@key, @value)').run({
+    key,
+    value: String(value),
+  });
+}
+
+// Initialize default settings on startup
+initDefaultSettings();
+
 module.exports = {
   db,
   getDayKey,
@@ -281,4 +355,8 @@ module.exports = {
   getGagsByDay,
   deleteLastGag,
   getDaySummary,
+  getSetting,
+  getAllSettings,
+  setSetting,
+  initDefaultSettings,
 };
