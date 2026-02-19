@@ -100,6 +100,28 @@ body {
   cursor: default;
 }
 
+/* History toggle button — shown in header of main dashboard */
+.history-toggle-btn {
+  display: inline-block;
+  background: rgba(255, 255, 255, 0.18);
+  color: white;
+  text-decoration: none;
+  border: 1.5px solid rgba(255, 255, 255, 0.4);
+  border-radius: 20px;
+  padding: 5px 13px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.2px;
+  margin-bottom: 6px;
+  transition: background 0.15s;
+  white-space: nowrap;
+}
+
+.history-toggle-btn:hover,
+.history-toggle-btn:active {
+  background: rgba(255, 255, 255, 0.32);
+}
+
 /* ============================================================
    MAIN LAYOUT
    ============================================================ */

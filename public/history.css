@@ -1,0 +1,331 @@
+/* ============================================================
+   history.css — 7-day history page styles
+   Mobile-first, visually distinct day cards
+   ============================================================ */
+
+/* ---- Layout ---- */
+
+.history-main {
+  gap: 12px;
+}
+
+.history-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 0 2px;
+}
+
+.history-heading {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.refresh-btn {
+  background: var(--blue-light);
+  color: var(--blue);
+  border: none;
+  border-radius: 20px;
+  padding: 6px 14px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.refresh-btn:hover,
+.refresh-btn:active {
+  background: var(--blue);
+  color: white;
+}
+
+/* ---- Loading / Error states ---- */
+
+.h-loading,
+.h-error {
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+  padding: 32px 16px;
+  font-style: italic;
+}
+
+.h-error {
+  color: var(--red);
+  font-style: normal;
+}
+
+/* ---- Day Card ---- */
+
+.day-card {
+  background: var(--white);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+/* Today card gets a blue left border accent */
+.day-card.is-today {
+  border-left: 4px solid var(--blue);
+}
+
+.day-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px 10px;
+  border-bottom: 1px solid var(--border);
+  background: var(--grey-light);
+}
+
+.day-label {
+  font-size: 0.98rem;
+  font-weight: 700;
+  color: var(--text);
+  flex: 1;
+}
+
+.today-badge {
+  background: var(--blue);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border-radius: 10px;
+  padding: 2px 9px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+/* ---- Day Card Sections ---- */
+
+.day-section {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.day-section:last-child {
+  border-bottom: none;
+}
+
+.day-section-label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.6px;
+  margin-bottom: 7px;
+}
+
+/* ---- Intake row ---- */
+
+.h-intake-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 6px;
+}
+
+.h-intake-numbers {
+  white-space: nowrap;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text);
+  min-width: 140px;
+}
+
+.h-intake-pct {
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.h-progress-wrap {
+  flex: 1;
+  height: 10px;
+  background: #e8eaed;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.h-progress-bar {
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.5s ease;
+  background: var(--green);
+}
+
+.h-progress-bar.yellow { background: var(--yellow); }
+.h-progress-bar.red    { background: var(--red); }
+.h-progress-bar.over   { background: var(--red); }
+
+.h-intake-breakdown {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
+}
+
+.h-fluid-chip {
+  background: var(--grey-light);
+  border-radius: 8px;
+  padding: 3px 9px;
+  font-size: 0.77rem;
+  color: var(--text-secondary);
+}
+
+.h-fluid-chip strong {
+  color: var(--blue);
+}
+
+/* ---- Gag row ---- */
+
+.h-gag-none {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+.h-gag-count {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--red);
+}
+
+/* ---- Outputs row ---- */
+
+.h-output-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.h-output-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.h-output-time {
+  color: var(--text-secondary);
+  font-size: 0.78rem;
+  min-width: 60px;
+  font-variant-numeric: tabular-nums;
+}
+
+.h-output-type {
+  font-weight: 500;
+  text-transform: capitalize;
+}
+
+.h-output-amount {
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+}
+
+.h-none {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* ---- Wellness table ---- */
+
+.h-wellness-none {
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}
+
+/* Scrollable wrapper for the table on very narrow screens */
+.h-wellness-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.h-wellness-table {
+  width: 100%;
+  min-width: 240px;
+  border-collapse: collapse;
+  font-size: 0.85rem;
+}
+
+.h-wellness-table th {
+  text-align: left;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 4px 8px 6px 0;
+  white-space: nowrap;
+}
+
+.h-wellness-table th:first-child {
+  /* row-label column */
+  min-width: 72px;
+}
+
+.h-wellness-table th:not(:first-child) {
+  text-align: center;
+  padding: 4px 8px 6px;
+}
+
+.h-wellness-table td {
+  padding: 5px 8px 5px 0;
+  vertical-align: middle;
+}
+
+.h-wellness-table td:not(:first-child) {
+  text-align: center;
+  padding: 5px 8px;
+}
+
+.h-wellness-table tr + tr td {
+  border-top: 1px solid var(--border);
+}
+
+.h-row-label {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.h-val {
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.h-val-dash {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.h-trend {
+  display: inline-block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  margin-left: 3px;
+  vertical-align: middle;
+}
+
+.h-trend-up   { color: var(--green); }
+.h-trend-down { color: var(--red); }
+.h-trend-flat { color: var(--grey); }
+
+/* ---- Empty-day card ---- */
+
+.day-card-empty .day-card-header {
+  background: #fafafa;
+}
+
+.h-empty-body {
+  padding: 14px 16px;
+  font-size: 0.88rem;
+  color: var(--text-secondary);
+  font-style: italic;
+}

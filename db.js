@@ -150,6 +150,22 @@ function getLogsForDays(days) {
     .all(...unique);
 }
 
+function getWellnessForDays(days) {
+  // Collect the day keys for the last N fluid days
+  const keys = [];
+  const d = new Date();
+  for (let i = 0; i < days; i++) {
+    const shifted = new Date(d);
+    shifted.setDate(shifted.getDate() - i);
+    keys.push(getDayKey(shifted));
+  }
+  const unique = [...new Set(keys)];
+  const placeholders = unique.map(() => '?').join(',');
+  return db
+    .prepare(`SELECT * FROM wellness_checks WHERE day_key IN (${placeholders}) ORDER BY timestamp ASC`)
+    .all(...unique);
+}
+
 // ---------------------------------------------------------------------------
 // wellness_checks queries
 // ---------------------------------------------------------------------------
@@ -260,6 +276,7 @@ module.exports = {
   logWellness,
   getWellnessByDay,
   getLastWellness,
+  getWellnessForDays,
   logGag,
   getGagsByDay,
   deleteLastGag,

@@ -158,13 +158,74 @@ app.post('/api/log', (req, res) => {
 
 /**
  * GET /api/history?days=7
- * Returns logs for the last N fluid days.
+ * Returns a richer per-day summary for the last N fluid days.
  */
 app.get('/api/history', (req, res) => {
   try {
     const days = Math.min(30, Math.max(1, parseInt(req.query.days, 10) || 7));
-    const logs = db.getLogsForDays(days);
-    res.json({ ok: true, days, logs });
+    const todayKey = db.getDayKey();
+    const tz = process.env.TZ || 'America/New_York';
+
+    // Build list of unique day keys (most recent first)
+    const dayKeys = [];
+    const now = new Date();
+    for (let i = 0; i < days; i++) {
+      const shifted = new Date(now);
+      shifted.setDate(shifted.getDate() - i);
+      dayKeys.push(db.getDayKey(shifted));
+    }
+    const uniqueKeys = [...new Set(dayKeys)].slice(0, days);
+
+    const dayData = uniqueKeys.map((dayKey) => {
+      const summary = db.getDaySummary(dayKey);
+
+      // Build a readable label from the dayKey string
+      const [year, month, day] = dayKey.split('-').map(Number);
+      const dateObj = new Date(year, month - 1, day, 12, 0, 0);
+      const label = dateObj.toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'short',
+        day: 'numeric',
+      });
+
+      const total_ml = summary.totalIntake;
+      const limit_ml = DAILY_LIMIT_ML;
+      const percent = Math.round((total_ml / limit_ml) * 100);
+
+      const outputs = summary.outputs.map((o) => ({
+        id: o.id,
+        fluid_type: o.fluid_type,
+        amount_ml: o.amount_ml,
+        time: formatTimestamp(o.timestamp),
+      }));
+
+      // Split wellness into afternoon (5pm) and evening (10pm)
+      const afternoonRow = summary.wellness.find((w) => w.check_time === '5pm') || null;
+      const eveningRow = summary.wellness.find((w) => w.check_time === '10pm') || null;
+
+      const pickWellness = (row) => row ? {
+        check_time: row.check_time,
+        appetite: row.appetite,
+        energy: row.energy,
+        mood: row.mood,
+        cyanosis: row.cyanosis,
+      } : null;
+
+      return {
+        dayKey,
+        label,
+        isToday: dayKey === todayKey,
+        intake: { total_ml, limit_ml, percent, byType: summary.intakeByType },
+        outputs,
+        gagCount: summary.gagCount,
+        wellness: {
+          afternoon: pickWellness(afternoonRow),
+          evening: pickWellness(eveningRow),
+        },
+      };
+    });
+
+    res.json({ ok: true, days: dayData });
   } catch (err) {
     console.error('[GET /api/history]', err);
     res.status(500).json({ ok: false, error: err.message });
@@ -190,6 +251,11 @@ app.delete('/api/log/:id', (req, res) => {
     console.error('[DELETE /api/log/:id]', err);
     res.status(500).json({ ok: false, error: err.message });
   }
+});
+
+// History page
+app.get('/history', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'history.html'));
 });
 
 // Fallback — serve dashboard for any unknown route

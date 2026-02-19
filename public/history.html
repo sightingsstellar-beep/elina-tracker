@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <meta name="theme-color" content="#1a73e8" />
+  <title>Elina 💙 History</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="history.css" />
+  <link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💙</text></svg>" />
+</head>
+<body>
+  <!-- ========== HEADER ========== -->
+  <header class="header">
+    <div class="header-left">
+      <h1 class="title">Elina <span class="heart">💙</span></h1>
+      <div class="subtitle" id="current-date">Loading...</div>
+    </div>
+    <div class="header-right">
+      <a href="/" class="history-toggle-btn" aria-label="Back to today">📊 Today</a>
+      <div class="clock" id="current-time">--:--</div>
+    </div>
+  </header>
+
+  <main class="main history-main">
+    <!-- Top bar with refresh -->
+    <div class="history-topbar">
+      <h2 class="history-heading">📅 Last 7 Days</h2>
+      <button class="refresh-btn" id="refresh-btn" title="Refresh">🔄 Refresh</button>
+    </div>
+
+    <!-- Day cards rendered here -->
+    <div id="history-container">
+      <div class="h-loading">Loading history…</div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    <span>Last updated: <span id="last-updated">--</span></span>
+  </footer>
+
+  <script src="history.js"></script>
+</body>
+</html>
