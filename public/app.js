@@ -273,8 +273,8 @@ function handleQuickLog(btn) {
     return;
   }
 
-  if (type === 'output' && !amount) {
-    // Ask for amount (optional for outputs)
+  if (!amount) {
+    // Ask for amount — applies to inputs and outputs without a preset amount
     pendingQuickLog = { type, fluid_type: fluid };
     showModal();
     return;
