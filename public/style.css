@@ -662,3 +662,96 @@ body {
   opacity: 0.4;
   cursor: not-allowed;
 }
+
+/* ============================================================
+   DAILY WEIGHT SECTION
+   ============================================================ */
+
+.weight-log-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.weight-log-row input[type="number"] {
+  width: 110px;
+  padding: 10px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text);
+  background: var(--grey-light);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.weight-log-row input[type="number"]:focus {
+  border-color: var(--blue);
+  background: #fff;
+}
+
+.weight-unit-label {
+  font-size: 1rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+}
+
+.btn-log-weight {
+  flex: 1;
+  min-width: 110px;
+  padding: 10px 20px;
+  background: var(--blue);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.btn-log-weight:hover {
+  background: #1558c0;
+}
+
+.btn-log-weight:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.weight-status {
+  margin-top: 12px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  font-size: 0.95rem;
+}
+
+#weight-today-label {
+  font-weight: 600;
+  color: var(--text);
+}
+
+#weight-trend {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.weight-trend-up   { color: var(--red); }
+.weight-trend-down { color: var(--green); }
+.weight-trend-flat { color: var(--grey); }
+
+.weight-update-link {
+  background: none;
+  border: none;
+  color: var(--blue);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: underline;
+  padding: 0;
+}

@@ -294,6 +294,7 @@ app.post('/api/alexa', async (req, res) => {
       // Persist all actions
       const now = Date.now();
       const dayKey = db.getDayKey();
+      let weightLogged = null;
       for (const action of parsed.actions) {
         if (action.type === 'input' || action.type === 'output') {
           db.logEntry({
@@ -317,7 +318,15 @@ app.post('/api/alexa', async (req, res) => {
           });
         } else if (action.type === 'gag') {
           db.logGag(action.count, now);
+        } else if (action.type === 'weight') {
+          db.logWeight(dayKey, action.weight_kg, null);
+          weightLogged = action.weight_kg;
         }
+      }
+
+      // If weight was the only/primary action, return a weight-specific response
+      if (weightLogged !== null && parsed.actions.every((a) => a.type === 'weight')) {
+        return res.json(alexaResponse(`Weight logged. ${weightLogged} kilograms.`));
       }
 
       const summary = db.getDaySummary(dayKey);
@@ -641,6 +650,61 @@ app.delete('/api/log/:id', (req, res) => {
     res.json({ ok: true, deleted: id });
   } catch (err) {
     console.error('[DELETE /api/log/:id]', err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+// ---------------------------------------------------------------------------
+// Weight API
+// ---------------------------------------------------------------------------
+
+/**
+ * POST /api/weight
+ * Body: { weight_kg, notes? }
+ * Logs weight for today's fluid day key. Returns { ok, weight_kg, date, replaced }.
+ */
+app.post('/api/weight', (req, res) => {
+  try {
+    const { weight_kg, notes } = req.body;
+    if (typeof weight_kg !== 'number' || weight_kg <= 0) {
+      return res.status(400).json({ ok: false, error: 'weight_kg must be a positive number' });
+    }
+    const date = db.getDayKey();
+    const existing = db.getWeightForDate(date);
+    db.logWeight(date, weight_kg, notes ?? null);
+    res.json({ ok: true, weight_kg, date, replaced: !!existing });
+  } catch (err) {
+    console.error('[POST /api/weight]', err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+/**
+ * GET /api/weight/today
+ * Returns today's weight entry or { ok, weight: null }.
+ */
+app.get('/api/weight/today', (req, res) => {
+  try {
+    const date = db.getDayKey();
+    const entry = db.getWeightForDate(date);
+    res.json({ ok: true, weight: entry || null });
+  } catch (err) {
+    console.error('[GET /api/weight/today]', err);
+    res.status(500).json({ ok: false, error: err.message });
+  }
+});
+
+/**
+ * GET /api/weight/history?days=7
+ * Returns last N weight entries ordered by date desc.
+ */
+app.get('/api/weight/history', (req, res) => {
+  try {
+    const days = Math.min(30, Math.max(1, parseInt(req.query.days, 10) || 7));
+    const entries = db.getWeightHistory(days);
+    res.json({ ok: true, entries });
+  } catch (err) {
+    console.error('[GET /api/weight/history]', err);
     res.status(500).json({ ok: false, error: err.message });
   }
 });

@@ -64,6 +64,17 @@ db.exec(`
   );
 `);
 
+// Weight logs table — separate exec so it can be added independently
+db.exec(`
+  CREATE TABLE IF NOT EXISTS weight_logs (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    date       TEXT    NOT NULL UNIQUE,
+    weight_kg  REAL    NOT NULL,
+    logged_at  TEXT    NOT NULL,
+    notes      TEXT
+  );
+`);
+
 // ---------------------------------------------------------------------------
 // Day key helper  —  fluid day starts at 7:00 AM
 // ---------------------------------------------------------------------------
@@ -343,6 +354,27 @@ function setSetting(key, value) {
 // Initialize default settings on startup
 initDefaultSettings();
 
+// ---------------------------------------------------------------------------
+// weight_logs queries
+// ---------------------------------------------------------------------------
+
+function logWeight(date, weight_kg, notes) {
+  const logged_at = new Date().toISOString();
+  return db.prepare(
+    'INSERT OR REPLACE INTO weight_logs (date, weight_kg, logged_at, notes) VALUES (?, ?, ?, ?)'
+  ).run(date, weight_kg, logged_at, notes ?? null);
+}
+
+function getWeightForDate(date) {
+  return db.prepare('SELECT * FROM weight_logs WHERE date = ?').get(date) || null;
+}
+
+function getWeightHistory(days) {
+  return db.prepare(
+    'SELECT * FROM weight_logs ORDER BY date DESC LIMIT ?'
+  ).all(days);
+}
+
 module.exports = {
   db,
   getDayKey,
@@ -364,4 +396,7 @@ module.exports = {
   getAllSettings,
   setSetting,
   initDefaultSettings,
+  logWeight,
+  getWeightForDate,
+  getWeightHistory,
 };

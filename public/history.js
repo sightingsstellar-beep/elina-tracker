@@ -63,15 +63,30 @@ async function loadHistory() {
   container.innerHTML = '<div class="h-loading">Loading history…</div>';
 
   try {
-    const res = await fetch('/api/history?days=7');
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const data = await res.json();
+    const [histRes, weightRes] = await Promise.all([
+      fetch('/api/history?days=7'),
+      fetch('/api/weight/history?days=7'),
+    ]);
+
+    if (!histRes.ok) throw new Error(`HTTP ${histRes.status}`);
+    const data = await histRes.json();
 
     if (!data.ok || !Array.isArray(data.days)) {
       throw new Error('Invalid response from server');
     }
 
-    renderHistory(data.days);
+    // Build a map of date → weight_kg for quick lookup
+    let weightByDate = {};
+    if (weightRes.ok) {
+      const weightData = await weightRes.json();
+      if (weightData.ok && Array.isArray(weightData.entries)) {
+        for (const e of weightData.entries) {
+          weightByDate[e.date] = e.weight_kg;
+        }
+      }
+    }
+
+    renderHistory(data.days, weightByDate);
 
     document.getElementById('last-updated').textContent = new Date().toLocaleTimeString('en-US', {
       hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true,
@@ -86,7 +101,7 @@ async function loadHistory() {
 // Render
 // ---------------------------------------------------------------------------
 
-function renderHistory(days) {
+function renderHistory(days, weightByDate) {
   const container = document.getElementById('history-container');
   container.innerHTML = '';
 
@@ -97,7 +112,8 @@ function renderHistory(days) {
 
   days.forEach((day, index) => {
     const prevDay = days[index + 1] || null; // previous day (older)
-    const card = buildDayCard(day, prevDay);
+    const weightKg = weightByDate[day.dayKey] !== undefined ? weightByDate[day.dayKey] : null;
+    const card = buildDayCard(day, prevDay, weightKg);
     container.appendChild(card);
   });
 }
@@ -106,15 +122,17 @@ function renderHistory(days) {
 // Day card builder
 // ---------------------------------------------------------------------------
 
-function buildDayCard(day, prevDay) {
+function buildDayCard(day, prevDay, weightKg) {
   const card = document.createElement('div');
   card.className = 'day-card card' + (day.isToday ? ' is-today' : '');
 
   // ---- Header ----
+  const weightStr = weightKg !== null ? `⚖️ ${weightKg} kg` : '⚖️ —';
   const header = document.createElement('div');
   header.className = 'day-card-header';
   header.innerHTML = `
     <span class="day-label">${day.label}</span>
+    <span class="day-weight-badge">${weightStr}</span>
     ${day.isToday ? '<span class="today-badge">Today</span>' : ''}
   `;
   card.appendChild(header);
@@ -125,7 +143,8 @@ function buildDayCard(day, prevDay) {
     day.outputs.length > 0 ||
     day.gagCount > 0 ||
     day.wellness.afternoon !== null ||
-    day.wellness.evening !== null
+    day.wellness.evening !== null ||
+    weightKg !== null
   );
 
   if (!hasAnyData && !day.isToday) {

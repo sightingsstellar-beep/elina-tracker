@@ -97,6 +97,17 @@
   text-transform: uppercase;
 }
 
+.day-weight-badge {
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  background: var(--grey-light);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
 /* ---- Day Card Sections ---- */
 
 .day-section {

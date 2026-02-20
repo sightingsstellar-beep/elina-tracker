@@ -271,6 +271,123 @@ function renderWellness(wellnessArr) {
 }
 
 // ---------------------------------------------------------------------------
+// Daily Weight section
+// ---------------------------------------------------------------------------
+
+let weightYesterdayKg = null; // cached for trend comparison
+
+async function loadTodayWeight() {
+  try {
+    const res = await fetch('/api/weight/today');
+    if (!res.ok) return;
+    const data = await res.json();
+    renderWeightStatus(data.weight);
+
+    // Also fetch yesterday's weight for trend display
+    const histRes = await fetch('/api/weight/history?days=2');
+    if (histRes.ok) {
+      const histData = await histRes.json();
+      // entries are ordered desc by date — second entry is yesterday
+      if (histData.entries && histData.entries.length >= 2) {
+        weightYesterdayKg = histData.entries[1].weight_kg;
+      } else if (histData.entries && histData.entries.length === 1 && data.weight) {
+        // Only one entry exists (today's) — no yesterday
+        weightYesterdayKg = null;
+      }
+      // Re-render with trend now that we have yesterday
+      renderWeightStatus(data.weight);
+    }
+  } catch (err) {
+    console.error('[weight] Load error:', err.message);
+  }
+}
+
+function renderWeightStatus(entry) {
+  const statusEl = document.getElementById('weight-status');
+  const todayLabel = document.getElementById('weight-today-label');
+  const trendEl = document.getElementById('weight-trend');
+  const inputEl = document.getElementById('weight-input');
+
+  if (!entry) {
+    statusEl.style.display = 'none';
+    if (inputEl) inputEl.value = '';
+    return;
+  }
+
+  todayLabel.textContent = `Today: ${entry.weight_kg} kg`;
+
+  // Trend vs yesterday
+  trendEl.textContent = '';
+  trendEl.className = '';
+  if (weightYesterdayKg !== null && typeof weightYesterdayKg === 'number') {
+    const diff = Math.round((entry.weight_kg - weightYesterdayKg) * 10) / 10;
+    if (diff > 0.1) {
+      trendEl.textContent = `↑ +${diff} kg`;
+      trendEl.className = 'weight-trend-up';
+    } else if (diff < -0.1) {
+      trendEl.textContent = `↓ ${diff} kg`;
+      trendEl.className = 'weight-trend-down';
+    } else {
+      trendEl.textContent = '→ stable';
+      trendEl.className = 'weight-trend-flat';
+    }
+  }
+
+  statusEl.style.display = 'flex';
+}
+
+document.getElementById('weight-log-btn').addEventListener('click', async () => {
+  const inputEl = document.getElementById('weight-input');
+  const btn = document.getElementById('weight-log-btn');
+  const val = parseFloat(inputEl.value);
+
+  if (isNaN(val) || val <= 0) {
+    inputEl.focus();
+    return;
+  }
+
+  const originalText = btn.textContent;
+  btn.textContent = '⏳';
+  btn.disabled = true;
+
+  try {
+    const res = await fetch('/api/weight', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ weight_kg: val }),
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+
+    btn.textContent = '✅ Saved';
+    inputEl.value = '';
+    await loadTodayWeight();
+
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }, 1500);
+  } catch (err) {
+    console.error('[weight] Log error:', err.message);
+    btn.textContent = '❌ Error';
+    setTimeout(() => {
+      btn.textContent = originalText;
+      btn.disabled = false;
+    }, 2000);
+  }
+});
+
+document.getElementById('weight-update-btn').addEventListener('click', () => {
+  const inputEl = document.getElementById('weight-input');
+  inputEl.focus();
+  // Scroll to weight card
+  document.getElementById('weight-card').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+});
+
+// Load weight on startup
+loadTodayWeight();
+
+// ---------------------------------------------------------------------------
 // Quick Log buttons
 // ---------------------------------------------------------------------------
 

@@ -295,6 +295,7 @@ bot.on('message', async (msg) => {
   // Persist all actions
   const now = Date.now();
   const dayKey = db.getDayKey();
+  let weightAction = null;
 
   for (const action of parsed.actions) {
     try {
@@ -319,10 +320,44 @@ bot.on('message', async (msg) => {
         });
       } else if (action.type === 'gag') {
         db.logGag(action.count, now);
+      } else if (action.type === 'weight') {
+        db.logWeight(dayKey, action.weight_kg, null);
+        weightAction = action;
       }
     } catch (dbErr) {
       console.error('[bot] DB error logging action:', dbErr.message, action);
     }
+  }
+
+  // If weight was logged, send a dedicated weight confirmation with trend
+  if (weightAction !== null) {
+    try {
+      // Look up yesterday's weight for trend
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const yesterdayKey = db.getDayKey(yesterday);
+      const prevEntry = db.getWeightForDate(yesterdayKey);
+
+      let trendStr = '';
+      if (prevEntry && typeof prevEntry.weight_kg === 'number') {
+        const diff = Math.round((weightAction.weight_kg - prevEntry.weight_kg) * 10) / 10;
+        if (diff > 0.1) {
+          trendStr = ` (↑ ${diff} kg vs yesterday)`;
+        } else if (diff < -0.1) {
+          trendStr = ` (↓ ${Math.abs(diff)} kg vs yesterday)`;
+        } else {
+          trendStr = ' (→ stable vs yesterday)';
+        }
+      }
+
+      bot.sendMessage(chatId, `⚖️ Weight logged: ${weightAction.weight_kg} kg${trendStr}`);
+    } catch (weightErr) {
+      console.error('[bot] Weight confirmation error:', weightErr.message);
+      bot.sendMessage(chatId, `⚖️ Weight logged: ${weightAction.weight_kg} kg`);
+    }
+
+    // If weight was the only action, skip the standard fluid confirmation
+    if (parsed.actions.every((a) => a.type === 'weight')) return;
   }
 
   // Build and send confirmation

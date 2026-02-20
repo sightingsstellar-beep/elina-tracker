@@ -80,6 +80,24 @@
       </div>
     </section>
 
+    <!-- ========== DAILY WEIGHT ========== -->
+    <section class="card" id="weight-card">
+      <div class="card-header">
+        <span class="card-icon">⚖️</span>
+        <h2>Daily Weight</h2>
+      </div>
+      <div class="weight-log-row">
+        <input type="number" id="weight-input" min="1" max="99" step="0.1" placeholder="e.g. 14.2" />
+        <span class="weight-unit-label">kg</span>
+        <button class="btn-log-weight" id="weight-log-btn">Log Weight</button>
+      </div>
+      <div class="weight-status" id="weight-status" style="display:none;">
+        <span id="weight-today-label"></span>
+        <span id="weight-trend"></span>
+        <button class="weight-update-link" id="weight-update-btn">Update</button>
+      </div>
+    </section>
+
     <!-- ========== INTAKE SECTION ========== -->
     <section class="card intake-card" id="intake-section">
       <div class="card-header">

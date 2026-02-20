@@ -48,6 +48,10 @@ Return ONLY a valid JSON object with this structure:
     {
       "type": "gag",
       "count": <integer, minimum 1>
+    },
+    {
+      "type": "weight",
+      "weight_kg": <number>
     }
   ],
   "unparseable": false,
@@ -62,6 +66,7 @@ Rules:
 - Wellness check: extract appetite, energy, mood, cyanosis scores (1-10). "cyan" = cyanosis. Infer check_time from context or default to "5pm".
 - Amounts: "about", "roughly", "approximately", "~" are fine — use the number.
 - amount_ml is REQUIRED for every input and every output. If no amount is stated or inferable, do NOT include that action — set "unparseable": true instead.
+- Weight: "weight 14.2" / "weight is 14.3 kg" / "she weighs 14.2" / "14.2 kg weight" → type "weight" with weight_kg as a positive number in kg. If given in lbs, convert to kg (divide by 2.205) and round to 2 decimal places. weight_kg is REQUIRED — if no number given, set unparseable: true.
 - If the message contains NO recognizable entries, set "unparseable": true and actions: [].
 - Do NOT include any explanation or markdown — return raw JSON only.
 - Clamp wellness scores to 1–10.
@@ -153,6 +158,13 @@ async function parseMessage(message) {
         ? Math.round(action.count)
         : 1;
       sanitized.push({ type: 'gag', count });
+    } else if (action.type === 'weight') {
+      if (typeof action.weight_kg === 'number' && action.weight_kg > 0) {
+        sanitized.push({
+          type: 'weight',
+          weight_kg: Math.round(action.weight_kg * 100) / 100,
+        });
+      }
     }
   }
 
