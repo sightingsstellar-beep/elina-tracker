@@ -833,32 +833,6 @@ app.post('/api/settings', (req, res) => {
   }
 });
 
-// TEMPORARY — remove after use
-app.get('/api/admin/flush', (req, res) => {
-  try {
-    const before = {
-      fluid_logs:      db.db.prepare('SELECT COUNT(*) as n FROM fluid_logs').get().n,
-      wellness_checks: db.db.prepare('SELECT COUNT(*) as n FROM wellness_checks').get().n,
-      gag_events:      db.db.prepare('SELECT COUNT(*) as n FROM gag_events').get().n,
-    };
-    db.db.exec('DELETE FROM fluid_logs; DELETE FROM wellness_checks; DELETE FROM gag_events;');
-    const after = {
-      fluid_logs:      db.db.prepare('SELECT COUNT(*) as n FROM fluid_logs').get().n,
-      wellness_checks: db.db.prepare('SELECT COUNT(*) as n FROM wellness_checks').get().n,
-      gag_events:      db.db.prepare('SELECT COUNT(*) as n FROM gag_events').get().n,
-    };
-    res.type('text/plain').send(
-      '✅ DATABASE FLUSHED\n\n' +
-      `fluid_logs:      ${before.fluid_logs} → ${after.fluid_logs}\n` +
-      `wellness_checks: ${before.wellness_checks} → ${after.wellness_checks}\n` +
-      `gag_events:      ${before.gag_events} → ${after.gag_events}\n\n` +
-      'Settings and sessions untouched.'
-    );
-  } catch (err) {
-    res.status(500).type('text/plain').send('❌ ' + err.message);
-  }
-});
-
 // Settings page
 app.get('/settings', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'settings.html'));
