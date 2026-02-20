@@ -39,7 +39,6 @@ updateClock();
 
 const FIELD_IDS = [
   'child_name',
-  'child_pronouns',
   'daily_limit_ml',
   'day_start_hour',
   'warn_threshold_yellow',

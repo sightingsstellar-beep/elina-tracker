@@ -15,18 +15,33 @@
 <body>
   <!-- ========== HEADER ========== -->
   <header class="header">
-    <div class="header-left">
-      <h1 class="title"><span id="child-name">…</span> <span class="heart">💙</span></h1>
-      <div class="subtitle" id="current-date">Loading...</div>
-    </div>
-    <div class="header-right">
-      <div class="header-btn-row">
-        <a href="/" class="history-toggle-btn" aria-label="Back to today">📊 Today</a>
-        <a href="/history" class="history-toggle-btn" aria-label="View history">📅 History</a>
-        <a href="/settings" class="history-toggle-btn" aria-label="Settings">⚙️ Settings</a>
+    <div class="header-top">
+      <div class="header-left">
+        <h1 class="title"><span id="child-name">…</span> <span class="heart">💙</span></h1>
+        <div class="subtitle" id="current-date">Loading...</div>
       </div>
-      <div class="clock" id="current-time">--:--</div>
+      <div class="header-right">
+        <div class="clock" id="current-time">--:--</div>
+      </div>
     </div>
+    <nav class="tab-bar">
+      <a href="/" class="tab-item">
+        <span class="tab-icon">📊</span>
+        <span class="tab-label">Today</span>
+      </a>
+      <a href="/history" class="tab-item">
+        <span class="tab-icon">📅</span>
+        <span class="tab-label">History</span>
+      </a>
+      <a href="/chat" class="tab-item active">
+        <span class="tab-icon">🎤</span>
+        <span class="tab-label">Chat</span>
+      </a>
+      <a href="/settings" class="tab-item">
+        <span class="tab-icon">⚙️</span>
+        <span class="tab-label">Settings</span>
+      </a>
+    </nav>
   </header>
 
   <main class="chat-main">

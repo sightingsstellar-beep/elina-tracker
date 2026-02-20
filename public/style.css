@@ -48,16 +48,29 @@ body {
    ============================================================ */
 
 .header {
-  background: linear-gradient(135deg, var(--blue) 0%, #1557b0 100%);
-  color: white;
-  padding: 20px 20px 24px;
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
+}
+
+.header-top {
+  background: linear-gradient(135deg, var(--blue) 0%, #1557b0 100%);
+  color: white;
+  padding: 14px 20px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header-left {
+  min-width: 0;
+}
+
+.header-right {
+  text-align: right;
+  flex-shrink: 0;
+  padding-left: 12px;
 }
 
 .title {
@@ -82,52 +95,65 @@ body {
   margin-top: 4px;
 }
 
-.header-right {
-  text-align: right;
-}
-
 .clock {
-  font-size: 1.4rem;
+  font-size: 1.3rem;
   font-weight: 600;
   font-variant-numeric: tabular-nums;
   letter-spacing: 1px;
 }
 
 .refresh-indicator {
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   opacity: 0.7;
-  margin-top: 4px;
+  margin-top: 3px;
   cursor: default;
+  text-align: right;
 }
 
-/* Row of header navigation buttons */
-.header-btn-row {
+/* ---- Tab bar ---- */
+
+.tab-bar {
+  background: white;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  border-bottom: 1px solid var(--border);
+}
+
+.tab-item {
   display: flex;
-  gap: 6px;
-  margin-bottom: 6px;
-  justify-content: flex-end;
-  flex-wrap: wrap;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 10px 4px 8px;
+  text-decoration: none;
+  color: var(--text-secondary);
+  font-size: 0.72rem;
+  font-weight: 500;
+  gap: 3px;
+  border-bottom: 3px solid transparent;
+  transition: color 0.15s, border-color 0.15s;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
 }
 
-/* History toggle button — shown in header of main dashboard */
-.history-toggle-btn {
-  display: inline-block;
-  background: rgba(255, 255, 255, 0.18);
-  color: white;
-  text-decoration: none;
-  border: 1.5px solid rgba(255, 255, 255, 0.4);
-  border-radius: 20px;
-  padding: 5px 13px;
-  font-size: 0.8rem;
-  font-weight: 600;
-  letter-spacing: 0.2px;
-  transition: background 0.15s;
+.tab-icon {
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.tab-label {
+  line-height: 1;
   white-space: nowrap;
 }
 
-.history-toggle-btn:hover,
-.history-toggle-btn:active {
-  background: rgba(255, 255, 255, 0.32);
+.tab-item.active {
+  color: var(--blue);
+  border-bottom-color: var(--blue);
+  font-weight: 700;
+}
+
+.tab-item:active {
+  background: var(--blue-light);
 }
 
 /* ============================================================
