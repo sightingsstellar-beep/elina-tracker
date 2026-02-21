@@ -302,6 +302,25 @@ function closestWellnessValue(score, options) {
 }
 
 /**
+ * Map a stored wellness value (numeric string, number, or legacy text label)
+ * to a clamped integer 1–10. Returns null if unresolvable.
+ */
+const WELLNESS_LABEL_MAP = {
+  'high': 8, 'great': 8, 'happy': 8,
+  'normal': 6, 'good': 6, 'content': 6,
+  'low': 4, 'fair': 4, 'irritable': 4,
+  'very low': 2, 'poor': 2, 'upset': 2,
+};
+
+function resolveWellnessValue(val) {
+  if (val === null || val === undefined) return null;
+  const n = typeof val === 'number' ? val : parseInt(val, 10);
+  if (!isNaN(n)) return Math.min(10, Math.max(1, n));
+  const key = String(val).toLowerCase().trim();
+  return WELLNESS_LABEL_MAP[key] ?? null;
+}
+
+/**
  * Auto-select the period based on current time:
  * Before 8pm local time → Afternoon; 8pm or later → Evening.
  */
@@ -350,7 +369,7 @@ function renderWellnessCard() {
   const resultEl = document.getElementById('wellness-save-result');
   resultEl.style.display = 'none';
 
-  // Render button groups
+  // Render button groups (cyanosis only)
   const groups = document.querySelectorAll('.wellness-btn-group');
   groups.forEach((group) => {
     const metric = group.dataset.metric;
@@ -375,20 +394,54 @@ function renderWellnessCard() {
       btn.classList.toggle('wellness-choice-btn--readonly', isReadOnly);
     });
   });
+
+  // Render sliders (energy, appetite, mood)
+  for (const metric of ['energy', 'appetite', 'mood']) {
+    const slider = document.getElementById(`${metric}-slider`);
+    const numEl = document.getElementById(`${metric}-value`);
+    const wrapEl = document.getElementById(`${metric}-slider-wrap`);
+    const readonlyEl = document.getElementById(`${metric}-readonly`);
+    if (!slider) continue;
+
+    if (isLogged) {
+      const storedScore = loggedData[metric];
+      const numVal = resolveWellnessValue(storedScore);
+      slider.value = numVal !== null ? numVal : 5;
+      if (numEl) numEl.textContent = slider.value;
+    }
+
+    if (isReadOnly) {
+      if (wrapEl) wrapEl.style.display = 'none';
+      if (readonlyEl) {
+        readonlyEl.style.display = 'block';
+        readonlyEl.textContent = `${slider.value} / 10`;
+      }
+    } else {
+      if (wrapEl) wrapEl.style.display = 'block';
+      if (readonlyEl) readonlyEl.style.display = 'none';
+    }
+  }
 }
 
 /**
- * Get current wellness selections from button groups.
+ * Get current wellness selections.
+ * Cyanosis comes from button groups; energy/appetite/mood come from sliders.
  * Returns { cyanosis, energy, appetite, mood } as numeric scores.
  */
 function getWellnessSelections() {
   const result = {};
+  // Cyanosis still uses buttons
   const groups = document.querySelectorAll('.wellness-btn-group');
   groups.forEach((group) => {
     const metric = group.dataset.metric;
     const activeBtn = group.querySelector('.wellness-choice-btn.active');
     result[metric] = activeBtn ? parseFloat(activeBtn.dataset.value) : null;
   });
+  // Energy, appetite, mood use sliders
+  for (const metric of ['energy', 'appetite', 'mood']) {
+    const slider = document.getElementById(`${metric}-slider`);
+    result[metric] = slider ? parseInt(slider.value, 10) : null;
+  }
   return result;
 }
 
@@ -474,6 +527,17 @@ document.getElementById('save-wellness-btn').addEventListener('click', async () 
     }, 2000);
   }
 });
+
+// Wire up slider live-update (show current value as user drags)
+for (const metric of ['energy', 'appetite', 'mood']) {
+  const slider = document.getElementById(`${metric}-slider`);
+  const numEl = document.getElementById(`${metric}-value`);
+  if (slider && numEl) {
+    slider.addEventListener('input', () => {
+      numEl.textContent = slider.value;
+    });
+  }
+}
 
 // Initialize wellness period on load
 initWellnessPeriod();

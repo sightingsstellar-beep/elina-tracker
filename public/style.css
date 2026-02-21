@@ -979,6 +979,88 @@ body {
   cursor: not-allowed;
 }
 
+/* ---- Wellness sliders (energy, appetite, mood) ---- */
+
+.wellness-slider-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.wellness-slider-num {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--blue);
+  min-width: 2ch;
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+.wellness-slider-wrap {
+  display: block;
+}
+
+.wellness-slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  background: #e8eaed;
+  border-radius: 3px;
+  outline: none;
+  cursor: pointer;
+  accent-color: var(--blue);
+}
+
+.wellness-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--blue);
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+  transition: background 0.15s, box-shadow 0.15s;
+}
+
+.wellness-slider::-webkit-slider-thumb:hover {
+  background: #1558c0;
+  box-shadow: 0 2px 8px rgba(26,115,232,0.35);
+}
+
+.wellness-slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--blue);
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.2);
+}
+
+.wellness-slider:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.wellness-slider-endlabels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.7rem;
+  color: var(--text-secondary);
+  margin-top: 4px;
+  padding: 0 2px;
+}
+
+.wellness-slider-readonly {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  padding: 4px 0;
+}
+
 /* Save result message */
 .wellness-save-result {
   margin-top: 10px;

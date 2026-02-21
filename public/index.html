@@ -144,33 +144,39 @@
         </div>
 
         <div class="wellness-metric-group">
-          <div class="wellness-metric-label">Energy</div>
-          <div class="wellness-btn-group" data-metric="energy">
-            <button class="wellness-choice-btn" data-value="9">High</button>
-            <button class="wellness-choice-btn" data-value="7">Normal</button>
-            <button class="wellness-choice-btn" data-value="4">Low</button>
-            <button class="wellness-choice-btn" data-value="2">Very Low</button>
+          <div class="wellness-slider-header">
+            <span class="wellness-metric-label">Energy</span>
+            <span class="wellness-slider-num" id="energy-value">5</span>
           </div>
+          <div class="wellness-slider-wrap" id="energy-slider-wrap">
+            <input type="range" class="wellness-slider" id="energy-slider" data-metric="energy" min="1" max="10" step="1" value="5" />
+            <div class="wellness-slider-endlabels"><span>1</span><span>10</span></div>
+          </div>
+          <div class="wellness-slider-readonly" id="energy-readonly" style="display:none;"></div>
         </div>
 
         <div class="wellness-metric-group">
-          <div class="wellness-metric-label">Appetite</div>
-          <div class="wellness-btn-group" data-metric="appetite">
-            <button class="wellness-choice-btn" data-value="9">Great</button>
-            <button class="wellness-choice-btn" data-value="7">Good</button>
-            <button class="wellness-choice-btn" data-value="4">Fair</button>
-            <button class="wellness-choice-btn" data-value="2">Poor</button>
+          <div class="wellness-slider-header">
+            <span class="wellness-metric-label">Appetite</span>
+            <span class="wellness-slider-num" id="appetite-value">5</span>
           </div>
+          <div class="wellness-slider-wrap" id="appetite-slider-wrap">
+            <input type="range" class="wellness-slider" id="appetite-slider" data-metric="appetite" min="1" max="10" step="1" value="5" />
+            <div class="wellness-slider-endlabels"><span>1</span><span>10</span></div>
+          </div>
+          <div class="wellness-slider-readonly" id="appetite-readonly" style="display:none;"></div>
         </div>
 
         <div class="wellness-metric-group">
-          <div class="wellness-metric-label">Mood</div>
-          <div class="wellness-btn-group" data-metric="mood">
-            <button class="wellness-choice-btn" data-value="9">Happy</button>
-            <button class="wellness-choice-btn" data-value="7">Content</button>
-            <button class="wellness-choice-btn" data-value="4">Irritable</button>
-            <button class="wellness-choice-btn" data-value="2">Upset</button>
+          <div class="wellness-slider-header">
+            <span class="wellness-metric-label">Mood</span>
+            <span class="wellness-slider-num" id="mood-value">5</span>
           </div>
+          <div class="wellness-slider-wrap" id="mood-slider-wrap">
+            <input type="range" class="wellness-slider" id="mood-slider" data-metric="mood" min="1" max="10" step="1" value="5" />
+            <div class="wellness-slider-endlabels"><span>1</span><span>10</span></div>
+          </div>
+          <div class="wellness-slider-readonly" id="mood-readonly" style="display:none;"></div>
         </div>
 
       </div>
