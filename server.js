@@ -179,7 +179,11 @@ function alexaResponse(ssml, shouldEndSession = true, repromptSsml = null, direc
 }
 
 function supportsApl(req) {
-  return !!(req.body?.context?.System?.device?.supportedInterfaces?.['Alexa.Presentation.APL']);
+  // Check both supportedInterfaces (not always populated) and context.Viewport
+  // (always present on screen devices — more reliable for Echo Spot / Echo Show).
+  const hasAplInterface = !!(req.body?.context?.System?.device?.supportedInterfaces?.['Alexa.Presentation.APL']);
+  const hasViewport = !!(req.body?.context?.Viewport);
+  return hasAplInterface || hasViewport;
 }
 
 function buildAplDirective(intakeMl, limitMl, mode, selectedFluid) {
@@ -362,8 +366,10 @@ app.post('/api/alexa', async (req, res) => {
     // -- LaunchRequest: skill opened with no command
     if (request.type === 'LaunchRequest') {
       const supportedInterfaces = req.body?.context?.System?.device?.supportedInterfaces || {};
+      const viewport = req.body?.context?.Viewport || null;
       const aplSupported = supportsApl(req);
       console.log('[alexa] LaunchRequest — supportedInterfaces:', JSON.stringify(supportedInterfaces));
+      console.log('[alexa] LaunchRequest — viewport:', JSON.stringify(viewport));
       console.log('[alexa] LaunchRequest — supportsApl:', aplSupported);
       const directives = [];
       if (aplSupported) {
