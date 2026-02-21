@@ -250,22 +250,17 @@ function buildAplDirective(intakeMl, limitMl, mode, selectedFluid) {
       type: 'APL',
       version: '1.5',
       theme: 'dark',
+      background: '#1a1a2e',
       mainTemplate: {
         parameters: ['payload'],
-        items: [{
-          // Frame gives us a proper background color on the root element
-          type: 'Frame',
+        item: {
+          type: 'Container',
           width: '100vw',
           height: '100vh',
-          backgroundColor: '#1a1a2e',
-          item: {
-            type: 'Container',
-            width: '100%',
-            height: '100%',
-            alignItems: 'center',
-            justifyContent: 'center',
-            paddingLeft: '24dp',
-            paddingRight: '24dp',
+          alignItems: 'center',
+          justifyContent: 'center',
+          paddingLeft: '24dp',
+          paddingRight: '24dp',
             items: [
               // ── Progress text ──────────────────────────────────────
               {
@@ -326,8 +321,7 @@ function buildAplDirective(intakeMl, limitMl, mode, selectedFluid) {
                 ],
               },
             ],
-          },
-        }],
+        },
       },
     },
     datasources: {
