@@ -361,8 +361,12 @@ app.post('/api/alexa', async (req, res) => {
 
     // -- LaunchRequest: skill opened with no command
     if (request.type === 'LaunchRequest') {
+      const supportedInterfaces = req.body?.context?.System?.device?.supportedInterfaces || {};
+      const aplSupported = supportsApl(req);
+      console.log('[alexa] LaunchRequest — supportedInterfaces:', JSON.stringify(supportedInterfaces));
+      console.log('[alexa] LaunchRequest — supportsApl:', aplSupported);
       const directives = [];
-      if (supportsApl(req)) {
+      if (aplSupported) {
         const summary = db.getDaySummary(db.getDayKey());
         const limit = getDailyLimit();
         directives.push(buildAplDirective(summary.totalIntake, limit, 'input', null));
