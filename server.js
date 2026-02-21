@@ -278,8 +278,8 @@ app.post('/api/alexa', async (req, res) => {
       console.log('[alexa] LaunchRequest — viewport:', JSON.stringify(viewport));
       console.log('[alexa] LaunchRequest — supportsApl:', aplSupported);
       if (aplSupported) {
-        // Bare minimum APL response — no speech, no reprompt, no shouldEndSession
-        // Matches Amazon's minimal APL sample exactly, to isolate config vs code issues
+        // APL response: include speech + directive, but NO reprompt
+        // (reprompt conflicts with APL touch sessions on screen devices)
         const summary = db.getDaySummary(db.getDayKey());
         const limit = getDailyLimit();
         const aplDirective = buildAplDirective(summary.totalIntake, limit, 'input', null);
@@ -287,6 +287,8 @@ app.post('/api/alexa', async (req, res) => {
         return res.json({
           version: '1.0',
           response: {
+            outputSpeech: { type: 'SSML', ssml: '<speak>Wellness tracker ready.</speak>' },
+            shouldEndSession: false,
             directives: [aplDirective],
           },
         });
