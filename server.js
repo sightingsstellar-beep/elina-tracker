@@ -277,25 +277,25 @@ app.post('/api/alexa', async (req, res) => {
       console.log('[alexa] LaunchRequest — supportedInterfaces:', JSON.stringify(supportedInterfaces));
       console.log('[alexa] LaunchRequest — viewport:', JSON.stringify(viewport));
       console.log('[alexa] LaunchRequest — supportsApl:', aplSupported);
-      const directives = [];
       if (aplSupported) {
+        // Bare minimum APL response — no speech, no reprompt, no shouldEndSession
+        // Matches Amazon's minimal APL sample exactly, to isolate config vs code issues
         const summary = db.getDaySummary(db.getDayKey());
         const limit = getDailyLimit();
-        directives.push(buildAplDirective(summary.totalIntake, limit, 'input', null));
+        const aplDirective = buildAplDirective(summary.totalIntake, limit, 'input', null);
+        console.log('[alexa] APL full directive JSON:', JSON.stringify(aplDirective));
+        return res.json({
+          version: '1.0',
+          response: {
+            directives: [aplDirective],
+          },
+        });
       }
-      const launchResp = alexaResponse(
+      return res.json(alexaResponse(
         'Wellness tracker ready. What would you like to log?',
         false,
-        'You can say things like: log 120 milliliters pediasure, or log pee 85 milliliters.',
-        directives
-      );
-      console.log('[alexa] LaunchRequest — directives count:', directives.length);
-      if (directives.length > 0) {
-        const d = directives[0];
-        console.log('[alexa] APL directive type:', d.type, '| doc version:', d.document?.version, '| mainTemplate keys:', Object.keys(d.document?.mainTemplate || {}));
-        console.log('[alexa] APL full directive JSON:', JSON.stringify(d));
-      }
-      return res.json(launchResp);
+        'You can say things like: log 120 milliliters pediasure, or log pee 85 milliliters.'
+      ));
     }
 
     // -- APL UserEvent: touch interactions from the screen
