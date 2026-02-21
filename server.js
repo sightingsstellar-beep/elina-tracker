@@ -223,112 +223,21 @@ function aplSelectedButton(label, args, selected) {
   };
 }
 
+// DIAGNOSTIC: absolute-minimum APL to confirm the mechanism works.
+// If this renders, we'll layer the full UI back. If this fails,
+// the issue is at the response/infrastructure level, not the document.
 function buildAplDirective(intakeMl, limitMl, mode, selectedFluid) {
-  const pct = Math.min(100, Math.round((intakeMl / limitMl) * 100));
-  const isInput = (mode || 'input') === 'input';
-
-  // Fluid buttons — resolved at build time (no ternary in APL style props)
-  const inputFluids = [
-    aplSelectedButton('💧 Water',     ['select', 'water',     mode], selectedFluid === 'water'),
-    { type: 'Container', width: '6dp' },
-    aplSelectedButton('🍼 PediaSure', ['select', 'pediasure', mode], selectedFluid === 'pediasure'),
-    { type: 'Container', width: '6dp' },
-    aplSelectedButton('🥛 Milk',      ['select', 'milk',      mode], selectedFluid === 'milk'),
-  ];
-  const outputFluids = [
-    aplSelectedButton('🚽 Urine', ['select', 'urine', mode], selectedFluid === 'urine'),
-    { type: 'Container', width: '6dp' },
-    aplSelectedButton('💩 Poop',  ['select', 'poop',  mode], selectedFluid === 'poop'),
-    { type: 'Container', width: '6dp' },
-    aplSelectedButton('🤢 Vomit', ['select', 'vomit', mode], selectedFluid === 'vomit'),
-  ];
-
   return {
     type: 'Alexa.Presentation.APL.RenderDocument',
     token: 'tracker-ui',
     document: {
       type: 'APL',
       version: '1.5',
-      theme: 'dark',
-      background: '#1a1a2e',
       mainTemplate: {
-        parameters: ['payload'],
         item: {
-          type: 'Container',
-          width: '100vw',
-          height: '100vh',
-          alignItems: 'center',
-          justifyContent: 'center',
-          paddingLeft: '24dp',
-          paddingRight: '24dp',
-            items: [
-              // ── Progress text ──────────────────────────────────────
-              {
-                type: 'Text',
-                text: '${payload.intake} / ${payload.limit} ml · ${payload.pct}%',
-                color: '#cccccc',
-                fontSize: '18dp',
-                textAlign: 'center',
-              },
-              { type: 'Container', height: '8dp' },
-              // ── Progress bar ───────────────────────────────────────
-              {
-                type: 'Frame',
-                width: '100%',
-                height: '12dp',
-                backgroundColor: '#2a2a3e',
-                borderRadius: 6,
-                item: {
-                  type: 'Frame',
-                  width: '${payload.pct}%',
-                  height: '12dp',
-                  backgroundColor: '#4a9eff',
-                  borderRadius: 6,
-                },
-              },
-              { type: 'Container', height: '16dp' },
-              // ── Mode toggle ────────────────────────────────────────
-              {
-                type: 'Container',
-                direction: 'row',
-                justifyContent: 'center',
-                items: [
-                  aplSelectedButton('⬆ Input',  ['mode', 'input'],  isInput),
-                  { type: 'Container', width: '12dp' },
-                  aplSelectedButton('⬇ Output', ['mode', 'output'], !isInput),
-                ],
-              },
-              { type: 'Container', height: '12dp' },
-              // ── Fluid type buttons (resolved server-side) ──────────
-              {
-                type: 'Container',
-                direction: 'row',
-                justifyContent: 'center',
-                items: isInput ? inputFluids : outputFluids,
-              },
-              { type: 'Container', height: '12dp' },
-              // ── Amount buttons ─────────────────────────────────────
-              {
-                type: 'Container',
-                direction: 'row',
-                justifyContent: 'center',
-                items: [
-                  aplButton('+10 ml',  ['log', selectedFluid, 10,  mode]),
-                  { type: 'Container', width: '8dp' },
-                  aplButton('+50 ml',  ['log', selectedFluid, 50,  mode]),
-                  { type: 'Container', width: '8dp' },
-                  aplButton('+100 ml', ['log', selectedFluid, 100, mode]),
-                ],
-              },
-            ],
+          type: 'Text',
+          text: 'Wellness Tracker',
         },
-      },
-    },
-    datasources: {
-      payload: {
-        intake: intakeMl,
-        limit: limitMl,
-        pct,
       },
     },
   };
@@ -385,6 +294,7 @@ app.post('/api/alexa', async (req, res) => {
       if (directives.length > 0) {
         const d = directives[0];
         console.log('[alexa] APL directive type:', d.type, '| doc version:', d.document?.version, '| mainTemplate keys:', Object.keys(d.document?.mainTemplate || {}));
+        console.log('[alexa] APL full directive JSON:', JSON.stringify(d));
       }
       return res.json(launchResp);
     }
