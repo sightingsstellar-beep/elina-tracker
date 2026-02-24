@@ -710,9 +710,9 @@ function hidePoopSubtypePopup() {
 document.querySelectorAll('.poop-subtype-btn').forEach((btn) => {
   btn.addEventListener('click', () => {
     const subtype = btn.dataset.subtype;
-    const sourceBtn = activePoopQuickBtn;
     hidePoopSubtypePopup();
-    submitQuickLog({ type: 'output', fluid_type: 'poop', subtype, amount_ml: null }, sourceBtn);
+    pendingQuickLog = { type: 'output', fluid_type: 'poop', subtype };
+    showModal();
   });
 });
 
