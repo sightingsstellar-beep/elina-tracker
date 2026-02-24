@@ -698,18 +698,6 @@ function showPoopSubtypePopup(anchorBtn) {
   if (!popup || !anchorBtn) return;
   activePoopQuickBtn = anchorBtn;
   popup.style.display = 'block';
-
-  const anchorRect = anchorBtn.getBoundingClientRect();
-  const popupRect = popup.getBoundingClientRect();
-  const margin = 8;
-  let left = anchorRect.left + (anchorRect.width / 2) - (popupRect.width / 2);
-  left = Math.max(margin, Math.min(left, window.innerWidth - popupRect.width - margin));
-  let top = anchorRect.bottom + 8;
-  if (top + popupRect.height > window.innerHeight - margin) {
-    top = anchorRect.top - popupRect.height - 8;
-  }
-  popup.style.left = `${Math.max(margin, left)}px`;
-  popup.style.top = `${Math.max(margin, top)}px`;
 }
 
 function hidePoopSubtypePopup() {
