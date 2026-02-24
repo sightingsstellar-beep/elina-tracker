@@ -18,6 +18,7 @@ const { parseMessage } = require('./parser');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const API_KEY = process.env.API_KEY; // Programmatic access (Mr. Stellar)
 
 // Railway (and most PaaS) sit behind a reverse proxy — needed for
 // secure cookies and correct req.ip / req.protocol values.
@@ -480,8 +481,11 @@ app.post('/api/alexa', async (req, res) => {
   }
 });
 
-// Auth gate — everything below this line requires a valid session
+// Auth gate — everything below this line requires a valid session or API key
 function requireAuth(req, res, next) {
+  // API key auth (programmatic access — Mr. Stellar)
+  if (API_KEY && req.headers['x-api-key'] === API_KEY) return next();
+  // Session auth (browser access)
   if (req.session && req.session.authenticated) return next();
   if (req.path.startsWith('/api/')) {
     return res.status(401).json({ ok: false, error: 'Unauthorized' });
@@ -489,6 +493,23 @@ function requireAuth(req, res, next) {
   res.redirect('/login');
 }
 app.use(requireAuth);
+
+// ---------------------------------------------------------------------------
+// Database backup endpoint (API key only — for automated backups)
+// ---------------------------------------------------------------------------
+app.get('/api/backup', (req, res) => {
+  // Restrict to API key auth only (not browser sessions)
+  if (!API_KEY || req.headers['x-api-key'] !== API_KEY) {
+    return res.status(403).json({ ok: false, error: 'API key required for backup' });
+  }
+  const dataDir = process.env.DATA_DIR || path.join(__dirname, 'data');
+  const dbPath = path.join(dataDir, 'elina.db');
+  if (!fs.existsSync(dbPath)) {
+    return res.status(404).json({ ok: false, error: 'Database file not found' });
+  }
+  const datestamp = new Date().toISOString().slice(0, 10);
+  res.download(dbPath, `elina-backup-${datestamp}.db`);
+});
 
 // Static files (served after auth check)
 app.use(express.static(path.join(__dirname, 'public')));
