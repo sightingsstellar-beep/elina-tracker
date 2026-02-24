@@ -35,7 +35,8 @@ Return ONLY a valid JSON object with this structure:
     {
       "type": "output",
       "fluid_type": "<one of: urine, poop, vomit>",
-      "amount_ml": <number or null>
+      "amount_ml": <number or null>,
+      "subtype": "<optional for poop: normal | diarrhea | undigested>"
     },
     {
       "type": "wellness",
@@ -63,10 +64,14 @@ Rules:
 - A single message can produce multiple actions (e.g., "89ml urine and 100ml water" → one output + one input).
 - For inputs: map common synonyms: "pee" / "peed" / "wet diaper" → urine (output), "pediasure" / "pedi" → pediasure, "vitamin water" → vitamin_water, "yogurt drink" / "drinkable yogurt" → yogurt_drink, "formula" → pediasure.
 - "poop" / "pooped" / "BM" / "bowel movement" / "stool" → output type "poop". Amount is usually null unless stated.
+- Poop subtypes:
+  - "diarrhea" / "loose stool" / "watery poop" / "runny" → fluid_type "poop", subtype "diarrhea"
+  - "undigested" / "food in stool" / "didn't digest" / "undigested poop" → fluid_type "poop", subtype "undigested"
+  - generic "poop" / "BM" / "bowel movement" / "stool" without subtype qualifier → fluid_type "poop", subtype "normal"
 - Gag: "gagged" / "gag x2" / "she gagged once" / "gagging episode" → type "gag" with count.
 - Wellness check: extract appetite, energy, mood, cyanosis scores (1-10). "cyan" = cyanosis. Infer check_time from context or default to "5pm".
 - Amounts: "about", "roughly", "approximately", "~" are fine — use the number.
-- amount_ml is REQUIRED for every input and every output. If no amount is stated or inferable, do NOT include that action — set "unparseable": true instead.
+- amount_ml is REQUIRED for every input and every output EXCEPT poop. Poop amount is optional and may be null.
 - Weight: "weight 14.2" / "weight is 14.3 kg" / "she weighs 14.2" / "14.2 kg weight" → type "weight" with weight_kg as a positive number in kg. If given in lbs, convert to kg (divide by 2.205) and round to 2 decimal places. weight_kg is REQUIRED — if no number given, set unparseable: true.
 - If the message contains NO recognizable entries, set "unparseable": true and actions: [].
 - Do NOT include any explanation or markdown — return raw JSON only.
@@ -122,6 +127,7 @@ async function parseMessage(message) {
   // Sanitize each action
   const validInputTypes = ['water', 'juice', 'vitamin_water', 'milk', 'pediasure', 'yogurt_drink'];
   const validOutputTypes = ['urine', 'poop', 'vomit'];
+  const validPoopSubtypes = ['normal', 'diarrhea', 'undigested'];
 
   const sanitized = [];
   for (const action of parsed.actions) {
@@ -138,12 +144,18 @@ async function parseMessage(message) {
       });
     } else if (action.type === 'output') {
       if (!validOutputTypes.includes(action.fluid_type)) continue;
+      let subtype = null;
+      if (action.fluid_type === 'poop') {
+        const rawSubtype = typeof action.subtype === 'string' ? action.subtype.trim().toLowerCase() : '';
+        subtype = validPoopSubtypes.includes(rawSubtype) ? rawSubtype : 'normal';
+      }
       sanitized.push({
         type: 'output',
         fluid_type: action.fluid_type,
         amount_ml: typeof action.amount_ml === 'number' && action.amount_ml > 0
           ? Math.round(action.amount_ml * 10) / 10
           : null,
+        subtype,
       });
     } else if (action.type === 'wellness') {
       const clamp = (v) => (typeof v === 'number' ? Math.min(10, Math.max(1, Math.round(v))) : null);

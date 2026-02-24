@@ -66,6 +66,15 @@ function titleCase(str) {
   return str.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
 }
 
+function formatPoopSubtypeLabel(subtype) {
+  const map = {
+    normal: 'normal',
+    diarrhea: 'diarrhea',
+    undigested: 'undigested',
+  };
+  return map[subtype] || subtype;
+}
+
 /**
  * Builds a short confirmation message listing what was just logged,
  * with a brief intake + output summary.
@@ -81,7 +90,11 @@ function buildConfirmation(actions, summary) {
     } else if (action.type === 'output') {
       const label = formatFluidType(action.fluid_type);
       const amount = action.amount_ml ? ` ${action.amount_ml}ml` : '';
-      parts.push(`${label}${amount} (output)`);
+      if (action.fluid_type === 'poop' && action.subtype) {
+        parts.push(`${label} (${formatPoopSubtypeLabel(action.subtype)})${amount} (output)`);
+      } else {
+        parts.push(`${label}${amount} (output)`);
+      }
     } else if (action.type === 'wellness') {
       parts.push(`Wellness check (${action.check_time})`);
     } else if (action.type === 'gag') {
@@ -146,7 +159,8 @@ bot.onText(/^\/today$/, (msg) => {
         hour12: true,
       });
       const amt = o.amount_ml ? ` ${o.amount_ml}ml` : '';
-      text += `  • ${t} — ${formatFluidType(o.fluid_type)}${amt}\n`;
+      const poopSubtype = o.fluid_type === 'poop' && o.subtype ? ` (${formatPoopSubtypeLabel(o.subtype)})` : '';
+      text += `  • ${t} — ${formatFluidType(o.fluid_type)}${poopSubtype}${amt}\n`;
     }
 
     text += `\n🤢 *Gags:* ${summary.gagCount}\n`;
@@ -228,6 +242,7 @@ bot.onText(/^\/help$/, (msg) => {
       `• "pee 85ml" or "urine 85ml" — output\n` +
       `• "vomit, roughly 60ml" — output\n` +
       `• "pooped" — poop (no amount needed)\n` +
+      `• "diarrhea" or "undigested poop" — poop subtype\n` +
       `• "gag x2" or "she gagged once"\n` +
       `• "wellness: appetite 7, energy 4, mood 8, cyan 3"\n\n` +
       `*Commands:*\n` +
@@ -280,9 +295,11 @@ bot.on('message', async (msg) => {
   }
 
   // Require a measurement for every input and output
-  const missingAmount = parsed.actions.find(
-    (a) => (a.type === 'input' || a.type === 'output') && !a.amount_ml
-  );
+  const missingAmount = parsed.actions.find((a) => {
+    if (a.type === 'input') return !a.amount_ml;
+    if (a.type === 'output') return a.fluid_type !== 'poop' && !a.amount_ml;
+    return false;
+  });
   if (missingAmount) {
     const label = formatFluidType(missingAmount.fluid_type);
     return bot.sendMessage(
@@ -318,6 +335,7 @@ bot.on('message', async (msg) => {
           entry_type: action.type,
           fluid_type: action.fluid_type,
           amount_ml: action.amount_ml,
+          subtype: action.subtype ?? null,
           source: 'telegram',
         });
       } else if (action.type === 'wellness') {

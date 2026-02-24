@@ -412,9 +412,11 @@ app.post('/api/alexa', async (req, res) => {
       }
 
       // Reject if any input/output is missing an amount
-      const missingAmount = parsed.actions.find(
-        (a) => (a.type === 'input' || a.type === 'output') && !a.amount_ml
-      );
+      const missingAmount = parsed.actions.find((a) => {
+        if (a.type === 'input') return !a.amount_ml;
+        if (a.type === 'output') return a.fluid_type !== 'poop' && !a.amount_ml;
+        return false;
+      });
       if (missingAmount) {
         const label = formatFluidType(missingAmount.fluid_type);
         return res.json(alexaResponse(
@@ -436,6 +438,7 @@ app.post('/api/alexa', async (req, res) => {
             entry_type: action.type,
             fluid_type: action.fluid_type,
             amount_ml: action.amount_ml,
+            subtype: action.subtype ?? null,
             source: 'alexa',
           });
         } else if (action.type === 'wellness') {
@@ -587,6 +590,15 @@ function formatFluidType(type) {
   return map[type] || type;
 }
 
+function formatPoopSubtype(subtype) {
+  const map = {
+    normal: 'Normal',
+    diarrhea: 'Diarrhea',
+    undigested: 'Undigested',
+  };
+  return map[subtype] || null;
+}
+
 function getTimezone() {
   return db.getSetting('timezone') || process.env.TZ || 'America/New_York';
 }
@@ -710,6 +722,7 @@ app.post('/api/log', (req, res) => {
         entry_type: body.entry_type,
         fluid_type: body.fluid_type,
         amount_ml: body.amount_ml ?? null,
+        subtype: body.subtype ?? null,
         notes: body.notes ?? null,
         source: 'api',
       });
@@ -763,6 +776,7 @@ app.get('/api/history', (req, res) => {
       const outputs = summary.outputs.map((o) => ({
         id: o.id,
         fluid_type: o.fluid_type,
+        subtype: o.subtype ?? null,
         amount_ml: o.amount_ml,
         time: formatTimestamp(o.timestamp),
       }));
@@ -935,7 +949,12 @@ function buildChatConfirmation(actions, summary) {
     } else if (action.type === 'output') {
       const label = formatFluidType(action.fluid_type);
       const amount = action.amount_ml ? ` ${action.amount_ml}ml` : '';
-      parts.push(`${label}${amount} (output)`);
+      if (action.fluid_type === 'poop' && action.subtype) {
+        const subtypeLabel = formatPoopSubtype(action.subtype) || action.subtype;
+        parts.push(`${label} (${subtypeLabel.toLowerCase()})${amount} (output)`);
+      } else {
+        parts.push(`${label}${amount} (output)`);
+      }
     } else if (action.type === 'wellness') {
       parts.push(`Wellness check (${action.check_time})`);
     } else if (action.type === 'gag') {
@@ -976,9 +995,11 @@ app.post('/api/chat', async (req, res) => {
     }
 
     // Require a measurement for every input and output
-    const missingAmount = parsed.actions.find(
-      (a) => (a.type === 'input' || a.type === 'output') && !a.amount_ml
-    );
+    const missingAmount = parsed.actions.find((a) => {
+      if (a.type === 'input') return !a.amount_ml;
+      if (a.type === 'output') return a.fluid_type !== 'poop' && !a.amount_ml;
+      return false;
+    });
     if (missingAmount) {
       const label = formatFluidType(missingAmount.fluid_type);
       return res.json({
@@ -1001,6 +1022,7 @@ app.post('/api/chat', async (req, res) => {
           entry_type: action.type,
           fluid_type: action.fluid_type,
           amount_ml: action.amount_ml,
+          subtype: action.subtype ?? null,
           source: 'chat',
         });
         entries.push({ kind: action.type, ...action, id: entry?.lastInsertRowid });

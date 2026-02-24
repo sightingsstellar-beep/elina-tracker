@@ -461,6 +461,10 @@ body {
    QUICK LOG
    ============================================================ */
 
+.quick-log-card {
+  overflow: visible;
+}
+
 .quick-log-hint {
   font-size: 0.82rem;
   color: var(--text-secondary);
@@ -498,6 +502,40 @@ body {
 .quick-btn.success {
   background: var(--green-light);
   color: var(--green);
+}
+
+.poop-subtype-popup {
+  position: fixed;
+  z-index: 650;
+  background: #fff;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  box-shadow: var(--shadow-hover);
+  padding: 8px;
+  min-width: 210px;
+}
+
+.poop-subtype-btn {
+  width: 100%;
+  text-align: left;
+  border: none;
+  border-radius: 10px;
+  background: #fff;
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 11px 12px;
+  cursor: pointer;
+}
+
+.poop-subtype-btn + .poop-subtype-btn {
+  margin-top: 4px;
+}
+
+.poop-subtype-btn:hover,
+.poop-subtype-btn:active {
+  background: var(--blue-light);
+  color: var(--blue);
 }
 
 /* Amount modal */

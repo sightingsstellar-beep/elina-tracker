@@ -199,6 +199,7 @@ function renderFluidTypes(intakeByType) {
 
 const OUTPUT_ICONS = { urine: '💛', poop: '💩', vomit: '🤢' };
 const OUTPUT_LABELS = { urine: 'Urine', poop: 'Poop', vomit: 'Vomit' };
+const POOP_SUBTYPE_LABELS = { normal: 'Normal', diarrhea: 'Diarrhea', undigested: 'Undigested' };
 
 function renderOutputs(outputs) {
   const list = document.getElementById('output-list');
@@ -216,10 +217,13 @@ function renderOutputs(outputs) {
     const li = document.createElement('li');
     li.className = 'output-item';
     const amount = o.amount_ml ? `${o.amount_ml}ml` : '';
+    const poopSubtype = o.fluid_type === 'poop' && o.subtype
+      ? ` — ${POOP_SUBTYPE_LABELS[o.subtype] || o.subtype}`
+      : '';
     li.innerHTML = `
       <span class="output-time">${o.time}</span>
       <span class="output-type-icon">${OUTPUT_ICONS[o.fluid_type] || '🚽'}</span>
-      <span class="output-type">${OUTPUT_LABELS[o.fluid_type] || o.fluid_type}</span>
+      <span class="output-type">${OUTPUT_LABELS[o.fluid_type] || o.fluid_type}${poopSubtype}</span>
       <span class="output-amount">${amount}</span>
     `;
     list.appendChild(li);
@@ -687,9 +691,61 @@ document.querySelectorAll('.quick-btn').forEach((btn) => {
   btn.addEventListener('click', () => handleQuickLog(btn));
 });
 
+let activePoopQuickBtn = null;
+
+function showPoopSubtypePopup(anchorBtn) {
+  const popup = document.getElementById('poop-subtype-popup');
+  if (!popup || !anchorBtn) return;
+  activePoopQuickBtn = anchorBtn;
+  popup.style.display = 'block';
+
+  const anchorRect = anchorBtn.getBoundingClientRect();
+  const popupRect = popup.getBoundingClientRect();
+  const margin = 8;
+  let left = anchorRect.left + (anchorRect.width / 2) - (popupRect.width / 2);
+  left = Math.max(margin, Math.min(left, window.innerWidth - popupRect.width - margin));
+  let top = anchorRect.bottom + 8;
+  if (top + popupRect.height > window.innerHeight - margin) {
+    top = anchorRect.top - popupRect.height - 8;
+  }
+  popup.style.left = `${Math.max(margin, left)}px`;
+  popup.style.top = `${Math.max(margin, top)}px`;
+}
+
+function hidePoopSubtypePopup() {
+  const popup = document.getElementById('poop-subtype-popup');
+  if (!popup) return;
+  popup.style.display = 'none';
+  activePoopQuickBtn = null;
+}
+
+document.querySelectorAll('.poop-subtype-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const subtype = btn.dataset.subtype;
+    const sourceBtn = activePoopQuickBtn;
+    hidePoopSubtypePopup();
+    submitQuickLog({ type: 'output', fluid_type: 'poop', subtype, amount_ml: null }, sourceBtn);
+  });
+});
+
+document.addEventListener('click', (e) => {
+  const popup = document.getElementById('poop-subtype-popup');
+  if (!popup || popup.style.display === 'none') return;
+  if (popup.contains(e.target)) return;
+  if (activePoopQuickBtn && activePoopQuickBtn.contains(e.target)) return;
+  hidePoopSubtypePopup();
+});
+
+window.addEventListener('resize', hidePoopSubtypePopup);
+
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape') hidePoopSubtypePopup();
+});
+
 function handleQuickLog(btn) {
   const type = btn.dataset.type;
   const fluid = btn.dataset.fluid;
+  const subtype = btn.dataset.subtype || null;
   const amount = btn.dataset.amount ? parseFloat(btn.dataset.amount) : null;
   const count = btn.dataset.count ? parseInt(btn.dataset.count, 10) : null;
 
@@ -698,14 +754,19 @@ function handleQuickLog(btn) {
     return;
   }
 
+  if (type === 'output' && fluid === 'poop' && !subtype) {
+    showPoopSubtypePopup(btn);
+    return;
+  }
+
   if (!amount) {
     // Ask for amount — applies to inputs and outputs without a preset amount
-    pendingQuickLog = { type, fluid_type: fluid };
+    pendingQuickLog = { type, fluid_type: fluid, subtype };
     showModal();
     return;
   }
 
-  submitQuickLog({ type, fluid_type: fluid, amount_ml: amount }, btn);
+  submitQuickLog({ type, fluid_type: fluid, subtype, amount_ml: amount }, btn);
 }
 
 async function submitQuickLog(payload, btn) {
@@ -718,6 +779,7 @@ async function submitQuickLog(payload, btn) {
       entry_type: payload.type,
       fluid_type: payload.fluid_type,
       amount_ml: payload.amount_ml || null,
+      subtype: payload.subtype ?? null,
     };
   }
 

@@ -37,6 +37,7 @@ db.exec(`
     entry_type  TEXT NOT NULL,             -- 'input' | 'output'
     fluid_type  TEXT NOT NULL,             -- e.g. 'water', 'urine', 'poop'
     amount_ml   REAL,                      -- nullable for outputs like poop
+    subtype     TEXT,                      -- nullable poop subtype: normal | diarrhea | undigested
     notes       TEXT,
     source      TEXT DEFAULT 'telegram'    -- 'telegram' | 'api'
   );
@@ -63,6 +64,9 @@ db.exec(`
     value TEXT NOT NULL
   );
 `);
+
+// Backward-compatible migration for existing DBs
+try { db.prepare('ALTER TABLE fluid_logs ADD COLUMN subtype TEXT').run(); } catch (e) {}
 
 // Weight logs table — separate exec so it can be added independently
 db.exec(`
@@ -132,8 +136,8 @@ function getDayKey(date = new Date()) {
 // ---------------------------------------------------------------------------
 
 const insertLog = db.prepare(`
-  INSERT INTO fluid_logs (timestamp, day_key, entry_type, fluid_type, amount_ml, notes, source)
-  VALUES (@timestamp, @day_key, @entry_type, @fluid_type, @amount_ml, @notes, @source)
+  INSERT INTO fluid_logs (timestamp, day_key, entry_type, fluid_type, amount_ml, subtype, notes, source)
+  VALUES (@timestamp, @day_key, @entry_type, @fluid_type, @amount_ml, @subtype, @notes, @source)
 `);
 
 function logEntry(entry) {
@@ -144,6 +148,7 @@ function logEntry(entry) {
     entry_type: entry.entry_type,
     fluid_type: entry.fluid_type,
     amount_ml: entry.amount_ml ?? null,
+    subtype: entry.subtype ?? null,
     notes: entry.notes ?? null,
     source: entry.source || 'telegram',
   };

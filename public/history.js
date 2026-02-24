@@ -50,9 +50,17 @@ const FLUID_LABELS = {
 };
 
 const OUTPUT_ICONS = { urine: '💛', poop: '💩', vomit: '🤢' };
+const POOP_SUBTYPE_LABELS = { normal: 'Normal', diarrhea: 'Diarrhea', undigested: 'Undigested' };
 
 function fluidLabel(type) {
   return FLUID_LABELS[type] || type;
+}
+
+function outputLabel(entry) {
+  if (entry.fluid_type === 'poop' && entry.subtype) {
+    return `Poop — ${POOP_SUBTYPE_LABELS[entry.subtype] || entry.subtype}`;
+  }
+  return fluidLabel(entry.fluid_type);
 }
 
 // ---------------------------------------------------------------------------
@@ -533,7 +541,7 @@ function buildOutputsSection(outputs) {
       return `<div class="h-detail-row">
         <span class="h-detail-time">${o.time}</span>
         <span class="h-detail-icon">${icon}</span>
-        <span class="h-detail-label">${fluidLabel(o.fluid_type)}</span>
+        <span class="h-detail-label">${outputLabel(o)}</span>
         ${amount}
       </div>`;
     }).join('');
