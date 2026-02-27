@@ -258,7 +258,7 @@ function buildAlexaSpeech(summary) {
   const pct = Math.round((summary.totalIntake / limit) * 100);
   const totalOut = summary.outputs.reduce((sum, o) => sum + (o.amount_ml || 0), 0);
   let speech = `Logged. Total in: ${summary.totalIntake} of ${limit} milliliters, ${pct} percent.`;
-  if (totalOut > 0) speech += ` Total out: ${totalOut} milliliters.`;
+  if (totalOut > 0) speech += ` Total out: ${totalOut} grams.`;
   return speech;
 }
 
@@ -965,7 +965,7 @@ function buildChatConfirmation(actions, summary) {
   const pct = Math.round((summary.totalIntake / limit) * 100);
 
   const totalOut = summary.outputs.reduce((sum, o) => sum + (o.amount_ml || 0), 0);
-  const outStr = totalOut > 0 ? `${totalOut}ml` : `${summary.outputs.length} event${summary.outputs.length !== 1 ? 's' : ''}`;
+  const outStr = totalOut > 0 ? `${totalOut}g` : `${summary.outputs.length} event${summary.outputs.length !== 1 ? 's' : ''}`;
 
   return `✅ Logged: ${logged} | 💧 Total In: ${summary.totalIntake}/${limit}ml (${pct}%) · 🚽 Total Out: ${outStr}`;
 }

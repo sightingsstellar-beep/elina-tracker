@@ -216,7 +216,7 @@ function renderOutputs(outputs) {
   for (const o of outputs) {
     const li = document.createElement('li');
     li.className = 'output-item';
-    const amount = o.amount_ml ? `${o.amount_ml}ml` : '';
+    const amount = o.amount_ml ? `${o.amount_ml}g` : '';
     const poopSubtype = o.fluid_type === 'poop' && o.subtype
       ? ` — ${POOP_SUBTYPE_LABELS[o.subtype] || o.subtype}`
       : '';
@@ -816,6 +816,9 @@ async function submitQuickLog(payload, btn) {
 
 // Amount modal
 function showModal() {
+  const isOutput = pendingQuickLog && pendingQuickLog.type === 'output';
+  const label = document.getElementById('modal-amount-label');
+  if (label) label.textContent = isOutput ? 'Enter amount (g)' : 'Enter amount (ml)';
   document.getElementById('amount-modal').style.display = 'flex';
   setTimeout(() => document.getElementById('amount-input').focus(), 100);
 }

@@ -73,9 +73,9 @@ const ENTRY_TYPE_OPTIONS = [
   { label: 'Milk',         value: 'milk',         entry_type: 'input',  fluid_type: 'milk',        unit: 'ml',  needsAmount: true  },
   { label: 'Juice',        value: 'juice',        entry_type: 'input',  fluid_type: 'juice',       unit: 'ml',  needsAmount: true  },
   { label: 'Yogurt Drink', value: 'yogurt_drink', entry_type: 'input',  fluid_type: 'yogurt_drink',unit: 'ml',  needsAmount: true  },
-  { label: 'Urine',        value: 'urine',        entry_type: 'output', fluid_type: 'urine',       unit: 'ml',  needsAmount: true  },
-  { label: 'Poop',         value: 'poop',         entry_type: 'output', fluid_type: 'poop',        unit: 'ml',  needsAmount: false, amountOptional: true },
-  { label: 'Vomit',        value: 'vomit',        entry_type: 'output', fluid_type: 'vomit',       unit: 'ml',  needsAmount: true  },
+  { label: 'Urine',        value: 'urine',        entry_type: 'output', fluid_type: 'urine',       unit: 'g',   needsAmount: true  },
+  { label: 'Poop',         value: 'poop',         entry_type: 'output', fluid_type: 'poop',        unit: 'g',   needsAmount: false, amountOptional: true },
+  { label: 'Vomit',        value: 'vomit',        entry_type: 'output', fluid_type: 'vomit',       unit: 'g',   needsAmount: true  },
   { label: 'Gag',          value: 'gag',          entry_type: 'gag',    fluid_type: null,          unit: null,  needsAmount: false },
   { label: 'Weight',       value: 'weight',       entry_type: 'weight', fluid_type: null,          unit: 'kg',  needsAmount: true  },
 ];
@@ -540,7 +540,7 @@ function buildOutputsSection(outputs) {
   } else {
     const rows = outputs.map((o) => {
       const icon = OUTPUT_ICONS[o.fluid_type] || '🚽';
-      const amount = o.amount_ml ? `<span class="h-detail-value">${o.amount_ml}ml</span>` : '';
+      const amount = o.amount_ml ? `<span class="h-detail-value">${o.amount_ml}g</span>` : '';
       return `<div class="h-detail-row">
         <span class="h-detail-time">${o.time}</span>
         <span class="h-detail-icon">${icon}</span>
