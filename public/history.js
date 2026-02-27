@@ -3,7 +3,7 @@
  *
  * Fetches /api/history?days=7 on load and renders day cards.
  * Clock ticks every second. No auto-refresh (user can tap 🔄).
- * Feature: "+ Add entry" inline form per day (today/yesterday only).
+ * Feature: "+ Add entry" inline form per day (any historical day).
  */
 
 'use strict';
@@ -153,7 +153,7 @@ function renderHistory(days, weightByDate) {
   days.forEach((day, index) => {
     const prevDay = days[index + 1] || null; // previous day (older)
     const weightKg = weightByDate[day.dayKey] !== undefined ? weightByDate[day.dayKey] : null;
-    const canAdd = day.dayKey === todayDayKey || day.dayKey === yesterdayDayKey;
+    const canAdd = true; // all historical days support inline entry addition
     const card = buildDayCard(day, prevDay, weightKg, canAdd);
     container.appendChild(card);
   });

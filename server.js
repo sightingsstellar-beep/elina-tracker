@@ -535,7 +535,7 @@ function getYesterdayKey() {
 
 /**
  * Validates an optional date field from a request body.
- * Only today and yesterday are allowed.
+ * Accepts any past or present date (no future dates).
  * Returns { ok: true, date } or { ok: false, error }.
  */
 function validateLogDate(bodyDate) {
@@ -544,11 +544,10 @@ function validateLogDate(bodyDate) {
   if (!/^\d{4}-\d{2}-\d{2}$/.test(bodyDate)) {
     return { ok: false, error: 'Invalid date format. Use YYYY-MM-DD.' };
   }
-  const yesterdayKey = getYesterdayKey();
-  if (bodyDate === todayKey || bodyDate === yesterdayKey) {
-    return { ok: true, date: bodyDate };
+  if (bodyDate > todayKey) {
+    return { ok: false, error: 'Cannot log entries for future dates.' };
   }
-  return { ok: false, error: 'Only today or yesterday entries are allowed' };
+  return { ok: true, date: bodyDate };
 }
 
 // ---------------------------------------------------------------------------

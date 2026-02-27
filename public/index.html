@@ -95,6 +95,60 @@
       </div>
     </section>
 
+    <!-- ========== INTAKE SECTION ========== -->
+    <section class="card intake-card" id="intake-section">
+      <div class="card-header">
+        <span class="card-icon">💧</span>
+        <h2>Fluid Intake</h2>
+      </div>
+
+      <div class="intake-totals">
+        <span class="intake-amount" id="intake-amount">-- ml</span>
+        <span class="intake-limit" id="intake-limit">/ -- ml</span>
+        <span class="intake-pct" id="intake-pct">--%</span>
+      </div>
+
+      <!-- Progress bar -->
+      <div class="progress-container" aria-label="Intake progress">
+        <div class="progress-bar" id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+      </div>
+      <div class="over-limit-warning" id="over-limit-warning" style="display:none;">
+        ⚠️ Daily limit exceeded!
+      </div>
+
+      <!-- Intake breakdown cards -->
+      <div class="fluid-types" id="fluid-types">
+        <!-- Populated by JS -->
+      </div>
+    </section>
+
+    <!-- ========== OUTPUT LOG ========== -->
+    <section class="card output-card">
+      <div class="card-header">
+        <span class="card-icon">🚽</span>
+        <h2>Outputs</h2>
+        <span class="badge" id="output-count">0</span>
+      </div>
+      <ul class="output-list" id="output-list">
+        <li class="empty-state">No outputs logged today</li>
+      </ul>
+    </section>
+
+    <!-- ========== GAG COUNTER ========== -->
+    <section class="card gag-card">
+      <div class="card-header">
+        <span class="card-icon">🤢</span>
+        <h2>Gag Episodes</h2>
+        <span class="badge badge-warn" id="gag-count">0</span>
+      </div>
+      <ul class="gag-list" id="gag-list">
+        <li class="empty-state">No gag episodes today</li>
+      </ul>
+    </section>
+
+    <!-- Divider between fluid tracking and daily checks -->
+    <div class="section-divider"></div>
+
     <!-- ========== DAILY CHECKS HEADER ========== -->
     <div class="daily-checks-label">Daily Checks</div>
 
@@ -188,60 +242,6 @@
 
       <button class="btn-save-wellness" id="save-wellness-btn">Save Wellness Check</button>
       <div class="wellness-save-result" id="wellness-save-result" style="display:none;"></div>
-    </section>
-
-    <!-- Divider between Daily Checks and Intake sections -->
-    <div class="section-divider"></div>
-
-    <!-- ========== INTAKE SECTION ========== -->
-    <section class="card intake-card" id="intake-section">
-      <div class="card-header">
-        <span class="card-icon">💧</span>
-        <h2>Fluid Intake</h2>
-      </div>
-
-      <div class="intake-totals">
-        <span class="intake-amount" id="intake-amount">-- ml</span>
-        <span class="intake-limit" id="intake-limit">/ -- ml</span>
-        <span class="intake-pct" id="intake-pct">--%</span>
-      </div>
-
-      <!-- Progress bar -->
-      <div class="progress-container" aria-label="Intake progress">
-        <div class="progress-bar" id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-      </div>
-      <div class="over-limit-warning" id="over-limit-warning" style="display:none;">
-        ⚠️ Daily limit exceeded!
-      </div>
-
-      <!-- Intake breakdown cards -->
-      <div class="fluid-types" id="fluid-types">
-        <!-- Populated by JS -->
-      </div>
-    </section>
-
-    <!-- ========== OUTPUT LOG ========== -->
-    <section class="card output-card">
-      <div class="card-header">
-        <span class="card-icon">🚽</span>
-        <h2>Outputs</h2>
-        <span class="badge" id="output-count">0</span>
-      </div>
-      <ul class="output-list" id="output-list">
-        <li class="empty-state">No outputs logged today</li>
-      </ul>
-    </section>
-
-    <!-- ========== GAG COUNTER ========== -->
-    <section class="card gag-card">
-      <div class="card-header">
-        <span class="card-icon">🤢</span>
-        <h2>Gag Episodes</h2>
-        <span class="badge badge-warn" id="gag-count">0</span>
-      </div>
-      <ul class="gag-list" id="gag-list">
-        <li class="empty-state">No gag episodes today</li>
-      </ul>
     </section>
 
   </main>
