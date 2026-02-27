@@ -677,3 +677,129 @@
   background: var(--red-light);
   color: var(--red);
 }
+
+/* ============================================================
+   Wellness accordion editor — interactive sliders/buttons
+   ============================================================ */
+
+.h-wellness-detail-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.h-wellness-period {
+  padding: 12px 0 8px;
+}
+
+.h-wellness-period-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.h-wellness-period-label {
+  font-size: 0.82rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-secondary);
+}
+
+.h-wellness-edit-period-btn {
+  background: var(--blue-light);
+  color: var(--blue);
+  border: none;
+  border-radius: 12px;
+  padding: 4px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.h-wellness-edit-period-btn:hover,
+.h-wellness-edit-period-btn:active {
+  background: var(--blue);
+  color: white;
+}
+
+.h-wellness-period-empty {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin: 0 0 4px;
+  font-style: italic;
+}
+
+.h-wellness-period-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 8px 0;
+}
+
+/* Metrics wrap — reuses style.css wellness classes; just needs spacing */
+.h-wellness-metrics-wrap {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+
+/* Mute disabled controls visually */
+.h-wellness-metrics-wrap .wellness-choice-btn:disabled {
+  opacity: 0.75;
+  cursor: default;
+}
+
+.h-wellness-metrics-wrap .wellness-slider:disabled {
+  opacity: 0.7;
+  cursor: default;
+}
+
+/* Save / Cancel row */
+.h-wellness-save-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.h-wellness-save-btn {
+  /* inherits btn-save-wellness styles from style.css */
+  flex: 1;
+}
+
+.h-wellness-cancel-btn {
+  background: #f8f9fa;
+  color: var(--text-secondary);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 16px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.h-wellness-cancel-btn:hover {
+  background: var(--border);
+}
+
+/* Save result message */
+.h-wellness-save-result {
+  margin-top: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 6px 10px;
+  border-radius: 8px;
+}
+
+.h-wellness-result-ok {
+  background: var(--green-light);
+  color: var(--green);
+}
+
+.h-wellness-result-err {
+  background: var(--red-light);
+  color: var(--red);
+}

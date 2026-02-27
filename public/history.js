@@ -212,10 +212,13 @@ function buildDayCard(day, prevDay, weightKg, canAdd) {
   card.appendChild(buildIntakeSection(day.intake, day.inputs));
   card.appendChild(buildOutputsSection(day.outputs));
   card.appendChild(buildGagSection(day.gagCount, day.gags));
-  card.appendChild(buildWellnessSection(day.wellness, prevDay ? prevDay.wellness : null));
+  card.appendChild(buildWellnessSection(day.wellness, prevDay ? prevDay.wellness : null, day.dayKey));
 
   // ---- Wire up accordion toggle ----
   setupAccordion(card);
+
+  // ---- Wire up wellness editors ----
+  wireWellnessEditors(card, day.dayKey);
 
   // ---- Wire up add button ----
   if (canAdd) wireAddButton(card, day.dayKey);
@@ -577,10 +580,10 @@ function buildGagSection(gagCount, gags) {
 
 // --- Wellness section ---
 
-function buildWellnessSection(wellness, prevWellness) {
+function buildWellnessSection(wellness, prevWellness, dayKey) {
   const { afternoon, evening } = wellness;
 
-  // Summary
+  // Summary for the accordion header row
   let summaryHTML;
   if (!afternoon && !evening) {
     summaryHTML = '<span class="h-wellness-none">No wellness check logged</span>';
@@ -592,52 +595,217 @@ function buildWellnessSection(wellness, prevWellness) {
     summaryHTML = '<span class="h-wellness-partial">Evening check only</span>';
   }
 
-  // Trend helpers — compare this evening vs previous day's evening
-  const prevEvening = prevWellness ? prevWellness.evening : null;
+  const CYANO_OPTS = [
+    { label: 'None',     value: 1 },
+    { label: 'Mild',     value: 3 },
+    { label: 'Moderate', value: 6 },
+    { label: 'Severe',   value: 9 },
+  ];
 
-  function trendIcon(field) {
-    const curr = evening ? evening[field] : null;
-    const prev = prevEvening ? prevEvening[field] : null;
-    if (curr === null || curr === undefined || prev === null || prev === undefined) return '';
-    if (curr > prev) return '<span class="h-trend h-trend-up" title="Improved vs yesterday">↑</span>';
-    if (curr < prev) return '<span class="h-trend h-trend-down" title="Declined vs yesterday">↓</span>';
-    return '<span class="h-trend h-trend-flat" title="Same as yesterday">→</span>';
+  function periodHTML(check, label, period, checkTime) {
+    const hasData = !!check;
+    const cyanoVal   = hasData ? check.cyanosis  : null;
+    const energyVal  = hasData ? (check.energy  ?? 5) : 5;
+    const appetiteVal = hasData ? (check.appetite ?? 5) : 5;
+    const moodVal    = hasData ? (check.mood    ?? 5) : 5;
+
+    const cyanoButtons = CYANO_OPTS.map((opt) =>
+      `<button class="wellness-choice-btn${cyanoVal === opt.value ? ' active' : ''}" data-value="${opt.value}" disabled>${opt.label}</button>`
+    ).join('');
+
+    const sliderRow = (metric, val) => `
+      <div class="wellness-metric-group">
+        <div class="wellness-slider-header">
+          <span class="wellness-metric-label">${metric.charAt(0).toUpperCase() + metric.slice(1)}</span>
+          <span class="wellness-slider-num" data-metric-num="${metric}">${val}</span>
+        </div>
+        <div class="wellness-slider-wrap">
+          <input type="range" class="wellness-slider" data-metric="${metric}" min="1" max="10" step="1" value="${val}" disabled />
+          <div class="wellness-slider-endlabels"><span>1</span><span>10</span></div>
+        </div>
+      </div>`;
+
+    return `
+      <div class="h-wellness-period" data-period="${period}" data-check-time="${checkTime}" data-has-data="${hasData}">
+        <div class="h-wellness-period-header">
+          <span class="h-wellness-period-label">${label}</span>
+          <button class="h-wellness-edit-period-btn">${hasData ? 'Edit' : 'Add'}</button>
+        </div>
+        ${!hasData ? '<p class="h-wellness-period-empty">Not logged</p>' : ''}
+        <div class="h-wellness-metrics-wrap"${!hasData ? ' style="display:none;"' : ''}>
+          <div class="wellness-metric-group">
+            <div class="wellness-metric-label">Cyanosis</div>
+            <div class="wellness-btn-group" data-metric="cyanosis">
+              ${cyanoButtons}
+            </div>
+          </div>
+          ${sliderRow('energy',   energyVal)}
+          ${sliderRow('appetite', appetiteVal)}
+          ${sliderRow('mood',     moodVal)}
+        </div>
+        <div class="h-wellness-save-row" style="display:none;">
+          <button class="h-wellness-save-btn btn-save-wellness">Save</button>
+          <button class="h-wellness-cancel-btn">Cancel</button>
+        </div>
+        <div class="h-wellness-save-result" style="display:none;"></div>
+      </div>`;
   }
 
-  const FIELD_LABELS = { appetite: 'Appetite', energy: 'Energy', mood: 'Mood', cyanosis: 'Cyanosis' };
-  const FIELDS = ['appetite', 'energy', 'mood', 'cyanosis'];
-
-  function wellnessCheckHTML(check, label, showTrend) {
-    if (!check) {
-      return `<div class="h-wellness-check">
-        <div class="h-wellness-check-label">${label}</div>
-        <div class="h-wellness-check-none">Not logged</div>
-      </div>`;
-    }
-    const scores = FIELDS.map((f) => {
-      const v = (check[f] !== null && check[f] !== undefined) ? check[f] : '—';
-      const trend = showTrend ? trendIcon(f) : '';
-      return `<div class="h-wellness-score">
-        <span class="h-score-label">${FIELD_LABELS[f]}</span>
-        <span class="h-score-val">${v}${trend}</span>
-      </div>`;
-    }).join('');
-    return `<div class="h-wellness-check">
-      <div class="h-wellness-check-label">${label}</div>
-      <div class="h-wellness-scores">${scores}</div>
+  const detailHTML = `
+    <div class="h-wellness-detail-wrap">
+      ${periodHTML(afternoon, 'Afternoon (5pm)', 'afternoon', '5pm')}
+      <div class="h-wellness-period-divider"></div>
+      ${periodHTML(evening,   'Evening (10pm)',  'evening',   '10pm')}
     </div>`;
-  }
-
-  let detailHTML;
-  if (!afternoon && !evening) {
-    detailHTML = '<p class="h-detail-empty">No wellness checks logged</p>';
-  } else {
-    detailHTML =
-      wellnessCheckHTML(afternoon, 'Afternoon (5pm)', false) +
-      wellnessCheckHTML(evening, 'Evening (10pm)', true);
-  }
 
   return createAccordionSection('❤️ Wellness', summaryHTML, detailHTML);
+}
+
+// ---------------------------------------------------------------------------
+// Wire up interactive wellness editors inside a day card
+// ---------------------------------------------------------------------------
+
+function wireWellnessEditors(card, dayKey) {
+  card.querySelectorAll('.h-wellness-period').forEach((periodEl) => {
+    const checkTime   = periodEl.dataset.checkTime;
+    const editBtn     = periodEl.querySelector('.h-wellness-edit-period-btn');
+    const metricsWrap = periodEl.querySelector('.h-wellness-metrics-wrap');
+    const emptyMsg    = periodEl.querySelector('.h-wellness-period-empty');
+    const saveRow     = periodEl.querySelector('.h-wellness-save-row');
+    const saveBtn     = periodEl.querySelector('.h-wellness-save-btn');
+    const cancelBtn   = periodEl.querySelector('.h-wellness-cancel-btn');
+    const resultEl    = periodEl.querySelector('.h-wellness-save-result');
+
+    let savedSnapshot = null; // captured on entering edit mode for cancel
+
+    function captureSnapshot() {
+      const cyanBtn = metricsWrap.querySelector('.wellness-btn-group[data-metric="cyanosis"] .wellness-choice-btn.active');
+      const snapshot = { cyanosis: cyanBtn ? parseInt(cyanBtn.dataset.value, 10) : null };
+      metricsWrap.querySelectorAll('.wellness-slider').forEach((s) => {
+        snapshot[s.dataset.metric] = parseInt(s.value, 10);
+      });
+      return snapshot;
+    }
+
+    function applySnapshot(snap) {
+      if (!snap) return;
+      metricsWrap.querySelectorAll('.wellness-btn-group[data-metric="cyanosis"] .wellness-choice-btn').forEach((b) => {
+        b.classList.toggle('active', parseInt(b.dataset.value, 10) === snap.cyanosis);
+      });
+      metricsWrap.querySelectorAll('.wellness-slider').forEach((s) => {
+        const v = snap[s.dataset.metric];
+        if (v !== undefined) {
+          s.value = v;
+          const numEl = metricsWrap.querySelector(`[data-metric-num="${s.dataset.metric}"]`);
+          if (numEl) numEl.textContent = v;
+        }
+      });
+    }
+
+    function enableControls() {
+      metricsWrap.querySelectorAll('.wellness-choice-btn, .wellness-slider').forEach((el) => {
+        el.disabled = false;
+      });
+    }
+
+    function disableControls() {
+      metricsWrap.querySelectorAll('.wellness-choice-btn, .wellness-slider').forEach((el) => {
+        el.disabled = true;
+      });
+    }
+
+    function enterEditMode() {
+      savedSnapshot = captureSnapshot();
+      if (emptyMsg) emptyMsg.style.display = 'none';
+      metricsWrap.style.display = '';
+      enableControls();
+      saveRow.style.display = '';
+      editBtn.style.display = 'none';
+      resultEl.style.display = 'none';
+    }
+
+    function exitEditMode(keepData) {
+      disableControls();
+      saveRow.style.display = 'none';
+      editBtn.style.display = '';
+      editBtn.textContent = 'Edit';
+      resultEl.style.display = 'none';
+      if (keepData) {
+        // Data was saved — metrics stay visible
+        if (emptyMsg) emptyMsg.remove();
+        periodEl.dataset.hasData = 'true';
+      } else {
+        // Cancelled — restore original view
+        applySnapshot(savedSnapshot);
+        if (periodEl.dataset.hasData === 'false') {
+          metricsWrap.style.display = 'none';
+          if (emptyMsg) emptyMsg.style.display = '';
+        }
+      }
+    }
+
+    // Edit / Add button
+    editBtn.addEventListener('click', enterEditMode);
+
+    // Live slider value updates
+    metricsWrap.querySelectorAll('.wellness-slider').forEach((slider) => {
+      slider.addEventListener('input', () => {
+        const numEl = metricsWrap.querySelector(`[data-metric-num="${slider.dataset.metric}"]`);
+        if (numEl) numEl.textContent = slider.value;
+      });
+    });
+
+    // Cyanosis button group (delegated)
+    metricsWrap.querySelector('.wellness-btn-group[data-metric="cyanosis"]').addEventListener('click', (e) => {
+      const btn = e.target.closest('.wellness-choice-btn');
+      if (!btn || btn.disabled) return;
+      metricsWrap.querySelectorAll('.wellness-btn-group[data-metric="cyanosis"] .wellness-choice-btn').forEach((b) => b.classList.remove('active'));
+      btn.classList.add('active');
+    });
+
+    // Cancel
+    cancelBtn.addEventListener('click', () => exitEditMode(false));
+
+    // Save
+    saveBtn.addEventListener('click', async () => {
+      const snap     = captureSnapshot();
+      saveBtn.textContent = '⏳';
+      saveBtn.disabled    = true;
+      try {
+        const res = await fetch('/api/log', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type:      'wellness',
+            check_time: checkTime,
+            date:       dayKey,
+            appetite:  snap.appetite  ?? null,
+            energy:    snap.energy    ?? null,
+            mood:      snap.mood      ?? null,
+            cyanosis:  snap.cyanosis  ?? null,
+          }),
+        });
+        if (!res.ok) {
+          const err = await res.json().catch(() => ({}));
+          throw new Error(err.error || `HTTP ${res.status}`);
+        }
+        resultEl.textContent = '✓ Saved';
+        resultEl.className   = 'h-wellness-save-result h-wellness-result-ok';
+        resultEl.style.display = 'block';
+        saveBtn.textContent = 'Save';
+        saveBtn.disabled    = false;
+        exitEditMode(true);
+        // Refresh accordion summary label after a beat
+        setTimeout(() => loadHistory(), 1000);
+      } catch (err) {
+        resultEl.textContent   = `⚠️ ${err.message}`;
+        resultEl.className     = 'h-wellness-save-result h-wellness-result-err';
+        resultEl.style.display = 'block';
+        saveBtn.textContent = 'Save';
+        saveBtn.disabled    = false;
+      }
+    });
+  });
 }
 
 // ---------------------------------------------------------------------------
