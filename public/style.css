@@ -95,6 +95,22 @@ body {
   margin-top: 4px;
 }
 
+.logout-btn {
+  display: block;
+  font-size: 1.1rem;
+  color: rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  text-align: right;
+  line-height: 1;
+  margin-bottom: 4px;
+  transition: color 0.15s;
+}
+
+.logout-btn:hover,
+.logout-btn:active {
+  color: #fff;
+}
+
 .clock {
   font-size: 1.3rem;
   font-weight: 600;
