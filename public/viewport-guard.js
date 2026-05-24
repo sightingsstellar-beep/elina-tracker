@@ -12,8 +12,8 @@
     viewport.setAttribute('content', lockedViewport);
   }
 
-  document.documentElement.style.overflowX = 'hidden';
-  document.body.style.overflowX = 'hidden';
+  document.documentElement.style.overscrollBehaviorX = 'none';
+  document.body.style.overscrollBehaviorX = 'none';
 
   function preventGesture(event) {
     event.preventDefault();

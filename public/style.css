@@ -266,7 +266,7 @@ html {
   -webkit-tap-highlight-color: transparent;
   width: 100%;
   max-width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
   overscroll-behavior-x: none;
   touch-action: pan-y;
 }
@@ -280,7 +280,7 @@ body {
   width: 100%;
   max-width: 100%;
   min-height: 100vh;
-  overflow-x: hidden;
+  overflow-x: clip;
   overscroll-behavior-x: none;
   padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
   touch-action: pan-y;
