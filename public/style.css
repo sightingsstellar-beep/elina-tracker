@@ -415,8 +415,7 @@ body.no-chart-tabs {
   font-weight: 700;
   line-height: 1;
   text-decoration: none;
-  border-bottom: 2px solid transparent;
-  transition: border-color 0.15s, color 0.15s, opacity 0.15s;
+  transition: color 0.15s, opacity 0.15s;
 }
 
 .top-nav-item i,
@@ -445,7 +444,6 @@ body.no-chart-tabs {
 .top-nav-trigger.active,
 .top-nav-trigger[aria-expanded="true"] {
   background: transparent;
-  border-color: rgba(255, 255, 255, 0.82);
   color: #fff;
 }
 
@@ -488,7 +486,8 @@ body.no-chart-tabs {
 }
 
 .account-menu-panel a:hover,
-.account-menu-panel a:active {
+.account-menu-panel a:active,
+.account-menu-panel a.active {
   background: var(--blue-light);
   color: var(--blue-dark);
 }
@@ -2398,8 +2397,8 @@ body.no-chart-tabs {
     position: fixed;
     right: 12px;
     top: calc(58px + env(safe-area-inset-top, 0px));
-    width: min(280px, calc(100vw - 28px));
-    padding: 8px 12px;
+    width: min(218px, calc(100vw - 28px));
+    padding: 8px 10px;
     border: 1px solid var(--border);
     border-radius: 12px;
     background: var(--surface);
@@ -2415,14 +2414,17 @@ body.no-chart-tabs {
 
   .top-nav-item,
   .top-nav-trigger {
-    justify-content: space-between;
+    justify-content: flex-start;
     width: 100%;
     border-radius: 0;
-    border-color: transparent;
     background: transparent;
     color: var(--text);
-    padding: 10px 0;
+    padding: 10px 2px;
     min-height: 40px;
+  }
+
+  .top-nav-trigger .ph-caret-down {
+    margin-left: auto;
   }
 
   .top-nav-item:hover,
@@ -2433,24 +2435,20 @@ body.no-chart-tabs {
   .top-nav-trigger.active,
   .top-nav-trigger[aria-expanded="true"] {
     background: transparent;
-    border-bottom-color: var(--blue);
     color: var(--blue-dark);
   }
 
   .account-menu {
     order: -1;
     position: relative;
-    padding-bottom: 124px;
+    padding-bottom: 0;
   }
 
   .account-menu-panel {
-    position: absolute;
-    top: 42px;
-    left: 0;
-    right: 0;
+    position: static;
     transform: none;
     width: auto;
-    margin: 0;
+    margin: 0 0 4px;
     border: 0;
     border-radius: 0;
     box-shadow: none;
@@ -2458,9 +2456,9 @@ body.no-chart-tabs {
   }
 
   .account-menu-panel a {
-    justify-content: center;
-    padding-left: 0;
-    padding-right: 0;
+    justify-content: flex-start;
+    padding: 9px 2px;
+    text-align: left;
   }
 
   .clock {
