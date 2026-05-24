@@ -12,24 +12,56 @@
     viewport.setAttribute('content', lockedViewport);
   }
 
+  document.documentElement.style.overflowX = 'hidden';
+  document.body.style.overflowX = 'hidden';
+
   function preventGesture(event) {
     event.preventDefault();
   }
 
   function resetViewportPosition() {
     const visualViewport = window.visualViewport;
+    if (window.scrollX) {
+      window.scrollTo(0, window.scrollY);
+    }
+
     if (!visualViewport) return;
 
     if (visualViewport.offsetLeft || visualViewport.offsetTop) {
       window.scrollTo(
-        Math.max(0, window.scrollX + visualViewport.offsetLeft),
+        0,
         Math.max(0, window.scrollY + visualViewport.offsetTop),
       );
     }
   }
 
+  let touchStart = null;
+
+  document.addEventListener('touchstart', (event) => {
+    if (!event.touches || event.touches.length !== 1) {
+      touchStart = null;
+      return;
+    }
+
+    const touch = event.touches[0];
+    touchStart = { x: touch.clientX, y: touch.clientY };
+  }, { passive: true });
+
   document.addEventListener('touchmove', (event) => {
     if (event.touches && event.touches.length > 1) {
+      event.preventDefault();
+      resetViewportPosition();
+      return;
+    }
+
+    if (!touchStart || !event.touches || event.touches.length !== 1) {
+      return;
+    }
+
+    const touch = event.touches[0];
+    const dx = touch.clientX - touchStart.x;
+    const dy = touch.clientY - touchStart.y;
+    if (Math.abs(dx) > 8 && Math.abs(dx) > Math.abs(dy) * 1.15) {
       event.preventDefault();
       resetViewportPosition();
     }
@@ -42,6 +74,7 @@
       event.preventDefault();
     }
     lastTouchEnd = now;
+    touchStart = null;
     window.setTimeout(resetViewportPosition, 0);
   }, { passive: false });
 

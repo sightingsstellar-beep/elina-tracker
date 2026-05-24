@@ -264,7 +264,11 @@
 html {
   font-size: 16px;
   -webkit-tap-highlight-color: transparent;
-  touch-action: pan-x pan-y;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+  touch-action: pan-y;
 }
 
 body {
@@ -273,9 +277,13 @@ body {
     radial-gradient(circle at top left, var(--bedside-bg-glow), transparent 34rem),
     linear-gradient(180deg, var(--bedside-bg-start) 0%, var(--bedside-bg-mid) 46%, var(--bedside-bg-end) 100%);
   color: var(--text);
+  width: 100%;
+  max-width: 100%;
   min-height: 100vh;
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
   padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
-  touch-action: pan-x pan-y;
+  touch-action: pan-y;
 }
 
 body.no-chart-tabs {
@@ -308,7 +316,7 @@ body.no-chart-tabs {
 .header-top::after {
   content: '';
   position: absolute;
-  inset: auto -48px -86px auto;
+  inset: auto 0 -86px auto;
   width: 190px;
   height: 190px;
   border-radius: 50%;
