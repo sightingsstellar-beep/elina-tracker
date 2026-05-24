@@ -419,6 +419,24 @@ body.no-chart-tabs {
   transition: border-color 0.15s, color 0.15s, opacity 0.15s;
 }
 
+.top-nav-item i,
+.top-nav-trigger i,
+.account-menu-panel i {
+  flex: 0 0 auto;
+  font-size: 1.02rem;
+  line-height: 1;
+}
+
+.top-nav-item span,
+.top-nav-trigger span {
+  min-width: 0;
+}
+
+.top-nav-trigger .ph-caret-down {
+  font-size: 0.82rem;
+  opacity: 0.82;
+}
+
 .top-nav-item:hover,
 .top-nav-item:active,
 .top-nav-item.active,
