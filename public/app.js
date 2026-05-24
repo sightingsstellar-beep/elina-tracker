@@ -557,6 +557,33 @@ function hidePoopSubtypePopup() {
   document.getElementById('poop-subtype-popup').style.display = 'none';
 }
 
+function lockQuickLogScroll() {
+  if (document.body.classList.contains('quick-log-modal-open')) return;
+
+  const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
+  document.body.dataset.quickLogScrollY = String(scrollY);
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${scrollY}px`;
+  document.body.style.left = '0';
+  document.body.style.right = '0';
+  document.body.style.width = '100%';
+  document.body.classList.add('quick-log-modal-open');
+}
+
+function unlockQuickLogScroll() {
+  if (!document.body.classList.contains('quick-log-modal-open')) return;
+
+  const scrollY = Number(document.body.dataset.quickLogScrollY || 0);
+  document.body.classList.remove('quick-log-modal-open');
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.left = '';
+  document.body.style.right = '';
+  document.body.style.width = '';
+  delete document.body.dataset.quickLogScrollY;
+  window.scrollTo(0, scrollY);
+}
+
 function showQuickLogModal() {
   const isGag = state.pendingQuickLog?.type === 'gag';
   const isOutput = state.pendingQuickLog?.type === 'output';
@@ -570,6 +597,7 @@ function showQuickLogModal() {
   amountInput.value = state.pendingQuickLog?.amount_ml ? String(state.pendingQuickLog.amount_ml) : '';
   timeWrap.style.display = isTodaySelected() ? 'none' : 'flex';
   timeInput.value = getCurrentTimeInputValue();
+  lockQuickLogScroll();
   document.getElementById('amount-modal').style.display = 'flex';
 
   setTimeout(() => {
@@ -580,6 +608,7 @@ function showQuickLogModal() {
 
 function hideQuickLogModal() {
   document.getElementById('amount-modal').style.display = 'none';
+  unlockQuickLogScroll();
   document.getElementById('amount-input').value = '';
   document.getElementById('modal-time-input').value = '';
   document.getElementById('amount-input').style.display = 'block';

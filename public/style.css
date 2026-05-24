@@ -290,6 +290,10 @@ body.no-chart-tabs {
   padding-bottom: env(safe-area-inset-bottom, 0px);
 }
 
+body.quick-log-modal-open {
+  overflow: hidden;
+}
+
 /* ============================================================
    HEADER
    ============================================================ */
@@ -1223,6 +1227,8 @@ body.no-chart-tabs {
   align-items: center;
   justify-content: center;
   padding: 20px;
+  overscroll-behavior: contain;
+  touch-action: none;
 }
 
 .amount-modal-inner {
@@ -1232,6 +1238,7 @@ body.no-chart-tabs {
   width: 100%;
   max-width: 320px;
   box-shadow: var(--shadow-hover);
+  touch-action: auto;
 }
 
 .amount-modal-inner h3 {
