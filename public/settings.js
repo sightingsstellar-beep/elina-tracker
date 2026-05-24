@@ -41,6 +41,9 @@ updateClock();
 
 const FIELD_IDS = [
   'child_name',
+  'child_pronouns',
+  'patient_birthdate',
+  'patient_care_notes',
   'daily_limit_ml',
   'day_start_hour',
   'warn_threshold_yellow',
@@ -50,6 +53,14 @@ const FIELD_IDS = [
   'wellness_check_1',
   'wellness_check_2',
   'timezone',
+];
+
+const CAREGIVER_FIELD_IDS = [
+  'caregiver_name',
+  'caregiver_email',
+  'caregiver_phone',
+  'caregiver_relationship',
+  'caregiver_notes',
 ];
 
 // ---------------------------------------------------------------------------
@@ -104,6 +115,7 @@ async function loadSettings() {
 
 async function saveSettings() {
   const btn = document.getElementById('save-btn');
+  if (!btn) return;
   btn.disabled = true;
   btn.innerHTML = '<i class="ph ph-circle-notch" aria-hidden="true"></i> Saving…';
   showStatus('', '');
@@ -123,30 +135,30 @@ async function saveSettings() {
   }
 
   const paletteEl = document.getElementById('ui_palette');
-  const selectedPalette = ['calm', 'contrast', 'sage', 'lavender', 'sunrise', 'dark', 'midnight'].includes(paletteEl?.value) ? paletteEl.value : 'calm';
-  if (window.GlideTheme) {
+  const selectedPalette = paletteEl && ['calm', 'contrast', 'sage', 'lavender', 'sunrise', 'dark', 'midnight'].includes(paletteEl.value) ? paletteEl.value : null;
+  if (selectedPalette && window.GlideTheme) {
     window.GlideTheme.apply(selectedPalette);
   }
 
   // Basic validation
-  const limit = parseInt(payload.daily_limit_ml, 10);
-  if (isNaN(limit) || limit < 100 || limit > 5000) {
+  const limit = payload.daily_limit_ml === undefined ? null : parseInt(payload.daily_limit_ml, 10);
+  if (limit !== null && (isNaN(limit) || limit < 100 || limit > 5000)) {
     showStatus('Daily limit must be between 100 and 5000 ml', 'error');
     btn.disabled = false;
     btn.innerHTML = SAVE_BUTTON_HTML;
     return;
   }
 
-  const yellow = parseInt(payload.warn_threshold_yellow, 10);
-  const red = parseInt(payload.warn_threshold_red, 10);
-  if (isNaN(yellow) || yellow < 10 || yellow > 100 || isNaN(red) || red < 10 || red > 100) {
+  const yellow = payload.warn_threshold_yellow === undefined ? null : parseInt(payload.warn_threshold_yellow, 10);
+  const red = payload.warn_threshold_red === undefined ? null : parseInt(payload.warn_threshold_red, 10);
+  if (yellow !== null && red !== null && (isNaN(yellow) || yellow < 10 || yellow > 100 || isNaN(red) || red < 10 || red > 100)) {
     showStatus('Warning thresholds must be between 10% and 100%', 'error');
     btn.disabled = false;
     btn.innerHTML = SAVE_BUTTON_HTML;
     return;
   }
 
-  if (yellow >= red) {
+  if (yellow !== null && red !== null && yellow >= red) {
     showStatus('Yellow threshold must be less than red threshold', 'error');
     btn.disabled = false;
     btn.innerHTML = SAVE_BUTTON_HTML;
@@ -171,7 +183,7 @@ async function saveSettings() {
     if (nameEl && data.child_name) {
       nameEl.textContent = data.child_name;
     }
-    await saveAccountPreferences(selectedPalette);
+    if (selectedPalette) await saveAccountPreferences(selectedPalette);
 
   } catch (err) {
     console.error('[settings] Save error:', err);
@@ -188,7 +200,10 @@ async function saveSettings() {
 
 async function loadAccountPreferences() {
   const paletteEl = document.getElementById('ui_palette');
-  if (!paletteEl) return;
+  const caregiverEls = CAREGIVER_FIELD_IDS
+    .map((id) => document.getElementById(id))
+    .filter(Boolean);
+  if (!paletteEl && caregiverEls.length === 0) return;
   try {
     const res = await fetch('/api/account/preferences', {
       cache: 'no-store',
@@ -196,27 +211,83 @@ async function loadAccountPreferences() {
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
-    const palette = data.preferences?.ui_palette || window.GlideTheme?.current?.() || 'calm';
-    paletteEl.value = ['calm', 'contrast', 'sage', 'lavender', 'sunrise', 'dark', 'midnight'].includes(palette) ? palette : 'calm';
-    if (window.GlideTheme) window.GlideTheme.apply(paletteEl.value);
+    const preferences = data.preferences || {};
+    if (paletteEl) {
+      const palette = preferences.ui_palette || window.GlideTheme?.current?.() || 'calm';
+      paletteEl.value = ['calm', 'contrast', 'sage', 'lavender', 'sunrise', 'dark', 'midnight'].includes(palette) ? palette : 'calm';
+      if (window.GlideTheme) window.GlideTheme.apply(paletteEl.value);
+    }
+    for (const id of CAREGIVER_FIELD_IDS) {
+      const el = document.getElementById(id);
+      if (el && preferences[id] !== undefined) el.value = String(preferences[id]);
+    }
+    if (document.getElementById('caregiver_email') && !preferences.caregiver_email) {
+      await populateCaregiverDefaults();
+    }
   } catch (err) {
     console.warn('[settings] Account preferences unavailable:', err.message);
-    paletteEl.value = window.GlideTheme?.current?.() || 'calm';
+    if (paletteEl) paletteEl.value = window.GlideTheme?.current?.() || 'calm';
   }
 }
 
 async function saveAccountPreferences(uiPalette) {
+  const payload = {};
+  if (uiPalette) payload.ui_palette = uiPalette;
+  for (const id of CAREGIVER_FIELD_IDS) {
+    const el = document.getElementById(id);
+    if (el) payload[id] = el.value.trim();
+  }
+  if (Object.keys(payload).length === 0) return;
   const res = await fetch('/api/account/preferences', {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ ui_palette: uiPalette }),
+    body: JSON.stringify(payload),
   });
   const data = await res.json().catch(() => ({}));
   if (!res.ok || !data.ok) {
     throw new Error(data.error || `HTTP ${res.status}`);
   }
   const savedPalette = data.preferences?.ui_palette || uiPalette;
-  if (window.GlideTheme) window.GlideTheme.apply(savedPalette);
+  if (savedPalette && window.GlideTheme) window.GlideTheme.apply(savedPalette);
+}
+
+async function populateCaregiverDefaults() {
+  try {
+    const res = await fetch('/api/me', {
+      cache: 'no-store',
+      headers: { Accept: 'application/json' },
+    });
+    if (!res.ok) return;
+    const data = await res.json();
+    const scope = data.scope || {};
+    const nameEl = document.getElementById('caregiver_name');
+    const emailEl = document.getElementById('caregiver_email');
+    if (nameEl && !nameEl.value && scope.displayName) nameEl.value = scope.displayName;
+    if (emailEl && !emailEl.value && scope.email) emailEl.value = scope.email;
+  } catch (_) {}
+}
+
+async function saveCaregiverProfile() {
+  const btn = document.getElementById('caregiver-profile-save');
+  const statusEl = document.getElementById('caregiver-profile-status');
+  if (!btn || !statusEl) return;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="ph ph-circle-notch" aria-hidden="true"></i> Saving…';
+  statusEl.textContent = '';
+  statusEl.className = 'settings-status';
+
+  try {
+    await saveAccountPreferences();
+    statusEl.textContent = 'Saved!';
+    statusEl.className = 'settings-status success';
+  } catch (err) {
+    console.error('[settings] Caregiver profile save error:', err);
+    statusEl.textContent = 'Error saving: ' + err.message;
+    statusEl.className = 'settings-status error';
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ph ph-floppy-disk" aria-hidden="true"></i> Save Profile';
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -365,7 +436,8 @@ function showStatus(message, type) {
 loadSettings();
 loadFamilyMembers();
 
-document.getElementById('save-btn').addEventListener('click', saveSettings);
+const saveBtn = document.getElementById('save-btn');
+if (saveBtn) saveBtn.addEventListener('click', saveSettings);
 const paletteSelect = document.getElementById('ui_palette');
 if (paletteSelect) {
   paletteSelect.addEventListener('change', () => {
@@ -374,3 +446,5 @@ if (paletteSelect) {
 }
 const inviteBtn = document.getElementById('invite-btn');
 if (inviteBtn) inviteBtn.addEventListener('click', sendCaregiverInvite);
+const caregiverProfileSaveBtn = document.getElementById('caregiver-profile-save');
+if (caregiverProfileSaveBtn) caregiverProfileSaveBtn.addEventListener('click', saveCaregiverProfile);

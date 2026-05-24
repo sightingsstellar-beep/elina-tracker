@@ -11,7 +11,7 @@
   const CHECK_INTERVAL_MS = 5 * 60 * 1000;
   const VERSION_URL = '/api/version';
   const STORAGE_KEY = 'glide-bedside-seen-commit';
-  const PROMPT_PATHS = new Set(['/chat', '/settings']);
+  const PROMPT_PATHS = new Set(['/chat', '/settings', '/caregivers', '/caregiver-profile', '/patient-profile']);
   let currentCommit = null;
   let checking = false;
   let prompted = false;

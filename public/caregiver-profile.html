@@ -7,12 +7,12 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="manifest" href="/manifest.json" />
-  <title>Glide Bedside — Trends</title>
+  <title>Glide Bedside — Caregiver Profile</title>
   <link rel="stylesheet" href="/vendor/phosphor/regular/style.css" />
   <link rel="stylesheet" href="/vendor/phosphor/fill/style.css" />
   <script src="theme.js"></script>
   <link rel="stylesheet" href="style.css" />
-  <link rel="stylesheet" href="history.css" />
+  <link rel="stylesheet" href="settings.css" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 </head>
 <body>
@@ -38,7 +38,7 @@
                 <a href="/chat">Chat</a>
               </div>
             </div>
-            <a href="/caregiver-profile" class="top-nav-item">Caregiver Profile</a>
+            <a href="/caregiver-profile" class="top-nav-item active" aria-current="page">Caregiver Profile</a>
             <a href="/patient-profile" class="top-nav-item">Patient Profile</a>
             <a href="/caregivers" class="top-nav-item">Caregivers</a>
             <a href="/settings" class="top-nav-item">App Settings</a>
@@ -53,58 +53,60 @@
         <div class="clock" id="current-time">--:--</div>
       </div>
     </div>
-    <nav class="tab-bar" aria-label="Primary">
+    <nav class="tab-bar" aria-label="Chart">
       <a href="/" class="tab-item">
-        <span class="tab-icon" aria-hidden="true">
-          <i class="tab-icon-outline ph ph-drop"></i>
-          <i class="tab-icon-fill ph-fill ph-drop"></i>
-        </span>
+        <span class="tab-icon" aria-hidden="true"><i class="tab-icon-outline ph ph-drop"></i><i class="tab-icon-fill ph-fill ph-drop"></i></span>
         <span class="tab-label">Day</span>
       </a>
-      <a href="/history" class="tab-item active" aria-current="page">
-        <span class="tab-icon" aria-hidden="true">
-          <i class="tab-icon-outline ph ph-chart-line-up"></i>
-          <i class="tab-icon-fill ph-fill ph-chart-line-up"></i>
-        </span>
+      <a href="/history" class="tab-item">
+        <span class="tab-icon" aria-hidden="true"><i class="tab-icon-outline ph ph-chart-line-up"></i><i class="tab-icon-fill ph-fill ph-chart-line-up"></i></span>
         <span class="tab-label">Trends</span>
       </a>
       <a href="/chat" class="tab-item">
-        <span class="tab-icon" aria-hidden="true">
-          <i class="tab-icon-outline ph ph-microphone"></i>
-          <i class="tab-icon-fill ph-fill ph-microphone"></i>
-        </span>
+        <span class="tab-icon" aria-hidden="true"><i class="tab-icon-outline ph ph-microphone"></i><i class="tab-icon-fill ph-fill ph-microphone"></i></span>
         <span class="tab-label">Chat</span>
       </a>
     </nav>
   </header>
 
-  <main class="main history-main">
-    <section class="trends-toolbar card">
-      <div class="trends-toolbar-top">
-        <div>
-          <h2 class="trends-heading"><span class="heading-icon" aria-hidden="true"><i class="ph ph-chart-line-up"></i></span> Trends</h2>
-          <p class="trends-subheading">Tap any bar or point to jump into that day.</p>
-        </div>
+  <main class="main settings-main">
+    <h2 class="settings-heading"><span class="heading-icon" aria-hidden="true"><i class="ph ph-user-circle"></i></span> Caregiver Profile</h2>
+
+    <section class="card settings-card">
+      <div class="settings-section-title"><span class="section-title-icon" aria-hidden="true"><i class="ph ph-identification-card"></i></span> Basic Info</div>
+      <div class="settings-field">
+        <label for="caregiver_name">Name</label>
+        <input type="text" id="caregiver_name" name="caregiver_name" maxlength="80" placeholder="Your name" />
       </div>
-      <div class="range-pills" id="range-pills">
-        <button class="range-pill active" data-range="7">7D</button>
-        <button class="range-pill" data-range="30">30D</button>
-        <button class="range-pill" data-range="90">90D</button>
+      <div class="settings-field">
+        <label for="caregiver_email">Email</label>
+        <input type="email" id="caregiver_email" name="caregiver_email" maxlength="120" placeholder="you@example.com" autocomplete="email" />
+      </div>
+      <div class="settings-field">
+        <label for="caregiver_phone">Phone</label>
+        <input type="tel" id="caregiver_phone" name="caregiver_phone" maxlength="40" placeholder="Optional" autocomplete="tel" />
+      </div>
+      <div class="settings-field">
+        <label for="caregiver_relationship">Relationship</label>
+        <input type="text" id="caregiver_relationship" name="caregiver_relationship" maxlength="80" placeholder="Parent, nurse, grandparent" />
+      </div>
+      <div class="settings-field">
+        <label for="caregiver_notes">Notes</label>
+        <textarea id="caregiver_notes" name="caregiver_notes" rows="4" maxlength="1000" placeholder="Useful handoff context"></textarea>
       </div>
     </section>
 
-    <div id="trends-container">
-      <div class="h-loading">Loading trends…</div>
+    <div class="settings-save-row">
+      <button class="settings-save-btn" id="caregiver-profile-save"><i class="ph ph-floppy-disk" aria-hidden="true"></i> Save Profile</button>
+      <div class="settings-status" id="caregiver-profile-status" aria-live="polite"></div>
     </div>
   </main>
 
-  <footer class="footer">
-    <span>Last updated: <span id="last-updated">--</span></span>
-  </footer>
+  <footer class="footer"><span>Glide Bedside</span></footer>
 
   <script src="auth-fetch.js"></script>
   <script src="version-watch.js"></script>
   <script src="nav.js"></script>
-  <script src="history.js"></script>
+  <script src="settings.js"></script>
 </body>
 </html>

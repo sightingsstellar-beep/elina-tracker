@@ -2406,9 +2406,21 @@ app.post('/api/account/preferences', async (req, res) => {
     if (!body || typeof body !== 'object') {
       return res.status(400).json({ ok: false, error: 'Invalid request body' });
     }
+    const allowedKeys = new Set([
+      'ui_palette',
+      'caregiver_name',
+      'caregiver_email',
+      'caregiver_phone',
+      'caregiver_relationship',
+      'caregiver_notes',
+    ]);
     if (body.ui_palette !== undefined) {
       const palette = ['calm', 'contrast', 'sage', 'lavender', 'sunrise', 'dark', 'midnight'].includes(body.ui_palette) ? body.ui_palette : 'calm';
       await db.setAccountPreference(subject, 'ui_palette', palette);
+    }
+    for (const [key, value] of Object.entries(body)) {
+      if (key === 'ui_palette' || !allowedKeys.has(key) || value === undefined || value === null) continue;
+      await db.setAccountPreference(subject, key, String(value).slice(0, 1000));
     }
     const preferences = await db.getAccountPreferences(subject);
     res.json({ ok: true, accountScoped: true, preferences });
@@ -3451,6 +3463,18 @@ app.post('/api/settings', async (req, res) => {
 // Settings page
 app.get('/settings', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'settings.html'));
+});
+
+app.get('/caregivers', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'caregivers.html'));
+});
+
+app.get('/caregiver-profile', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'caregiver-profile.html'));
+});
+
+app.get('/patient-profile', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'patient-profile.html'));
 });
 
 // History page

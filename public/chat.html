@@ -24,7 +24,33 @@
         <div class="subtitle" id="current-date">Loading...</div>
       </div>
       <div class="header-right">
-        <a href="/logout" class="logout-btn" title="Log out" aria-label="Log out"><i class="ph ph-power" aria-hidden="true"></i></a>
+        <div class="top-menu" data-top-menu>
+          <button class="top-menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" data-top-menu-toggle>
+            <span class="top-menu-toggle-line"></span>
+            <span class="top-menu-toggle-line"></span>
+            <span class="top-menu-toggle-line"></span>
+          </button>
+          <div class="top-nav" data-top-menu-panel>
+            <div class="top-nav-group">
+              <button class="top-nav-trigger" type="button">Chart <i class="ph ph-caret-down" aria-hidden="true"></i></button>
+              <div class="top-nav-dropdown">
+                <a href="/">Day</a>
+                <a href="/history">Trends</a>
+                <a href="/chat">Chat</a>
+              </div>
+            </div>
+            <a href="/caregiver-profile" class="top-nav-item">Caregiver Profile</a>
+            <a href="/patient-profile" class="top-nav-item">Patient Profile</a>
+            <a href="/caregivers" class="top-nav-item">Caregivers</a>
+            <a href="/settings" class="top-nav-item">App Settings</a>
+            <div class="account-menu">
+              <button class="top-nav-trigger" type="button" aria-expanded="false" data-account-menu-button><span data-caregiver-name>Caregiver</span> <i class="ph ph-caret-down" aria-hidden="true"></i></button>
+              <div class="account-menu-panel" hidden data-account-menu-panel>
+                <a href="/logout"><i class="ph ph-power" aria-hidden="true"></i> Log out</a>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="clock" id="current-time">--:--</div>
       </div>
     </div>
@@ -49,13 +75,6 @@
           <i class="tab-icon-fill ph-fill ph-microphone"></i>
         </span>
         <span class="tab-label">Chat</span>
-      </a>
-      <a href="/settings" class="tab-item">
-        <span class="tab-icon" aria-hidden="true">
-          <i class="tab-icon-outline ph ph-gear-six"></i>
-          <i class="tab-icon-fill ph-fill ph-gear-six"></i>
-        </span>
-        <span class="tab-label">Settings</span>
       </a>
     </nav>
   </header>
@@ -121,6 +140,7 @@
 
   <script src="auth-fetch.js"></script>
   <script src="version-watch.js"></script>
+  <script src="nav.js"></script>
   <script src="chat.js"></script>
 </body>
 </html>

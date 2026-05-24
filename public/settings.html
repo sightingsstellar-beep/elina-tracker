@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="manifest" href="/manifest.json" />
-  <title>Glide Bedside — Settings</title>
+  <title>Glide Bedside — App Settings</title>
   <link rel="stylesheet" href="/vendor/phosphor/regular/style.css" />
   <link rel="stylesheet" href="/vendor/phosphor/fill/style.css" />
   <script src="theme.js"></script>
@@ -16,7 +16,6 @@
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 </head>
 <body>
-  <!-- ========== HEADER ========== -->
   <header class="header">
     <div class="header-top">
       <div class="header-left">
@@ -24,57 +23,55 @@
         <div class="subtitle" id="current-date">Loading...</div>
       </div>
       <div class="header-right">
-        <a href="/logout" class="logout-btn" title="Log out" aria-label="Log out"><i class="ph ph-power" aria-hidden="true"></i></a>
+        <div class="top-menu" data-top-menu>
+          <button class="top-menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" data-top-menu-toggle>
+            <span class="top-menu-toggle-line"></span>
+            <span class="top-menu-toggle-line"></span>
+            <span class="top-menu-toggle-line"></span>
+          </button>
+          <div class="top-nav" data-top-menu-panel>
+            <div class="top-nav-group">
+              <button class="top-nav-trigger" type="button">Chart <i class="ph ph-caret-down" aria-hidden="true"></i></button>
+              <div class="top-nav-dropdown">
+                <a href="/">Day</a>
+                <a href="/history">Trends</a>
+                <a href="/chat">Chat</a>
+              </div>
+            </div>
+            <a href="/caregiver-profile" class="top-nav-item">Caregiver Profile</a>
+            <a href="/patient-profile" class="top-nav-item">Patient Profile</a>
+            <a href="/caregivers" class="top-nav-item">Caregivers</a>
+            <a href="/settings" class="top-nav-item active" aria-current="page">App Settings</a>
+            <div class="account-menu">
+              <button class="top-nav-trigger" type="button" aria-expanded="false" data-account-menu-button><span data-caregiver-name>Caregiver</span> <i class="ph ph-caret-down" aria-hidden="true"></i></button>
+              <div class="account-menu-panel" hidden data-account-menu-panel>
+                <a href="/logout"><i class="ph ph-power" aria-hidden="true"></i> Log out</a>
+              </div>
+            </div>
+          </div>
+        </div>
         <div class="clock" id="current-time">--:--</div>
       </div>
     </div>
-    <nav class="tab-bar" aria-label="Primary">
+    <nav class="tab-bar" aria-label="Chart">
       <a href="/" class="tab-item">
-        <span class="tab-icon" aria-hidden="true">
-          <i class="tab-icon-outline ph ph-drop"></i>
-          <i class="tab-icon-fill ph-fill ph-drop"></i>
-        </span>
+        <span class="tab-icon" aria-hidden="true"><i class="tab-icon-outline ph ph-drop"></i><i class="tab-icon-fill ph-fill ph-drop"></i></span>
         <span class="tab-label">Day</span>
       </a>
       <a href="/history" class="tab-item">
-        <span class="tab-icon" aria-hidden="true">
-          <i class="tab-icon-outline ph ph-chart-line-up"></i>
-          <i class="tab-icon-fill ph-fill ph-chart-line-up"></i>
-        </span>
+        <span class="tab-icon" aria-hidden="true"><i class="tab-icon-outline ph ph-chart-line-up"></i><i class="tab-icon-fill ph-fill ph-chart-line-up"></i></span>
         <span class="tab-label">Trends</span>
       </a>
       <a href="/chat" class="tab-item">
-        <span class="tab-icon" aria-hidden="true">
-          <i class="tab-icon-outline ph ph-microphone"></i>
-          <i class="tab-icon-fill ph-fill ph-microphone"></i>
-        </span>
+        <span class="tab-icon" aria-hidden="true"><i class="tab-icon-outline ph ph-microphone"></i><i class="tab-icon-fill ph-fill ph-microphone"></i></span>
         <span class="tab-label">Chat</span>
-      </a>
-      <a href="/settings" class="tab-item active" aria-current="page">
-        <span class="tab-icon" aria-hidden="true">
-          <i class="tab-icon-outline ph ph-gear-six"></i>
-          <i class="tab-icon-fill ph-fill ph-gear-six"></i>
-        </span>
-        <span class="tab-label">Settings</span>
       </a>
     </nav>
   </header>
 
   <main class="main settings-main">
-    <h2 class="settings-heading"><span class="heading-icon" aria-hidden="true"><i class="ph ph-gear-six"></i></span> Settings</h2>
+    <h2 class="settings-heading"><span class="heading-icon" aria-hidden="true"><i class="ph ph-gear-six"></i></span> App Settings</h2>
 
-    <!-- ========== PATIENT ========== -->
-    <section class="card settings-card">
-      <div class="settings-section-title"><span class="section-title-icon" aria-hidden="true"><i class="ph ph-heart"></i></span> Patient</div>
-
-      <div class="settings-field">
-        <label for="child_name">Child's name</label>
-        <input type="text" id="child_name" name="child_name" maxlength="50" placeholder="Elina" />
-      </div>
-
-    </section>
-
-    <!-- ========== FLUID TRACKING ========== -->
     <section class="card settings-card">
       <div class="settings-section-title"><span class="section-title-icon" aria-hidden="true"><i class="ph ph-drop"></i></span> Fluid Tracking</div>
 
@@ -104,65 +101,50 @@
       <div class="settings-field">
         <label>Units</label>
         <div class="radio-group">
-          <label class="radio-label">
-            <input type="radio" name="units" value="ml" /> ml
-          </label>
-          <label class="radio-label">
-            <input type="radio" name="units" value="oz" /> oz
-          </label>
+          <label class="radio-label"><input type="radio" name="units" value="ml" /> ml</label>
+          <label class="radio-label"><input type="radio" name="units" value="oz" /> oz</label>
         </div>
       </div>
     </section>
 
-    <!-- ========== ALERT THRESHOLDS ========== -->
     <section class="card settings-card">
       <div class="settings-section-title"><span class="section-title-icon" aria-hidden="true"><i class="ph ph-traffic-signal"></i></span> Alert Thresholds</div>
-
       <div class="settings-field">
         <label for="warn_threshold_yellow">Yellow warning at (% of daily limit)</label>
         <input type="number" id="warn_threshold_yellow" name="warn_threshold_yellow" min="10" max="100" step="5" placeholder="70" inputmode="numeric" />
       </div>
-
       <div class="settings-field">
         <label for="warn_threshold_red">Red warning at (% of daily limit)</label>
         <input type="number" id="warn_threshold_red" name="warn_threshold_red" min="10" max="100" step="5" placeholder="90" inputmode="numeric" />
       </div>
     </section>
 
-    <!-- ========== REPORT TIMES ========== -->
     <section class="card settings-card">
       <div class="settings-section-title"><span class="section-title-icon" aria-hidden="true"><i class="ph ph-clock"></i></span> Report Times</div>
-
       <div class="settings-field">
         <label for="report_time_1">Handoff report time</label>
         <input type="time" id="report_time_1" name="report_time_1" />
       </div>
-
       <div class="settings-field">
         <label for="report_time_2">Bedtime report time</label>
         <input type="time" id="report_time_2" name="report_time_2" />
       </div>
     </section>
 
-    <!-- ========== WELLNESS CHECKS ========== -->
     <section class="card settings-card">
       <div class="settings-section-title"><span class="section-title-icon" aria-hidden="true"><i class="ph ph-stethoscope"></i></span> Wellness Checks</div>
-
       <div class="settings-field">
         <label for="wellness_check_1">Afternoon check time</label>
         <input type="time" id="wellness_check_1" name="wellness_check_1" />
       </div>
-
       <div class="settings-field">
         <label for="wellness_check_2">Evening check time</label>
         <input type="time" id="wellness_check_2" name="wellness_check_2" />
       </div>
     </section>
 
-    <!-- ========== REGIONAL ========== -->
     <section class="card settings-card">
       <div class="settings-section-title"><span class="section-title-icon" aria-hidden="true"><i class="ph ph-globe"></i></span> Regional</div>
-
       <div class="settings-field">
         <label for="timezone">Timezone</label>
         <select id="timezone" name="timezone">
@@ -178,7 +160,6 @@
       </div>
     </section>
 
-    <!-- ========== APPEARANCE ========== -->
     <section class="card settings-card">
       <div class="settings-section-title"><span class="section-title-icon" aria-hidden="true"><i class="ph ph-palette"></i></span> Appearance</div>
       <div class="settings-field">
@@ -196,42 +177,17 @@
       </div>
     </section>
 
-    <!-- ========== CAREGIVERS ========== -->
-    <section class="card settings-card" id="caregiver-card">
-      <div class="settings-section-title"><span class="section-title-icon" aria-hidden="true"><i class="ph ph-users"></i></span> Caregivers</div>
-      <p class="settings-help">Invite another caregiver to access this same family/patient tracker with their own login.</p>
-      <div class="family-members" id="family-members" aria-live="polite">
-        <div class="family-members-loading">Loading family access…</div>
-      </div>
-      <div class="settings-field">
-        <label for="invite_email">Caregiver email</label>
-        <input type="email" id="invite_email" name="invite_email" placeholder="caregiver@example.com" autocomplete="email" />
-      </div>
-      <div class="settings-field">
-        <label for="invite_role">Role</label>
-        <select id="invite_role" name="invite_role">
-          <option value="caregiver">Caregiver</option>
-          <option value="viewer">Viewer</option>
-          <option value="admin">Admin</option>
-        </select>
-      </div>
-      <button class="settings-save-btn" id="invite-btn" type="button">Send Invite</button>
-      <div class="settings-status" id="invite-status" aria-live="polite"></div>
-    </section>
-
-    <!-- ========== SAVE ========== -->
     <div class="settings-save-row">
       <button class="settings-save-btn" id="save-btn"><i class="ph ph-floppy-disk" aria-hidden="true"></i> Save Settings</button>
       <div class="settings-status" id="settings-status" aria-live="polite"></div>
     </div>
   </main>
 
-  <footer class="footer">
-    <span>Glide Bedside</span>
-  </footer>
+  <footer class="footer"><span>Glide Bedside</span></footer>
 
   <script src="auth-fetch.js"></script>
   <script src="version-watch.js"></script>
+  <script src="nav.js"></script>
   <script src="settings.js"></script>
 </body>
 </html>
