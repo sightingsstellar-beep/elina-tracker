@@ -39,6 +39,8 @@
   --shadow: 0 10px 26px rgba(23, 47, 69, 0.08);
   --shadow-hover: 0 16px 36px rgba(23, 47, 69, 0.16);
   --glide-gradient: linear-gradient(135deg, #2f7f9f 0%, #319a9a 48%, #5fc7bd 100%);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --mobile-sticky-header-offset: calc(69px + var(--safe-top));
 }
 
 :root[data-theme="contrast"] {
@@ -2396,7 +2398,7 @@ body.quick-log-modal-open {
 
 @media (max-width: 980px) {
   .header-top {
-    padding: 12px 14px 10px;
+    padding: calc(12px + var(--safe-top)) 14px 10px;
     align-items: center;
   }
 
@@ -2415,7 +2417,7 @@ body.quick-log-modal-open {
     display: none;
     position: fixed;
     right: 12px;
-    top: calc(58px + env(safe-area-inset-top, 0px));
+    top: calc(58px + var(--safe-top));
     width: min(218px, calc(100vw - 28px));
     padding: 8px 10px;
     border: 1px solid var(--border);
@@ -2487,7 +2489,7 @@ body.quick-log-modal-open {
   }
 
   .day-controller-bar {
-    top: 69px;
+    top: var(--mobile-sticky-header-offset);
   }
 }
 
