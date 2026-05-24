@@ -140,7 +140,7 @@ app.use('/vendor/phosphor', express.static(path.join(__dirname, 'public', 'vendo
     res.setHeader('Cache-Control', 'no-cache, must-revalidate');
   },
 }));
-for (const publicScript of ['theme.js', 'version-watch.js']) {
+for (const publicScript of ['theme.js', 'version-watch.js', 'viewport-guard.js']) {
   app.get(`/${publicScript}`, (req, res) => {
     res.setHeader('Cache-Control', 'no-cache, must-revalidate');
     res.sendFile(path.join(__dirname, 'public', publicScript));
@@ -266,13 +266,13 @@ function renderClerkLoginPage({ misconfigured = false } = {}) {
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Sign In — Glide Bedside</title>
   <link rel="stylesheet" href="/vendor/phosphor/fill/style.css" />
   <script src="theme.js"></script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html, body { width:100%; max-width:100%; overflow-x:hidden; }
+    html, body { width:100%; max-width:100%; overflow-x:hidden; touch-action:pan-x pan-y; }
     body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background:#f0f4f8; min-height:100svh; display:flex; align-items:center; justify-content:center; padding:16px; }
     .card { background:#fff; border-radius:20px; box-shadow:0 4px 24px rgba(0,0,0,.10); padding:32px 18px 28px; width:100%; max-width:min(430px, 100%); text-align:center; overflow:hidden; }
     .icon { width:58px; height:58px; margin:0 auto 14px; border-radius:999px; display:grid; place-items:center; color:#2f7f9f; background:linear-gradient(135deg, rgba(47,127,159,.18), rgba(95,199,189,.16)); box-shadow:inset 0 0 0 1px rgba(47,127,159,.18), 0 10px 22px rgba(47,127,159,.14); font-size:2rem; }
@@ -303,6 +303,7 @@ function renderClerkLoginPage({ misconfigured = false } = {}) {
     ${misconfigured ? '<div class="notice">Clerk login is enabled but not fully configured. Please contact support.</div>' : `<p class="muted" id="login-help">Loading secure sign-in…</p><div id="sign-in" aria-live="polite"></div>`}
     <div class="version" id="app-version">Version loading…</div>
   </div>
+  <script src="viewport-guard.js"></script>
   ${misconfigured ? '' : `<script async crossorigin="anonymous" data-clerk-publishable-key=${key} src="${clerkScriptSrc}"></script>
   <script>
     window.addEventListener('load', async () => {
@@ -401,8 +402,9 @@ app.get('/logout', (req, res) => {
   if (CLERK_AUTH_ENABLED) {
     if (!CLERK_CONFIGURED) return res.redirect('/login');
     return res.type('html').send(`<!doctype html>
-<html lang="en"><head><meta charset="UTF-8"><title>Signing out — Glide Bedside</title></head>
+<html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover"><title>Signing out — Glide Bedside</title></head>
 <body><p>Signing out…</p>
+<script src="viewport-guard.js"></script>
 <script async crossorigin="anonymous" data-clerk-publishable-key=${JSON.stringify(CLERK_PUBLISHABLE_KEY)} src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
 <script>window.addEventListener('load', async () => { await window.Clerk.load(); await window.Clerk.signOut(); window.location.assign('/login'); });</script>
 </body></html>`);
@@ -415,10 +417,11 @@ function renderOnboardingPage() {
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
   <title>Set up your family — Glide Bedside</title>
   <style>
     *, *::before, *::after { box-sizing:border-box; }
+    html, body { touch-action:pan-x pan-y; }
     body { margin:0; font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; background:#f0f4f8; min-height:100svh; display:flex; align-items:center; justify-content:center; padding:16px; color:#202124; }
     .card { background:#fff; width:100%; max-width:430px; border-radius:20px; box-shadow:0 4px 24px rgba(0,0,0,.10); padding:28px 22px; }
     h1 { font-size:1.35rem; margin:0 0 8px; }
@@ -444,6 +447,7 @@ function renderOnboardingPage() {
       <div class="error" id="error"></div>
     </form>
   </main>
+  <script src="viewport-guard.js"></script>
   <script>
     document.getElementById('onboarding-form').addEventListener('submit', async (event) => {
       event.preventDefault();
