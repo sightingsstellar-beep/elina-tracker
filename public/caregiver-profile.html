@@ -15,7 +15,7 @@
   <link rel="stylesheet" href="settings.css" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 </head>
-<body>
+<body class="no-chart-tabs">
   <header class="header">
     <div class="header-top">
       <div class="header-left">
@@ -30,21 +30,14 @@
             <span class="top-menu-toggle-line"></span>
           </button>
           <div class="top-nav" data-top-menu-panel>
-            <div class="top-nav-group">
-              <button class="top-nav-trigger" type="button">Chart <i class="ph ph-caret-down" aria-hidden="true"></i></button>
-              <div class="top-nav-dropdown">
-                <a href="/">Day</a>
-                <a href="/history">Trends</a>
-                <a href="/chat">Chat</a>
-              </div>
-            </div>
-            <a href="/caregiver-profile" class="top-nav-item active" aria-current="page">Caregiver Profile</a>
+            <a href="/" class="top-nav-item">Chart</a>
             <a href="/patient-profile" class="top-nav-item">Patient Profile</a>
             <a href="/caregivers" class="top-nav-item">Caregivers</a>
             <a href="/settings" class="top-nav-item">App Settings</a>
             <div class="account-menu">
-              <button class="top-nav-trigger" type="button" aria-expanded="false" data-account-menu-button><span data-caregiver-name>Caregiver</span> <i class="ph ph-caret-down" aria-hidden="true"></i></button>
+              <button class="top-nav-trigger active" type="button" aria-expanded="false" data-account-menu-button><span data-caregiver-name>Caregiver</span> <i class="ph ph-caret-down" aria-hidden="true"></i></button>
               <div class="account-menu-panel" hidden data-account-menu-panel>
+                <a href="/caregiver-profile" class="active" aria-current="page"><i class="ph ph-user-circle" aria-hidden="true"></i> Caregiver Profile</a>
                 <a href="/logout"><i class="ph ph-power" aria-hidden="true"></i> Log out</a>
               </div>
             </div>
@@ -53,20 +46,6 @@
         <div class="clock" id="current-time">--:--</div>
       </div>
     </div>
-    <nav class="tab-bar" aria-label="Chart">
-      <a href="/" class="tab-item">
-        <span class="tab-icon" aria-hidden="true"><i class="tab-icon-outline ph ph-drop"></i><i class="tab-icon-fill ph-fill ph-drop"></i></span>
-        <span class="tab-label">Day</span>
-      </a>
-      <a href="/history" class="tab-item">
-        <span class="tab-icon" aria-hidden="true"><i class="tab-icon-outline ph ph-chart-line-up"></i><i class="tab-icon-fill ph-fill ph-chart-line-up"></i></span>
-        <span class="tab-label">Trends</span>
-      </a>
-      <a href="/chat" class="tab-item">
-        <span class="tab-icon" aria-hidden="true"><i class="tab-icon-outline ph ph-microphone"></i><i class="tab-icon-fill ph-fill ph-microphone"></i></span>
-        <span class="tab-label">Chat</span>
-      </a>
-    </nav>
   </header>
 
   <main class="main settings-main">

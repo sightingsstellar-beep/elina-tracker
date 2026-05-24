@@ -276,6 +276,10 @@ body {
   padding-bottom: calc(72px + env(safe-area-inset-bottom, 0px));
 }
 
+body.no-chart-tabs {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* ============================================================
    HEADER
    ============================================================ */
@@ -396,22 +400,23 @@ body {
 .top-nav-item,
 .top-nav-trigger {
   appearance: none;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.12);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
   color: rgba(255, 255, 255, 0.92);
   cursor: pointer;
   display: inline-flex;
   align-items: center;
   gap: 6px;
   min-height: 34px;
-  padding: 7px 11px;
+  padding: 4px 0;
   font: inherit;
   font-size: 0.84rem;
   font-weight: 700;
   line-height: 1;
   text-decoration: none;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.15s, color 0.15s, opacity 0.15s;
 }
 
 .top-nav-item:hover,
@@ -421,8 +426,8 @@ body {
 .top-nav-trigger:active,
 .top-nav-trigger.active,
 .top-nav-trigger[aria-expanded="true"] {
-  background: rgba(255, 255, 255, 0.22);
-  border-color: rgba(255, 255, 255, 0.38);
+  background: transparent;
+  border-color: rgba(255, 255, 255, 0.82);
   color: #fff;
 }
 
@@ -2381,7 +2386,7 @@ body {
     right: 12px;
     top: calc(58px + env(safe-area-inset-top, 0px));
     width: min(280px, calc(100vw - 28px));
-    padding: 8px;
+    padding: 8px 12px;
     border: 1px solid var(--border);
     border-radius: 12px;
     background: var(--surface);
@@ -2399,10 +2404,11 @@ body {
   .top-nav-trigger {
     justify-content: space-between;
     width: 100%;
-    border-radius: 8px;
+    border-radius: 0;
     border-color: transparent;
     background: transparent;
     color: var(--text);
+    padding: 10px 0;
     min-height: 40px;
   }
 
@@ -2413,8 +2419,13 @@ body {
   .top-nav-trigger:active,
   .top-nav-trigger.active,
   .top-nav-trigger[aria-expanded="true"] {
-    background: var(--blue-light);
+    background: transparent;
+    border-bottom-color: var(--blue);
     color: var(--blue-dark);
+  }
+
+  .account-menu {
+    order: -1;
   }
 
   .top-nav-group:hover .top-nav-dropdown,
@@ -2426,9 +2437,8 @@ body {
   .account-menu-panel {
     position: static;
     width: auto;
-    margin: 0 0 4px 12px;
+    margin: 0 0 4px;
     border: 0;
-    border-left: 2px solid var(--border);
     border-radius: 0;
     box-shadow: none;
     background: transparent;
