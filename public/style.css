@@ -393,7 +393,7 @@ body.no-chart-tabs {
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 12px;
+  gap: 20px;
   max-width: 100%;
 }
 
@@ -415,7 +415,8 @@ body.no-chart-tabs {
   font-weight: 700;
   line-height: 1;
   text-decoration: none;
-  transition: color 0.15s, opacity 0.15s;
+  border-bottom: 2px solid transparent;
+  transition: border-color 0.15s, color 0.15s, opacity 0.15s;
 }
 
 .top-nav-item i,
@@ -444,6 +445,7 @@ body.no-chart-tabs {
 .top-nav-trigger.active,
 .top-nav-trigger[aria-expanded="true"] {
   background: transparent;
+  border-color: rgba(255, 255, 255, 0.82);
   color: #fff;
 }
 
@@ -474,15 +476,15 @@ body.no-chart-tabs {
 .account-menu-panel a {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   gap: 7px;
   color: var(--text);
   text-decoration: none;
   font-size: 0.92rem;
   font-weight: 700;
-  padding: 9px 6px;
+  padding: 9px 10px;
   border-radius: 8px;
-  text-align: center;
+  text-align: left;
 }
 
 .account-menu-panel a:hover,
@@ -2417,6 +2419,7 @@ body.no-chart-tabs {
     justify-content: flex-start;
     width: 100%;
     border-radius: 0;
+    border-bottom: 0;
     background: transparent;
     color: var(--text);
     padding: 10px 2px;
@@ -2435,6 +2438,7 @@ body.no-chart-tabs {
   .top-nav-trigger.active,
   .top-nav-trigger[aria-expanded="true"] {
     background: transparent;
+    border-color: transparent;
     color: var(--blue-dark);
   }
 
