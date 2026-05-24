@@ -57,19 +57,21 @@
       <div class="family-members" id="family-members" aria-live="polite">
         <div class="family-members-loading">Loading family access…</div>
       </div>
-      <div class="settings-field">
-        <label for="invite_email">Caregiver email</label>
-        <input type="email" id="invite_email" name="invite_email" placeholder="caregiver@example.com" autocomplete="email" />
+      <div class="settings-permission-note" id="invite-permission-note" hidden>Only the family owner can invite caregivers.</div>
+      <div class="invite-access-form" id="invite-access-form">
+        <div class="settings-field">
+          <label for="invite_email">Caregiver email</label>
+          <input type="email" id="invite_email" name="invite_email" placeholder="caregiver@example.com" autocomplete="email" />
+        </div>
+        <div class="settings-field">
+          <label for="invite_role">Role</label>
+          <select id="invite_role" name="invite_role">
+            <option value="caregiver">Caregiver</option>
+            <option value="viewer">Viewer</option>
+          </select>
+        </div>
+        <button class="settings-save-btn" id="invite-btn" type="button">Send Invite</button>
       </div>
-      <div class="settings-field">
-        <label for="invite_role">Role</label>
-        <select id="invite_role" name="invite_role">
-          <option value="caregiver">Caregiver</option>
-          <option value="viewer">Viewer</option>
-          <option value="admin">Admin</option>
-        </select>
-      </div>
-      <button class="settings-save-btn" id="invite-btn" type="button">Send Invite</button>
       <div class="settings-status" id="invite-status" aria-live="polite"></div>
     </section>
   </main>

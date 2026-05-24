@@ -349,6 +349,19 @@ function renderFamilyMembers(members) {
   }).join('');
 }
 
+function applyInvitePermissions(canInviteCaregivers) {
+  const inviteForm = document.getElementById('invite-access-form');
+  const note = document.getElementById('invite-permission-note');
+  const statusEl = document.getElementById('invite-status');
+
+  if (inviteForm) inviteForm.hidden = !canInviteCaregivers;
+  if (note) note.hidden = canInviteCaregivers;
+  if (statusEl && !canInviteCaregivers) {
+    statusEl.textContent = '';
+    statusEl.className = 'settings-status';
+  }
+}
+
 async function loadFamilyMembers() {
   const container = document.getElementById('family-members');
   if (!container) return;
@@ -357,10 +370,12 @@ async function loadFamilyMembers() {
     const res = await fetch('/api/family/members');
     const data = await res.json();
     if (!res.ok || !data.ok) throw new Error(data.error || `HTTP ${res.status}`);
+    applyInvitePermissions(Boolean(data.permissions?.canInviteCaregivers));
     renderFamilyMembers(data.members || []);
   } catch (err) {
     console.error('[settings] Family access load error:', err);
     container.innerHTML = `<div class="family-members-error">Could not load family access: ${escapeHtml(err.message)}</div>`;
+    applyInvitePermissions(false);
   }
 }
 
@@ -372,7 +387,7 @@ async function sendCaregiverInvite() {
   if (!btn || !emailEl || !roleEl || !statusEl) return;
 
   const email = emailEl.value.trim().toLowerCase();
-  const role = roleEl.value || 'caregiver';
+  const role = ['caregiver', 'viewer'].includes(roleEl.value) ? roleEl.value : 'caregiver';
   if (!email) {
     statusEl.textContent = 'Enter an email address.';
     statusEl.className = 'settings-status error';

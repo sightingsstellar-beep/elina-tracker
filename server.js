@@ -2387,7 +2387,14 @@ async function requireAuth(req, res, next) {
 app.use(requireAuth);
 
 app.get('/api/me', async (req, res) => {
-  res.json({ ok: true, scope: req.scope || null });
+  const scope = req.scope || null;
+  res.json({
+    ok: true,
+    scope,
+    permissions: {
+      canInviteCaregivers: scope?.role === 'owner',
+    },
+  });
 });
 
 app.get('/api/account/preferences', async (req, res) => {
@@ -2439,7 +2446,19 @@ app.get('/api/family/members', async (req, res) => {
     const scope = requestScope(req);
     if (!scope.familyId) return res.status(400).json({ ok: false, error: 'family_scope_required' });
     const members = await db.getFamilyAccessList(scope.familyId);
-    res.json({ ok: true, family: { id: scope.familyId, name: scope.familyName || null }, members });
+    res.json({
+      ok: true,
+      family: { id: scope.familyId, name: scope.familyName || null },
+      currentUser: {
+        role: scope.role || 'caregiver',
+        email: scope.email || null,
+        displayName: scope.displayName || null,
+      },
+      permissions: {
+        canInviteCaregivers: scope.role === 'owner',
+      },
+      members,
+    });
   } catch (err) {
     console.error('[GET /api/family/members]', err);
     res.status(500).json({ ok: false, error: err.message });
@@ -2453,11 +2472,11 @@ app.get('/api/events', (req, res) => {
 app.post('/api/family/invitations', async (req, res) => {
   try {
     const scope = requestScope(req);
-    if (!['owner', 'admin'].includes(scope.role)) {
-      return res.status(403).json({ ok: false, error: 'Only family owners/admins can invite caregivers.' });
+    if (scope.role !== 'owner') {
+      return res.status(403).json({ ok: false, error: 'Only the family owner can invite caregivers.' });
     }
     const email = String(req.body.email || '').trim().toLowerCase();
-    const role = ['owner', 'admin', 'caregiver', 'viewer'].includes(req.body.role) ? req.body.role : 'caregiver';
+    const role = ['caregiver', 'viewer'].includes(req.body.role) ? req.body.role : 'caregiver';
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
       return res.status(400).json({ ok: false, error: 'Valid email is required.' });
     }

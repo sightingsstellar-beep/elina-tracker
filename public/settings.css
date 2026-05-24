@@ -207,6 +207,23 @@
 
 /* ---- Family access ---- */
 
+.settings-permission-note {
+  background: var(--grey-light);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1.4;
+  margin-top: 14px;
+  padding: 12px 14px;
+}
+
+.invite-access-form[hidden],
+.settings-permission-note[hidden] {
+  display: none;
+}
+
 .family-members {
   display: flex;
   flex-direction: column;
