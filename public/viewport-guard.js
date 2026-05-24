@@ -27,11 +27,8 @@
 
     if (!visualViewport) return;
 
-    if (visualViewport.offsetLeft || visualViewport.offsetTop) {
-      window.scrollTo(
-        0,
-        Math.max(0, window.scrollY + visualViewport.offsetTop),
-      );
+    if (visualViewport.offsetLeft) {
+      window.scrollTo(0, window.scrollY);
     }
   }
 
