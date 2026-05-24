@@ -393,7 +393,7 @@ body.no-chart-tabs {
   align-items: center;
   justify-content: flex-end;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 12px;
   max-width: 100%;
 }
 
@@ -449,16 +449,15 @@ body.no-chart-tabs {
   color: #fff;
 }
 
-.top-nav-group,
 .account-menu {
   position: relative;
 }
 
-.top-nav-dropdown,
 .account-menu-panel {
   position: absolute;
   top: calc(100% + 8px);
-  right: 0;
+  left: 50%;
+  transform: translateX(-50%);
   width: min(240px, calc(100vw - 32px));
   padding: 8px;
   border: 1px solid var(--border);
@@ -469,29 +468,25 @@ body.no-chart-tabs {
   text-align: left;
 }
 
-.top-nav-group:hover .top-nav-dropdown,
-.top-nav-group:focus-within .top-nav-dropdown,
 .account-menu-panel:not([hidden]) {
   display: grid;
   gap: 4px;
 }
 
-.top-nav-dropdown a,
 .account-menu-panel a {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  gap: 7px;
   color: var(--text);
   text-decoration: none;
   font-size: 0.92rem;
   font-weight: 700;
-  padding: 9px 10px;
+  padding: 9px 6px;
   border-radius: 8px;
+  text-align: center;
 }
 
-.top-nav-dropdown a:hover,
-.top-nav-dropdown a:active,
-.top-nav-dropdown a.active,
 .account-menu-panel a:hover,
 .account-menu-panel a:active {
   background: var(--blue-light);
@@ -2444,22 +2439,28 @@ body.no-chart-tabs {
 
   .account-menu {
     order: -1;
+    position: relative;
+    padding-bottom: 124px;
   }
 
-  .top-nav-group:hover .top-nav-dropdown,
-  .top-nav-group:focus-within .top-nav-dropdown {
-    display: grid;
-  }
-
-  .top-nav-dropdown,
   .account-menu-panel {
-    position: static;
+    position: absolute;
+    top: 42px;
+    left: 0;
+    right: 0;
+    transform: none;
     width: auto;
-    margin: 0 0 4px;
+    margin: 0;
     border: 0;
     border-radius: 0;
     box-shadow: none;
     background: transparent;
+  }
+
+  .account-menu-panel a {
+    justify-content: center;
+    padding-left: 0;
+    padding-right: 0;
   }
 
   .clock {
