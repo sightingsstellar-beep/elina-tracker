@@ -1419,6 +1419,27 @@ body.quick-log-modal-open {
     padding-left: 24px;
     padding-right: 24px;
   }
+
+  .main[data-shell-view="chart"] {
+    max-width: 940px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+    gap: 18px;
+  }
+
+  .main[data-shell-view="chart"] > * {
+    min-width: 0;
+  }
+
+  .main[data-shell-view="chart"] > .section-divider,
+  .main[data-shell-view="chart"] > .daily-checks-label {
+    grid-column: 1 / -1;
+  }
+
+  .main[data-shell-view="chart"] > .section-divider {
+    margin-top: 4px;
+  }
 }
 
 /* Undo button */
