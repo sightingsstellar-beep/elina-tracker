@@ -90,6 +90,11 @@
     setActiveView(route.view || route.route, route.route);
     mountRoute(route);
     activeRouteName = route.route;
+    if (route.route === 'chart') {
+      window.setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('glide:chart-visible'));
+      }, 0);
+    }
     if (shouldResetScroll) requestAnimationFrame(resetScrollForRouteChange);
   }
 

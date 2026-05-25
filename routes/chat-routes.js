@@ -122,7 +122,7 @@ function createChatRouter({
       const message = await buildChatConfirmation(parsed.actions, summary, scope);
       publishCareChange(scope, { action: 'create', source: 'api-chat', dayKey });
 
-      res.json({ ok: true, message, entries });
+      res.json({ ok: true, message, entries, dayKey });
     } catch (err) {
       console.error('[POST /api/chat]', err);
       res.status(500).json({ ok: false, error: err.message });

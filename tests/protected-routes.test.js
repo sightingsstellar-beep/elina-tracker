@@ -448,6 +448,7 @@ test('POST /api/chat logs a parsed entry with API key auth', async () => {
 
   assert.equal(response.status, 200);
   assert.equal(response.body.ok, true);
+  assert.equal(response.body.dayKey, '2026-05-25');
   assert.equal(response.body.entries[0].kind, 'input');
   assert.equal(response.body.entries[0].amount_ml, 125);
   assert.match(response.body.message, /Logged: 125ml Water/);

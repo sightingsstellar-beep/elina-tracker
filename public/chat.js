@@ -123,6 +123,9 @@ async function sendToChat(text) {
 
     if (data.ok) {
       appendMessage('bot', data.message, 'success');
+      window.dispatchEvent(new CustomEvent('glide:care-log-created', {
+        detail: { dayKey: data.dayKey || null, source: 'chat' },
+      }));
     } else {
       appendMessage('bot', data.message || data.error || 'Something went wrong', 'warn');
     }

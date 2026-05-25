@@ -1172,6 +1172,9 @@ window.addEventListener('glide:chart-date', async (event) => {
   await navigateToDay(dayKey);
 });
 
+window.addEventListener('glide:care-log-created', scheduleRealtimeRefresh);
+window.addEventListener('glide:chart-visible', scheduleRealtimeRefresh);
+
 window.addEventListener('resize', scheduleChartLogLayout);
 document.addEventListener('visibilitychange', () => {
   if (document.visibilityState === 'visible') refreshDay();
