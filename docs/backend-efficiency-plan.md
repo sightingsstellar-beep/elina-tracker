@@ -49,4 +49,4 @@ Reduce backend coupling and avoid avoidable database work while keeping each ste
 
 - The current `npm test` gate now covers core public routes, protected day/history reads, `/api/log` fluid create/update/delete mutations, `/api/log` wellness/gag creation, standalone gag edit/delete, wellness delete, weight create/today/history/delete, settings read/write, account/family API-key behavior, `/api/chat` success/unparseable paths, display kiosk data, and API-key backup. Add Alexa smoke coverage before moving that specialized adapter.
 - Day/history presenter tests now cover the first API response-shaping extraction.
-- SQLite references in user-facing docs are stale after the Postgres migration and should be cleaned up before the next public release.
+- User-facing SQLite references were cleaned up after the Postgres migration; keep future setup/deploy docs centered on `DATABASE_URL` / `POSTGRES_URL`.

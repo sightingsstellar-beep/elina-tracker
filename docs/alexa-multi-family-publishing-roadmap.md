@@ -15,7 +15,7 @@ Prepare the Glide Bedside web app + Alexa skill for multi-family use and eventua
 - Backend endpoint: `https://bedside.glidechart.com/api/alexa`
 - Public app URL: `https://bedside.glidechart.com`
 - Public policy URLs: `https://glidechart.com/privacy`, `https://glidechart.com/terms`, `https://glidechart.com/support`
-- Current production version: `1.2.0`
+- Current production version: verify through `https://bedside.glidechart.com/api/version` before any release or certification work.
 
 ## Key certification implications
 
@@ -143,7 +143,13 @@ Beta test prerequisites overlap with certification readiness: required distribut
 - Keep ASK CLI profile `mr-stellar` for SMAPI model operations.
 - Do not use the broad `ask_cli_default` AWS IAM user for this Railway-hosted skill.
 - Delete or disable the external IAM access key/user in AWS after confirming no Lambda-hosted Alexa work is planned.
-- Continue versioning web app and Alexa component together unless rollout diverges.
+- Continue versioning the web app and Alexa component together unless rollout diverges.
+
+Alexa component versioning rule:
+
+- Default: leave `ALEXA_SKILL_VERSION` unset so Alexa reports the same component version as `package.json`.
+- Split: set `ALEXA_SKILL_VERSION` only for an Alexa-specific lifecycle event, such as Amazon certification, beta testing, interaction-model submission, store metadata changes, account-linking configuration changes, or an Alexa-only rollback/fix.
+- Receipt: when split versioning is used, record both the app version and Alexa component version in Mission Control, along with ASK/SMAPI validation evidence and the production `/api/version` payload.
 
 ### Phase 1 — Multi-family backend foundation
 

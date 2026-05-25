@@ -205,6 +205,46 @@
   line-height: 1.4;
 }
 
+.about-card {
+  margin-top: 4px;
+}
+
+.about-grid,
+.account-detail-grid {
+  display: grid;
+  gap: 8px;
+}
+
+.about-row,
+.account-detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  padding: 10px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.about-row:last-child,
+.account-detail-row:last-child {
+  border-bottom: 0;
+}
+
+.about-row span,
+.account-detail-row span {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+}
+
+.about-row strong,
+.account-detail-row strong {
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 700;
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
 /* ---- Family access ---- */
 
 .settings-permission-note {

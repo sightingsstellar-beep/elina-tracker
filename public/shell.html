@@ -45,10 +45,11 @@
             <a href="/" class="top-nav-item active" aria-current="page" data-shell-link data-route="chart"><i class="ph ph-chart-line-up" aria-hidden="true"></i> <span>Chart</span></a>
             <a href="/patient-profile" class="top-nav-item" data-shell-link data-route="patient-profile"><i class="ph ph-heart" aria-hidden="true"></i> <span>Patient Profile</span></a>
             <a href="/settings" class="top-nav-item" data-shell-link data-route="settings"><i class="ph ph-gear-six" aria-hidden="true"></i> <span>App Settings</span></a>
+            <a href="/account" class="top-nav-item" data-shell-link data-route="account"><i class="ph ph-user-circle" aria-hidden="true"></i> <span>Account</span></a>
             <div class="account-menu">
               <button class="top-nav-trigger" type="button" aria-expanded="false" data-account-menu-button><i class="ph ph-user-circle" aria-hidden="true"></i> <span data-caregiver-name>Caregiver</span> <i class="ph ph-caret-down" aria-hidden="true"></i></button>
               <div class="account-menu-panel" hidden data-account-menu-panel>
-                <a href="/caregiver-profile" data-shell-link data-route="caregiver-profile"><i class="ph ph-user-circle" aria-hidden="true"></i> Profile</a>
+                <a href="/account" data-shell-link data-route="account"><i class="ph ph-user-circle" aria-hidden="true"></i> Account</a>
                 <a href="/caregivers" data-shell-link data-route="caregivers"><i class="ph ph-users" aria-hidden="true"></i> Caregivers</a>
                 <a href="/logout"><i class="ph ph-power" aria-hidden="true"></i> Log out</a>
               </div>
@@ -67,19 +68,19 @@
         </span>
         <span class="tab-label">Day</span>
       </a>
-      <a href="/history" class="tab-item" data-shell-link data-route="trends">
-        <span class="tab-icon" aria-hidden="true">
-          <i class="tab-icon-outline ph ph-chart-line-up"></i>
-          <i class="tab-icon-fill ph-fill ph-chart-line-up"></i>
-        </span>
-        <span class="tab-label">Trends</span>
-      </a>
       <a href="/chat" class="tab-item" data-shell-link data-route="chat">
         <span class="tab-icon" aria-hidden="true">
           <i class="tab-icon-outline ph ph-microphone"></i>
           <i class="tab-icon-fill ph-fill ph-microphone"></i>
         </span>
         <span class="tab-label">Chat</span>
+      </a>
+      <a href="/history" class="tab-item" data-shell-link data-route="trends">
+        <span class="tab-icon" aria-hidden="true">
+          <i class="tab-icon-outline ph ph-chart-line-up"></i>
+          <i class="tab-icon-fill ph-fill ph-chart-line-up"></i>
+        </span>
+        <span class="tab-label">Trends</span>
       </a>
     </nav>
   </header>
@@ -425,6 +426,17 @@
       <button class="settings-save-btn" id="save-btn"><i class="ph ph-floppy-disk" aria-hidden="true"></i> Save Settings</button>
       <div class="settings-status" id="settings-status" aria-live="polite"></div>
     </div>
+
+    <section class="card settings-card about-card" aria-labelledby="about-heading">
+      <div class="settings-section-title" id="about-heading"><span class="section-title-icon" aria-hidden="true"><i class="ph ph-info"></i></span> About</div>
+      <div class="about-grid">
+        <div class="about-row"><span>Last updated</span><strong id="about-last-updated">Checking…</strong></div>
+        <div class="about-row"><span>App version</span><strong id="about-app-version">Loading…</strong></div>
+        <div class="about-row"><span>Release</span><strong id="about-release-version">Loading…</strong></div>
+        <div class="about-row"><span>Build</span><strong id="about-build-info">Loading…</strong></div>
+        <div class="about-row"><span>Refresh fallback</span><strong>30 min</strong></div>
+      </div>
+    </section>
   </template>
 
   <template id="settings-template-patient-profile">
@@ -454,8 +466,20 @@
     </div>
   </template>
 
-  <template id="settings-template-caregiver-profile">
-    <h2 class="settings-heading"><span class="heading-icon" aria-hidden="true"><i class="ph ph-user-circle"></i></span> Profile</h2>
+  <template id="settings-template-account">
+    <h2 class="settings-heading"><span class="heading-icon" aria-hidden="true"><i class="ph ph-user-circle"></i></span> Account</h2>
+    <section class="card settings-card account-card">
+      <div class="settings-section-title"><span class="section-title-icon" aria-hidden="true"><i class="ph ph-shield-check"></i></span> Login</div>
+      <div class="account-detail-grid" id="account-detail-grid" aria-live="polite">
+        <div class="account-detail-row"><span>Login type</span><strong id="account-login-type">Loading…</strong></div>
+        <div class="account-detail-row"><span>Email</span><strong id="account-email">Loading…</strong></div>
+        <div class="account-detail-row"><span>Display name</span><strong id="account-display-name">Loading…</strong></div>
+        <div class="account-detail-row"><span>Role</span><strong id="account-role">Loading…</strong></div>
+        <div class="account-detail-row"><span>Family</span><strong id="account-family">Loading…</strong></div>
+        <div class="account-detail-row"><span>Patient</span><strong id="account-patient">Loading…</strong></div>
+        <div class="account-detail-row"><span>Account ID</span><strong id="account-id">Loading…</strong></div>
+      </div>
+    </section>
     <section class="card settings-card">
       <div class="settings-section-title"><span class="section-title-icon" aria-hidden="true"><i class="ph ph-identification-card"></i></span> Basic Info</div>
       <div class="settings-field">
@@ -480,7 +504,7 @@
       </div>
     </section>
     <div class="settings-save-row">
-      <button class="settings-save-btn" id="caregiver-profile-save"><i class="ph ph-floppy-disk" aria-hidden="true"></i> Save Profile</button>
+      <button class="settings-save-btn" id="caregiver-profile-save"><i class="ph ph-floppy-disk" aria-hidden="true"></i> Save Account</button>
       <div class="settings-status" id="caregiver-profile-status" aria-live="polite"></div>
     </div>
   </template>
@@ -511,12 +535,6 @@
       <div class="settings-status" id="invite-status" aria-live="polite"></div>
     </section>
   </template>
-
-  <footer class="footer">
-    <span>Last updated: <span id="last-updated">--</span></span>
-    <span>Auto-refresh fallback: 30 min</span>
-    <span id="app-version">Version loading…</span>
-  </footer>
 
   <script src="/auth-fetch.js"></script>
   <script src="/viewport-guard.js"></script>

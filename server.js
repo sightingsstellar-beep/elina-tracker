@@ -2676,6 +2676,7 @@ app.get([
   '/history',
   '/chat',
   '/settings',
+  '/account',
   '/caregivers',
   '/caregiver-profile',
   '/patient-profile',

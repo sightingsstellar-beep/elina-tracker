@@ -28,22 +28,41 @@
       "status": "active",
       "label": "Browser dashboard and family settings",
       "kind": "product",
-      "summary": "Mobile-first caregiver dashboard, display mode, history, login, settings, theme, auth fetch, and client release/version behavior.",
+      "summary": "Mobile-first app shell, caregiver dashboard, chart/trends/chat navigation, display mode, profile/family views, settings, theme, auth fetch, and client release/version behavior.",
       "paths": [
+        "public/shell.html",
+        "public/shell-router.js",
+        "public/nav.js",
         "public/index.html",
         "public/app.js",
         "public/style.css",
+        "public/login.html",
         "public/settings.html",
         "public/settings.js",
         "public/history.html",
         "public/history.js",
+        "public/chat.html",
+        "public/chat.js",
+        "public/caregiver-profile.html",
+        "public/caregivers.html",
+        "public/patient-profile.html",
         "public/display.html",
         "public/auth-fetch.js",
+        "public/theme.js",
+        "public/viewport-guard.js",
+        "public/manifest.json",
         "public/version-watch.js"
       ],
       "routes": [
+        "GET /app",
+        "GET /login",
         "GET /settings",
         "GET /history",
+        "GET /chat",
+        "GET /account",
+        "GET /caregiver-profile",
+        "GET /caregivers",
+        "GET /patient-profile",
         "GET /display"
       ],
       "checks": [
@@ -51,7 +70,8 @@
       ],
       "driftRisks": [
         "Dashboard workflows change without corresponding API or settings updates.",
-        "Version/accountability surfaces stop matching deployed release behavior."
+        "Version/accountability surfaces stop matching deployed release behavior.",
+        "Native-style app-shell navigation changes without matching route, auth, or profile/access surface updates."
       ]
     },
     {
@@ -59,7 +79,7 @@
       "status": "active",
       "label": "Express API and auth boundary",
       "kind": "api",
-      "summary": "HTTP routes for health, version, dashboard data, settings, logging, backups, display access, machine API keys, sessions, and Clerk/Alexa auth boundaries.",
+      "summary": "HTTP routes for health, version, auth status, onboarding, dashboard data, settings, logging, backups, display access, machine API keys, events, transcription, sessions, and Clerk/Alexa auth boundaries.",
       "paths": [
         "server.js",
         "routes/account-family-routes.js",
@@ -73,6 +93,9 @@
         "app-version.js",
         "services/day-presenter.js",
         "services/postgres-session-store.js",
+        "services/care-events.js",
+        "services/care-format.js",
+        "services/care-labels.js",
         "tests/server-import.test.js",
         "tests/day-presenter.test.js",
         "tests/public-routes.test.js",
@@ -82,9 +105,12 @@
       "routes": [
         "GET /health",
         "GET /api/version",
+        "GET /api/auth/status",
+        "GET /api/events",
         "GET /api/display-data",
         "GET /api/settings",
         "POST /api/settings",
+        "POST /api/onboarding",
         "GET /api/me",
         "GET /api/account/preferences",
         "POST /api/account/preferences",
@@ -103,7 +129,7 @@
         "GET /api/weight/today",
         "GET /api/weight/history",
         "DELETE /api/weight/:date",
-        "POST /api/entries",
+        "POST /api/transcribe",
         "POST /api/alexa"
       ],
       "checks": [
@@ -111,7 +137,8 @@
       ],
       "driftRisks": [
         "New API routes bypass auth, family scoping, or release accountability.",
-        "Environment requirements change without README or .env.example updates."
+        "Environment requirements change without README or .env.example updates.",
+        "Server route extraction leaves app-shell fallback, realtime events, or auth/onboarding routes out of smoke coverage."
       ]
     },
     {
@@ -196,6 +223,9 @@
         "README.md",
         "railway.json",
         "nixpacks.toml",
+        ".env.example",
+        "app-version.js",
+        "docs/glide-bedside-release-v1.2.4.md",
         "docs/smart-patient-tracker-release-v1.1.1.md"
       ],
       "routes": [

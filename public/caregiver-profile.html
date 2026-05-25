@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="manifest" href="/manifest.json" />
-  <title>Glide Bedside — Profile</title>
+  <title>Glide Bedside — Account</title>
   <link rel="stylesheet" href="/vendor/phosphor/regular/style.css" />
   <link rel="stylesheet" href="/vendor/phosphor/fill/style.css" />
   <script src="theme.js"></script>
@@ -36,7 +36,7 @@
             <div class="account-menu">
               <button class="top-nav-trigger active" type="button" aria-expanded="false" data-account-menu-button><i class="ph ph-user-circle" aria-hidden="true"></i> <span data-caregiver-name>Caregiver</span> <i class="ph ph-caret-down" aria-hidden="true"></i></button>
               <div class="account-menu-panel" hidden data-account-menu-panel>
-                <a href="/caregiver-profile" class="active" aria-current="page"><i class="ph ph-user-circle" aria-hidden="true"></i> Profile</a>
+                <a href="/account" class="active" aria-current="page"><i class="ph ph-user-circle" aria-hidden="true"></i> Account</a>
                 <a href="/caregivers"><i class="ph ph-users" aria-hidden="true"></i> Caregivers</a>
                 <a href="/logout"><i class="ph ph-power" aria-hidden="true"></i> Log out</a>
               </div>
@@ -49,7 +49,20 @@
   </header>
 
   <main class="main settings-main">
-    <h2 class="settings-heading"><span class="heading-icon" aria-hidden="true"><i class="ph ph-user-circle"></i></span> Profile</h2>
+    <h2 class="settings-heading"><span class="heading-icon" aria-hidden="true"><i class="ph ph-user-circle"></i></span> Account</h2>
+
+    <section class="card settings-card account-card">
+      <div class="settings-section-title"><span class="section-title-icon" aria-hidden="true"><i class="ph ph-shield-check"></i></span> Login</div>
+      <div class="account-detail-grid" id="account-detail-grid" aria-live="polite">
+        <div class="account-detail-row"><span>Login type</span><strong id="account-login-type">Loading…</strong></div>
+        <div class="account-detail-row"><span>Email</span><strong id="account-email">Loading…</strong></div>
+        <div class="account-detail-row"><span>Display name</span><strong id="account-display-name">Loading…</strong></div>
+        <div class="account-detail-row"><span>Role</span><strong id="account-role">Loading…</strong></div>
+        <div class="account-detail-row"><span>Family</span><strong id="account-family">Loading…</strong></div>
+        <div class="account-detail-row"><span>Patient</span><strong id="account-patient">Loading…</strong></div>
+        <div class="account-detail-row"><span>Account ID</span><strong id="account-id">Loading…</strong></div>
+      </div>
+    </section>
 
     <section class="card settings-card">
       <div class="settings-section-title"><span class="section-title-icon" aria-hidden="true"><i class="ph ph-identification-card"></i></span> Basic Info</div>
@@ -76,7 +89,7 @@
     </section>
 
     <div class="settings-save-row">
-      <button class="settings-save-btn" id="caregiver-profile-save"><i class="ph ph-floppy-disk" aria-hidden="true"></i> Save Profile</button>
+      <button class="settings-save-btn" id="caregiver-profile-save"><i class="ph ph-floppy-disk" aria-hidden="true"></i> Save Account</button>
       <div class="settings-status" id="caregiver-profile-status" aria-live="polite"></div>
     </div>
   </main>

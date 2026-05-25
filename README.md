@@ -23,12 +23,25 @@ Release/accountability surfaces:
 
 - `package.json` owns the web app version.
 - `ALEXA_SKILL_VERSION` may override the Alexa component version when the skill needs separate rollout tracking; otherwise it follows the app version.
+- `RELEASE_VERSION` is deployment metadata for the currently promoted app release, and should usually be `v${package.json.version}` for production deploys.
 - `CHANGELOG.md` records meaningful product changes.
 - `/api/version` exposes release metadata for production verification.
 - The dashboard/login UI displays the deployed app version.
 - The Alexa skill includes a `VersionIntent` so it can answer version questions after the interaction model is deployed.
 
 Before marking a tracker/Alexa change done, record the deployed version, verification evidence, and any regression/rollback notes in Mission Control.
+
+### Alexa component versioning
+
+Keep the Alexa component version coupled to the app version by default. The Alexa endpoint lives inside the same Express app, shares the same database and care-domain behavior, and is verified through the same production `/api/version` surface. In normal releases, leave `ALEXA_SKILL_VERSION` unset so `components.alexaSkill.version` follows `package.json`.
+
+Set `ALEXA_SKILL_VERSION` only when the Alexa surface has a genuinely separate lifecycle, for example:
+
+- the Alexa interaction model, account-linking configuration, store metadata, or reviewer package is submitted or held independently from a web/API deploy;
+- an Alexa-only rollback, certification fix, or beta iteration needs its own traceable component version;
+- the backend app version stays fixed while the Amazon-side skill package changes.
+
+When `ALEXA_SKILL_VERSION` is set, document the reason and verification evidence in `CHANGELOG.md` or the relevant release note, and include both app and Alexa component versions in the Mission Control receipt. Do not use `ALEXA_SKILL_VERSION` as a routine second version number for every deploy.
 
 
 ## Features
@@ -85,13 +98,13 @@ OPENAI_API_KEY=your_openai_key_here
 AUTHORIZED_USER_IDS=8573495743
 DASHBOARD_PASSWORD=choose_a_strong_password
 SESSION_SECRET=generate_a_long_random_secret
+DATABASE_URL=postgres://user:password@host:5432/database
 # Optional integrations / programmatic access
 ALEXA_SKILL_ID=
 API_KEY=
 DISPLAY_TOKEN=
 PORT=3000
 TZ=America/New_York
-# DATA_DIR=/data
 ```
 
 | Variable | Required | Description |
@@ -101,12 +114,12 @@ TZ=America/New_York
 | `AUTHORIZED_USER_IDS` | Yes | Comma-separated Telegram user IDs allowed to use the bot |
 | `DASHBOARD_PASSWORD` | Yes | Password for the browser dashboard login |
 | `SESSION_SECRET` | Yes | Long random secret for signed browser sessions |
+| `DATABASE_URL` or `POSTGRES_URL` | Yes | Postgres connection string for app data, settings, and sessions |
 | `ALEXA_SKILL_ID` | Optional | Restricts `/api/alexa` to your Alexa skill |
 | `API_KEY` | Optional | Programmatic access via `x-api-key`, including automated backups |
 | `DISPLAY_TOKEN` | Optional | Token for the kiosk-style `/display` and `/api/display-data` routes |
 | `PORT` | Usually no | HTTP server port (Railway sets this automatically) |
 | `TZ` | Recommended | Default timezone for fluid-day calculation and time displays |
-| `DATA_DIR` | Recommended on Railway | Directory for SQLite storage, for example `/data` with a mounted volume |
 
 > **Note:** Most day-to-day configuration, like child name, daily limit, report times, thresholds, and timezone, is managed through the **Settings page** at `/settings` and stored in the database.
 
@@ -130,7 +143,7 @@ Visit **`/settings`** in the web app to configure:
 | Evening wellness check | 22:00 | Reference time for 10pm check |
 | Timezone | America/New_York | Used for all time displays and cron jobs |
 
-All settings persist across server restarts in SQLite.
+All settings persist across server restarts in Postgres.
 
 ---
 
@@ -188,7 +201,7 @@ Anyone not in this list will receive a polite rejection message.
    - `DASHBOARD_PASSWORD`
    - `SESSION_SECRET`
    - `TZ`
-   - `DATA_DIR=/data` if you mounted a persistent volume
+   - `DATABASE_URL` or `POSTGRES_URL`
 
    Optional, depending on your setup:
    - `ALEXA_SKILL_ID`
@@ -209,13 +222,7 @@ Then add variables in the Railway dashboard under **Variables**.
 
 ### Persistent Storage (Important!)
 
-SQLite data is lost on redeployment unless you use a persistent volume:
-
-1. In Railway, go to your project → **Add Volume**
-2. Mount it at `/data`
-3. Add `DATA_DIR=/data` to your Railway environment variables
-
-This keeps patient data safe across deployments.
+Glide Bedside is Postgres-backed. On Railway, attach a Postgres database service and expose its connection string to the app as `DATABASE_URL` or `POSTGRES_URL`. Do not rely on local filesystem storage for production patient data.
 
 ---
 
@@ -249,7 +256,7 @@ glide-bedside/
 ├── server.js          # Express app, API routes, report builder
 ├── bot.js             # Telegram bot (polling, commands, NLP dispatch)
 ├── parser.js          # OpenAI gpt-4o-mini NLP parser
-├── db.js              # SQLite schema, queries, and settings storage
+├── db.js              # Postgres schema, queries, and settings storage
 ├── scheduler.js       # Cron jobs (auto-reports at configured times)
 ├── ask-manifest.json  # Alexa skill manifest
 ├── alexa/             # Alexa interaction model and skill assets

@@ -326,9 +326,12 @@ async function refreshDay(options = {}) {
 
     renderAll();
 
-    document.getElementById('last-updated').textContent = new Date().toLocaleTimeString('en-US', {
-      hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true,
-    });
+    const lastUpdatedEl = document.getElementById('last-updated');
+    if (lastUpdatedEl) {
+      lastUpdatedEl.textContent = new Date().toLocaleTimeString('en-US', {
+        hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true,
+      });
+    }
     document.querySelectorAll('.day-picker-input').forEach((input) => {
       input.max = state.todayDayKey || '';
     });

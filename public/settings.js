@@ -50,6 +50,94 @@ function stopClock() {
   }
 }
 
+function formatAboutTime(value) {
+  if (!value) return "Not set";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
+
+function shortCommit(value) {
+  return value ? String(value).slice(0, 7) : "Not set";
+}
+
+function titleCase(value) {
+  return String(value || "")
+    .replaceAll("-", " ")
+    .replace(/\b\w/g, (char) => char.toUpperCase());
+}
+
+function setAccountDetail(id, value) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  el.textContent = value || "Not available";
+}
+
+async function loadAboutInfo() {
+  const updatedEl = document.getElementById("about-last-updated");
+  const versionEl = document.getElementById("about-app-version");
+  const releaseEl = document.getElementById("about-release-version");
+  const buildEl = document.getElementById("about-build-info");
+  if (!updatedEl && !versionEl && !releaseEl && !buildEl) return;
+
+  try {
+    const res = await fetch("/api/version", {
+      cache: "no-store",
+      headers: { Accept: "application/json" },
+    });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const info = await res.json();
+    if (updatedEl) updatedEl.textContent = new Date().toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      second: "2-digit",
+    });
+    if (versionEl) versionEl.textContent = `Glide Bedside v${info.version || "unknown"}`;
+    if (releaseEl) releaseEl.textContent = info.release || "Not set";
+    if (buildEl) buildEl.textContent = `${formatAboutTime(info.builtAt)} · ${shortCommit(info.commit)}`;
+  } catch (err) {
+    if (updatedEl) updatedEl.textContent = "Unavailable";
+    if (versionEl) versionEl.textContent = "Glide Bedside";
+    if (releaseEl) releaseEl.textContent = "Unavailable";
+    if (buildEl) buildEl.textContent = "Unavailable";
+  }
+}
+
+async function loadAccountInfo() {
+  if (!document.getElementById("account-detail-grid")) return;
+
+  try {
+    const [authRes, meRes] = await Promise.all([
+      fetch("/api/auth/status", { cache: "no-store", headers: { Accept: "application/json" } }).catch(() => null),
+      fetch("/api/me", { cache: "no-store", headers: { Accept: "application/json" } }).catch(() => null),
+    ]);
+    const auth = authRes?.ok ? await authRes.json() : null;
+    const me = meRes?.ok ? await meRes.json() : null;
+    const scope = me?.scope || {};
+    const loginType = auth?.mode === "clerk"
+      ? (auth.clerkAuthenticated ? "Clerk account" : "Clerk")
+      : "Shared password";
+
+    setAccountDetail("account-login-type", loginType);
+    setAccountDetail("account-email", scope.email || (auth?.mode === "shared-password" ? "Shared dashboard session" : ""));
+    setAccountDetail("account-display-name", scope.displayName || scope.email || "Caregiver");
+    setAccountDetail("account-role", scope.role ? titleCase(scope.role) : (auth?.mode === "shared-password" ? "Shared access" : ""));
+    setAccountDetail("account-family", scope.familyName || scope.familyId || "Default family");
+    setAccountDetail("account-patient", scope.patientName || scope.patientId || "Default patient");
+    setAccountDetail("account-id", scope.clerkUserId || (auth?.legacySessionAuthenticated ? "Legacy session" : ""));
+  } catch (err) {
+    ["account-login-type", "account-email", "account-display-name", "account-role", "account-family", "account-patient", "account-id"]
+      .forEach((id) => setAccountDetail(id, "Unavailable"));
+  }
+}
+
 // ---------------------------------------------------------------------------
 // Field list
 // ---------------------------------------------------------------------------
@@ -296,12 +384,12 @@ async function saveCaregiverProfile() {
     statusEl.textContent = 'Saved!';
     statusEl.className = 'settings-status success';
   } catch (err) {
-    console.error('[settings] Caregiver profile save error:', err);
+    console.error('[settings] Account save error:', err);
     statusEl.textContent = 'Error saving: ' + err.message;
     statusEl.className = 'settings-status error';
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<i class="ph ph-floppy-disk" aria-hidden="true"></i> Save Profile';
+    btn.innerHTML = '<i class="ph ph-floppy-disk" aria-hidden="true"></i> Save Account';
   }
 }
 
@@ -490,6 +578,8 @@ async function mountSettingsView(viewKey = 'settings') {
   startClock();
   initEventHandlers();
   await loadSettings();
+  await loadAboutInfo();
+  await loadAccountInfo();
   await loadFamilyMembers();
 }
 
