@@ -1,6 +1,7 @@
 'use strict';
 
 const express = require('express');
+const { apiError } = require('../services/api-errors');
 
 function createCareReadRouter({
   db,
@@ -21,7 +22,7 @@ function createCareReadRouter({
         relative: req.query.relative,
       });
       if (!dayResult.ok) {
-        return res.status(400).json({ ok: false, error: dayResult.error });
+        return apiError(res, 400, dayResult.error, dayResult.code);
       }
 
       const scope = requestScope(req);

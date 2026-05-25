@@ -1,6 +1,7 @@
 'use strict';
 
 const express = require('express');
+const { apiError } = require('../services/api-errors');
 
 function createCareLogRouter({
   db,
@@ -28,16 +29,16 @@ function createCareLogRouter({
       const scope = requestScope(req);
       const body = req.body;
       if (!body || typeof body !== 'object') {
-        return res.status(400).json({ ok: false, error: 'Invalid request body' });
+        return apiError(res, 400, 'Invalid request body', 'invalid_request_body');
       }
 
       const dateResult = validateLogDate(body.date);
       if (!dateResult.ok) {
-        return res.status(400).json({ ok: false, error: dateResult.error });
+        return apiError(res, 400, dateResult.error, dateResult.code);
       }
       const timeResult = validateLogTime(body.time);
       if (!timeResult.ok) {
-        return res.status(400).json({ ok: false, error: timeResult.error });
+        return apiError(res, 400, timeResult.error, timeResult.code);
       }
       const dayKey = dateResult.date;
       const tz = getTimezone();
@@ -50,7 +51,7 @@ function createCareLogRouter({
       if (body.type !== 'wellness' && body.type !== 'gag') {
         const isPoop = body.fluid_type === 'poop';
         if (!isPoop && (!body.amount_ml || typeof body.amount_ml !== 'number' || body.amount_ml <= 0)) {
-          return res.status(400).json({ ok: false, error: 'Amount is required for fluid intake and fluid output entries' });
+          return apiError(res, 400, 'Amount is required for fluid intake and fluid output entries', 'missing_amount');
         }
       }
 
@@ -103,12 +104,12 @@ function createCareLogRouter({
       const scope = requestScope(req);
       const id = parseInt(req.params.id, 10);
       if (!id || isNaN(id)) {
-        return res.status(400).json({ ok: false, error: 'Invalid ID' });
+        return apiError(res, 400, 'Invalid ID', 'invalid_id');
       }
 
       const existing = await db.getLogById(id, scope);
       if (!existing) {
-        return res.status(404).json({ ok: false, error: 'Entry not found' });
+        return apiError(res, 404, 'Entry not found', 'entry_not_found');
       }
 
       const body = req.body || {};
@@ -116,18 +117,18 @@ function createCareLogRouter({
       const fluidType = body.fluid_type || existing.fluid_type;
       const dateResult = validateLogDate(body.date || existing.day_key);
       if (!dateResult.ok) {
-        return res.status(400).json({ ok: false, error: dateResult.error });
+        return apiError(res, 400, dateResult.error, dateResult.code);
       }
       const timeResult = validateLogTime(body.time || formatTimeInput(existing.timestamp));
       if (!timeResult.ok) {
-        return res.status(400).json({ ok: false, error: timeResult.error });
+        return apiError(res, 400, timeResult.error, timeResult.code);
       }
 
       const isPoop = fluidType === 'poop';
       const hasAmount = Object.prototype.hasOwnProperty.call(body, 'amount_ml');
       const amountMl = hasAmount ? body.amount_ml : existing.amount_ml;
       if (!isPoop && (typeof amountMl !== 'number' || amountMl <= 0)) {
-        return res.status(400).json({ ok: false, error: 'Amount is required for fluid intake and fluid output entries' });
+        return apiError(res, 400, 'Amount is required for fluid intake and fluid output entries', 'missing_amount');
       }
 
       const timestamp = zonedDateTimeToTimestamp(dateResult.date, timeResult.time, getTimezone());
@@ -170,11 +171,11 @@ function createCareLogRouter({
       const scope = requestScope(req);
       const id = parseInt(req.params.id, 10);
       if (!id || isNaN(id)) {
-        return res.status(400).json({ ok: false, error: 'Invalid ID' });
+        return apiError(res, 400, 'Invalid ID', 'invalid_id');
       }
       const result = await db.deleteLog(id, scope);
       if (result.changes === 0) {
-        return res.status(404).json({ ok: false, error: 'Entry not found' });
+        return apiError(res, 404, 'Entry not found', 'entry_not_found');
       }
       publishCareChange(scope, { action: 'delete', source: 'api-log', id });
       res.json({ ok: true, deleted: id });
@@ -193,22 +194,22 @@ function createCareLogRouter({
       const scope = requestScope(req);
       const id = parseInt(req.params.id, 10);
       if (!id || isNaN(id)) {
-        return res.status(400).json({ ok: false, error: 'Invalid ID' });
+        return apiError(res, 400, 'Invalid ID', 'invalid_id');
       }
 
       const existing = await db.getGagById(id, scope);
       if (!existing) {
-        return res.status(404).json({ ok: false, error: 'Gag entry not found' });
+        return apiError(res, 404, 'Gag entry not found', 'gag_entry_not_found');
       }
 
       const body = req.body || {};
       const dateResult = validateLogDate(body.date || existing.day_key);
       if (!dateResult.ok) {
-        return res.status(400).json({ ok: false, error: dateResult.error });
+        return apiError(res, 400, dateResult.error, dateResult.code);
       }
       const timeResult = validateLogTime(body.time || formatTimeInput(existing.timestamp));
       if (!timeResult.ok) {
-        return res.status(400).json({ ok: false, error: timeResult.error });
+        return apiError(res, 400, timeResult.error, timeResult.code);
       }
 
       const timestamp = zonedDateTimeToTimestamp(dateResult.date, timeResult.time, getTimezone());
@@ -232,11 +233,11 @@ function createCareLogRouter({
       const scope = requestScope(req);
       const id = parseInt(req.params.id, 10);
       if (!id || isNaN(id)) {
-        return res.status(400).json({ ok: false, error: 'Invalid ID' });
+        return apiError(res, 400, 'Invalid ID', 'invalid_id');
       }
       const result = await db.deleteGag(id, scope);
       if (result.changes === 0) {
-        return res.status(404).json({ ok: false, error: 'Gag entry not found' });
+        return apiError(res, 404, 'Gag entry not found', 'gag_entry_not_found');
       }
       publishCareChange(scope, { action: 'delete', source: 'api-gag', id });
       res.json({ ok: true, deleted: id });
@@ -255,17 +256,17 @@ function createCareLogRouter({
       const scope = requestScope(req);
       const dateResult = validateLogDate(req.query.date);
       if (!dateResult.ok) {
-        return res.status(400).json({ ok: false, error: dateResult.error });
+        return apiError(res, 400, dateResult.error, dateResult.code);
       }
 
       const checkTime = req.query.check_time;
       if (!['5pm', '10pm'].includes(checkTime)) {
-        return res.status(400).json({ ok: false, error: 'Invalid check_time. Use 5pm or 10pm.' });
+        return apiError(res, 400, 'Invalid check_time. Use 5pm or 10pm.', 'invalid_check_time');
       }
 
       const result = await db.deleteWellness(dateResult.date, checkTime, scope);
       if (result.changes === 0) {
-        return res.status(404).json({ ok: false, error: 'Wellness entry not found' });
+        return apiError(res, 404, 'Wellness entry not found', 'wellness_entry_not_found');
       }
 
       publishCareChange(scope, { action: 'delete', source: 'api-wellness', dayKey: dateResult.date });

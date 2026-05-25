@@ -91,6 +91,7 @@
         "routes/weight-routes.js",
         "routes/settings-routes.js",
         "app-version.js",
+        "services/api-errors.js",
         "services/day-presenter.js",
         "services/postgres-session-store.js",
         "services/care-events.js",

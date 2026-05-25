@@ -1,6 +1,7 @@
 'use strict';
 
 const express = require('express');
+const { apiError } = require('../services/api-errors');
 
 function createWeightRouter({
   db,
@@ -21,12 +22,12 @@ function createWeightRouter({
       const scope = requestScope(req);
       const { weight_kg, notes } = req.body;
       if (typeof weight_kg !== 'number' || weight_kg <= 0) {
-        return res.status(400).json({ ok: false, error: 'weight_kg must be a positive number' });
+        return apiError(res, 400, 'weight_kg must be a positive number', 'invalid_weight');
       }
 
       const dateResult = validateLogDate(req.body.date);
       if (!dateResult.ok) {
-        return res.status(400).json({ ok: false, error: dateResult.error });
+        return apiError(res, 400, dateResult.error, dateResult.code);
       }
       const date = dateResult.date;
 
@@ -53,7 +54,7 @@ function createWeightRouter({
         relative: req.query.relative,
       });
       if (!dayResult.ok) {
-        return res.status(400).json({ ok: false, error: dayResult.error });
+        return apiError(res, 400, dayResult.error, dayResult.code);
       }
 
       const date = dayResult.date;
@@ -78,7 +79,7 @@ function createWeightRouter({
       if (req.query.throughDate) {
         const dateResult = validateLogDate(req.query.throughDate);
         if (!dateResult.ok) {
-          return res.status(400).json({ ok: false, error: dateResult.error });
+          return apiError(res, 400, dateResult.error, dateResult.code);
         }
         entries = await db.getWeightHistoryUpTo(dateResult.date, days, scope);
       } else {
@@ -101,12 +102,12 @@ function createWeightRouter({
       const scope = requestScope(req);
       const dateResult = validateLogDate(req.params.date);
       if (!dateResult.ok) {
-        return res.status(400).json({ ok: false, error: dateResult.error });
+        return apiError(res, 400, dateResult.error, dateResult.code);
       }
 
       const result = await db.deleteWeight(dateResult.date, scope);
       if (result.changes === 0) {
-        return res.status(404).json({ ok: false, error: 'Weight entry not found' });
+        return apiError(res, 404, 'Weight entry not found', 'weight_entry_not_found');
       }
 
       publishCareChange(scope, { action: 'delete', source: 'api-weight', dayKey: dateResult.date });

@@ -1,6 +1,7 @@
 'use strict';
 
 const express = require('express');
+const { apiError } = require('../services/api-errors');
 
 function createChatRouter({
   db,
@@ -50,7 +51,7 @@ function createChatRouter({
       const scope = requestScope(req);
       const { text } = req.body;
       if (!text || typeof text !== 'string' || !text.trim()) {
-        return res.status(400).json({ ok: false, error: 'Missing or empty text' });
+        return apiError(res, 400, 'Missing or empty text', 'missing_text');
       }
 
       let parsed;
@@ -58,7 +59,7 @@ function createChatRouter({
         parsed = await parseMessage(text.trim());
       } catch (err) {
         console.error('[POST /api/chat] Parser error:', err.message);
-        return res.status(500).json({ ok: false, error: 'Parser error: ' + err.message });
+        return apiError(res, 500, 'Parser error: ' + err.message, 'parser_error');
       }
 
       if (parsed.unparseable || parsed.actions.length === 0) {

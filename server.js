@@ -23,6 +23,7 @@ const { APP_VERSION, ALEXA_SKILL_VERSION, releaseInfo } = require('./app-version
 const { buildReport } = require('./services/reports');
 const { PostgresSessionStore } = require('./services/postgres-session-store');
 const { presentDay, presentHistory } = require('./services/day-presenter');
+const { apiError } = require('./services/api-errors');
 const { createCareReadRouter } = require('./routes/care-read-routes');
 const { createCareLogRouter } = require('./routes/care-log-routes');
 const { createWeightRouter } = require('./routes/weight-routes');
@@ -2359,7 +2360,7 @@ async function requireAuth(req, res, next) {
   if (CLERK_AUTH_ENABLED) {
     if (!CLERK_CONFIGURED) {
       if (req.path.startsWith('/api/')) {
-        return res.status(503).json({ ok: false, error: 'clerk_not_configured' });
+        return apiError(res, 503, 'clerk_not_configured', 'clerk_not_configured');
       }
       return res.redirect('/login');
     }
@@ -2369,7 +2370,7 @@ async function requireAuth(req, res, next) {
         const scope = await resolveClerkScope(auth);
         if (!scope.ok) {
           if (req.path.startsWith('/api/')) {
-            return res.status(scope.reason === 'onboarding_required' ? 409 : 403).json({ ok: false, error: scope.reason });
+            return apiError(res, scope.reason === 'onboarding_required' ? 409 : 403, scope.reason, scope.reason);
           }
           if (scope.reason === 'onboarding_required') return res.redirect('/onboarding');
           return res.status(403).send('This account is not authorized for this patient yet. Please contact support.');
@@ -2382,7 +2383,7 @@ async function requireAuth(req, res, next) {
       console.error('[auth] Clerk auth check failed:', err.message);
     }
     if (req.path.startsWith('/api/')) {
-      return res.status(401).json({ ok: false, error: 'Unauthorized' });
+      return apiError(res, 401, 'Unauthorized', 'unauthorized');
     }
     return res.redirect('/login');
   }
@@ -2390,7 +2391,7 @@ async function requireAuth(req, res, next) {
   // Session auth (browser access)
   if (req.session && req.session.authenticated) return next();
   if (req.path.startsWith('/api/')) {
-    return res.status(401).json({ ok: false, error: 'Unauthorized' });
+    return apiError(res, 401, 'Unauthorized', 'unauthorized');
   }
   res.redirect('/login');
 }
@@ -2459,7 +2460,7 @@ function resolveRequestedDayKey({ date, relative } = {}) {
     if (relative === 'yesterday') {
       return { ok: true, date: shiftDayKey(db.getDayKey(), -1) };
     }
-    return { ok: false, error: 'Invalid relative date. Use today or yesterday.' };
+    return { ok: false, error: 'Invalid relative date. Use today or yesterday.', code: 'invalid_relative_date' };
   }
 
   return validateLogDate(date);
@@ -2468,16 +2469,16 @@ function resolveRequestedDayKey({ date, relative } = {}) {
 /**
  * Validates an optional date field from a request body.
  * Accepts any past or present date (no future dates).
- * Returns { ok: true, date } or { ok: false, error }.
+ * Returns { ok: true, date } or { ok: false, error, code }.
  */
 function validateLogDate(bodyDate) {
   const todayKey = db.getDayKey();
   if (!bodyDate) return { ok: true, date: todayKey };
   if (!/^\d{4}-\d{2}-\d{2}$/.test(bodyDate)) {
-    return { ok: false, error: 'Invalid date format. Use YYYY-MM-DD.' };
+    return { ok: false, error: 'Invalid date format. Use YYYY-MM-DD.', code: 'invalid_date_format' };
   }
   if (bodyDate > todayKey) {
-    return { ok: false, error: 'Cannot log entries for future dates.' };
+    return { ok: false, error: 'Cannot log entries for future dates.', code: 'future_date' };
   }
   return { ok: true, date: bodyDate };
 }
@@ -2485,11 +2486,11 @@ function validateLogDate(bodyDate) {
 function validateLogTime(bodyTime) {
   if (!bodyTime) return { ok: true, time: null };
   if (!/^\d{2}:\d{2}$/.test(bodyTime)) {
-    return { ok: false, error: 'Invalid time format. Use HH:MM.' };
+    return { ok: false, error: 'Invalid time format. Use HH:MM.', code: 'invalid_time_format' };
   }
   const [hour, minute] = bodyTime.split(':').map(Number);
   if (hour < 0 || hour > 23 || minute < 0 || minute > 59) {
-    return { ok: false, error: 'Invalid time value.' };
+    return { ok: false, error: 'Invalid time value.', code: 'invalid_time_value' };
   }
   return { ok: true, time: bodyTime };
 }

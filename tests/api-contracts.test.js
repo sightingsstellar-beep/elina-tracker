@@ -207,7 +207,7 @@ test('protected JSON routes share the unauthenticated error contract', async () 
   const response = await request('/api/day?date=2026-05-25');
 
   assert.equal(response.status, 401);
-  assert.deepEqual(response.body, { ok: false, error: 'Unauthorized' });
+  assert.deepEqual(response.body, { ok: false, error: 'Unauthorized', code: 'unauthorized' });
 });
 
 test('GET /api/day exposes the day chart contract', async () => {
@@ -455,6 +455,53 @@ test('POST /api/log exposes the validation error contract', async () => {
   assert.deepEqual(response.body, {
     ok: false,
     error: 'Amount is required for fluid intake and fluid output entries',
+    code: 'missing_amount',
+  });
+});
+
+test('POST /api/log exposes date validation error codes', async () => {
+  const response = await request('/api/log', {
+    method: 'POST',
+    headers: apiHeaders(),
+    body: {
+      date: '2026/05/25',
+      entry_type: 'input',
+      fluid_type: 'water',
+      amount_ml: 120,
+    },
+  });
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(response.body, {
+    ok: false,
+    error: 'Invalid date format. Use YYYY-MM-DD.',
+    code: 'invalid_date_format',
+  });
+});
+
+test('GET /api/weight/day exposes relative-date validation error codes', async () => {
+  const response = await request('/api/weight/day?relative=tomorrow', { headers: apiHeaders() });
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(response.body, {
+    ok: false,
+    error: 'Invalid relative date. Use today or yesterday.',
+    code: 'invalid_relative_date',
+  });
+});
+
+test('POST /api/chat exposes missing-text validation error codes', async () => {
+  const response = await request('/api/chat', {
+    method: 'POST',
+    headers: apiHeaders(),
+    body: { text: '' },
+  });
+
+  assert.equal(response.status, 400);
+  assert.deepEqual(response.body, {
+    ok: false,
+    error: 'Missing or empty text',
+    code: 'missing_text',
   });
 });
 

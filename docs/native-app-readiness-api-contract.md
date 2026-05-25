@@ -178,6 +178,43 @@ Expected errors:
 - 403 not_authorized_for_patient
 - 409 onboarding_required
 
+### Error Envelope
+
+Native-facing JSON failures should preserve a human-readable `error` message and
+also include a stable machine-readable `code`:
+
+    {
+      "ok": false,
+      "error": "Invalid date format. Use YYYY-MM-DD.",
+      "code": "invalid_date_format"
+    }
+
+Current additive error-code coverage exists on the protected auth boundary and
+the active day, care-log, assistant, and weight routes. Web clients may continue
+to display `error`; native clients should branch on `code`.
+
+Initial codes:
+
+- unauthorized
+- clerk_not_configured
+- onboarding_required
+- invalid_relative_date
+- invalid_date_format
+- future_date
+- invalid_time_format
+- invalid_time_value
+- invalid_request_body
+- invalid_id
+- missing_amount
+- missing_text
+- parser_error
+- entry_not_found
+- gag_entry_not_found
+- invalid_check_time
+- wellness_entry_not_found
+- invalid_weight
+- weight_entry_not_found
+
 ### Day Summary
 
 GET /api/v1/days/{dayKey}
