@@ -659,6 +659,7 @@ body.quick-log-modal-open {
    ============================================================ */
 
 .main {
+  width: 100%;
   max-width: 640px;
   margin: 0 auto;
   padding: 16px 12px;
@@ -668,12 +669,16 @@ body.quick-log-modal-open {
 }
 
 .chart-log-columns {
+  width: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 14px;
 }
 
 .chart-log-column {
+  width: 100%;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   gap: 14px;
@@ -684,6 +689,8 @@ body.quick-log-modal-open {
    ============================================================ */
 
 .card {
+  width: 100%;
+  min-width: 0;
   background: var(--white);
   border-radius: var(--radius);
   box-shadow: var(--shadow);
@@ -945,6 +952,8 @@ body.quick-log-modal-open {
 
 .output-list,
 .gag-list {
+  width: 100%;
+  min-width: 0;
   list-style: none;
   display: flex;
   flex-direction: column;
@@ -953,6 +962,8 @@ body.quick-log-modal-open {
 
 .output-item,
 .gag-item {
+  width: 100%;
+  min-width: 0;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -1101,12 +1112,15 @@ body.quick-log-modal-open {
 }
 
 .quick-buttons {
+  width: 100%;
+  min-width: 0;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
 }
 
 .quick-btn {
+  min-width: 0;
   background: linear-gradient(180deg, #ffffff, var(--blue-light));
   color: var(--blue);
   border: 1px solid rgba(47, 127, 159, 0.16);
