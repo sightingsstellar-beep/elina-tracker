@@ -351,6 +351,42 @@ function renderAll() {
   renderGags();
   renderWeight();
   renderWellness();
+  scheduleChartLogLayout();
+}
+
+let chartLogLayoutFrame = null;
+
+function scheduleChartLogLayout() {
+  if (chartLogLayoutFrame) cancelAnimationFrame(chartLogLayoutFrame);
+  chartLogLayoutFrame = requestAnimationFrame(() => {
+    chartLogLayoutFrame = null;
+    balanceChartLogCards();
+  });
+}
+
+function balanceChartLogCards() {
+  const primaryColumn = document.querySelector('[data-log-column="primary"]');
+  const secondaryColumn = document.querySelector('[data-log-column="secondary"]');
+  const intakeCard = document.querySelector('.intake-card');
+  const outputCard = document.querySelector('.output-card');
+  const gagCard = document.querySelector('.gag-card');
+  if (!primaryColumn || !secondaryColumn || !intakeCard || !outputCard || !gagCard) return;
+
+  const desktopLayout = window.matchMedia('(min-width: 980px)').matches;
+  if (!desktopLayout) {
+    if (intakeCard.parentElement !== primaryColumn) primaryColumn.append(intakeCard);
+    if (outputCard.parentElement !== secondaryColumn) secondaryColumn.append(outputCard);
+    if (gagCard.parentElement !== secondaryColumn) secondaryColumn.append(gagCard);
+    return;
+  }
+
+  if (intakeCard.parentElement !== primaryColumn) primaryColumn.append(intakeCard);
+  if (outputCard.parentElement !== secondaryColumn) secondaryColumn.prepend(outputCard);
+
+  const targetColumn = intakeCard.offsetHeight <= outputCard.offsetHeight
+    ? primaryColumn
+    : secondaryColumn;
+  if (gagCard.parentElement !== targetColumn) targetColumn.append(gagCard);
 }
 
 function renderDayController() {
@@ -1110,6 +1146,8 @@ window.addEventListener('glide:chart-date', async (event) => {
   state.selectedDayKey = dayKey;
   await refreshDay();
 });
+
+window.addEventListener('resize', scheduleChartLogLayout);
 
 setInterval(updateClock, 1000);
 setInterval(refreshDay, 30 * 60 * 1000);
