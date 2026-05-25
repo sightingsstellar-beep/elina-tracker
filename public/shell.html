@@ -133,54 +133,56 @@
       </div>
     </section>
 
-    <section class="card intake-card" id="intake-section">
-      <div class="card-header card-header--actionable">
-        <span class="card-icon" aria-hidden="true"><i class="ph ph-drop"></i></span>
-        <h2>Intake</h2>
-        <span class="badge" id="intake-count">0</span>
-        <button class="card-action-btn" id="add-intake-btn">+ Add</button>
-      </div>
-      <div class="intake-totals">
-        <span class="intake-amount" id="intake-amount">-- ml</span>
-        <span class="intake-limit" id="intake-limit">/ -- ml</span>
-        <span class="intake-pct" id="intake-pct">--%</span>
-      </div>
-      <div class="progress-container" aria-label="Intake progress">
-        <div class="progress-bar" id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
-      </div>
-      <div class="over-limit-warning" id="over-limit-warning" style="display:none;"><i class="ph ph-traffic-signal" aria-hidden="true"></i> Daily limit exceeded!</div>
-      <ul class="output-list intake-list" id="intake-list">
-        <li class="empty-state">No intake logged yet</li>
-      </ul>
-    </section>
+    <div class="chart-log-columns">
+      <section class="card intake-card" id="intake-section">
+        <div class="card-header card-header--actionable">
+          <span class="card-icon" aria-hidden="true"><i class="ph ph-drop"></i></span>
+          <h2>Intake</h2>
+          <span class="badge" id="intake-count">0</span>
+          <button class="card-action-btn" id="add-intake-btn">+ Add</button>
+        </div>
+        <div class="intake-totals">
+          <span class="intake-amount" id="intake-amount">-- ml</span>
+          <span class="intake-limit" id="intake-limit">/ -- ml</span>
+          <span class="intake-pct" id="intake-pct">--%</span>
+        </div>
+        <div class="progress-container" aria-label="Intake progress">
+          <div class="progress-bar" id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+        </div>
+        <div class="over-limit-warning" id="over-limit-warning" style="display:none;"><i class="ph ph-traffic-signal" aria-hidden="true"></i> Daily limit exceeded!</div>
+        <ul class="output-list intake-list" id="intake-list">
+          <li class="empty-state">No intake logged yet</li>
+        </ul>
+      </section>
 
-    <section class="card output-card">
-      <div class="card-header card-header--actionable">
-        <span class="card-icon" aria-hidden="true"><i class="ph ph-toilet"></i></span>
-        <h2>Outputs</h2>
-        <span class="badge" id="output-count">0</span>
-        <button class="card-action-btn" id="add-output-btn">+ Add</button>
-      </div>
-      <div class="intake-totals output-totals">
-        <span class="intake-amount" id="output-total-amount">-- g</span>
-        <span class="output-total-events" id="output-total-events">0 events</span>
-      </div>
-      <ul class="output-list" id="output-list">
-        <li class="empty-state">No outputs logged yet</li>
-      </ul>
-    </section>
+      <section class="card output-card">
+        <div class="card-header card-header--actionable">
+          <span class="card-icon" aria-hidden="true"><i class="ph ph-toilet"></i></span>
+          <h2>Outputs</h2>
+          <span class="badge" id="output-count">0</span>
+          <button class="card-action-btn" id="add-output-btn">+ Add</button>
+        </div>
+        <div class="intake-totals output-totals">
+          <span class="intake-amount" id="output-total-amount">-- g</span>
+          <span class="output-total-events" id="output-total-events">0 events</span>
+        </div>
+        <ul class="output-list" id="output-list">
+          <li class="empty-state">No outputs logged yet</li>
+        </ul>
+      </section>
 
-    <section class="card gag-card">
-      <div class="card-header card-header--actionable">
-        <span class="card-icon" aria-hidden="true"><i class="ph ph-warning-circle"></i></span>
-        <h2>Gag Episodes</h2>
-        <span class="badge badge-warn" id="gag-count">0</span>
-        <button class="card-action-btn" id="add-gag-btn">+ Add</button>
-      </div>
-      <ul class="gag-list" id="gag-list">
-        <li class="empty-state">No gag episodes logged yet</li>
-      </ul>
-    </section>
+      <section class="card gag-card">
+        <div class="card-header card-header--actionable">
+          <span class="card-icon" aria-hidden="true"><i class="ph ph-warning-circle"></i></span>
+          <h2>Gag Episodes</h2>
+          <span class="badge badge-warn" id="gag-count">0</span>
+          <button class="card-action-btn" id="add-gag-btn">+ Add</button>
+        </div>
+        <ul class="gag-list" id="gag-list">
+          <li class="empty-state">No gag episodes logged yet</li>
+        </ul>
+      </section>
+    </div>
 
     <div class="section-divider"></div>
     <div class="daily-checks-label">Daily Checks</div>
