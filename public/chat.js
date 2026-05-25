@@ -9,6 +9,8 @@
 
 'use strict';
 
+(function initChatPage() {
+
 // ---------------------------------------------------------------------------
 // Clock / date header
 // ---------------------------------------------------------------------------
@@ -500,3 +502,5 @@ micBtn.addEventListener('contextmenu', (e) => e.preventDefault());
 
 // ---------------------------------------------------------------------------
 // Voice section is always visible on the chat page — no toggle needed.
+
+})();

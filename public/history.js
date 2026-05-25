@@ -1,10 +1,13 @@
 'use strict';
 
+(function initHistoryViewModule() {
 const state = {
   range: 7,
   days: [],
   weightByDate: {},
 };
+let eventsInitialized = false;
+let clockTimer = null;
 
 function updateClock() {
   const now = new Date();
@@ -394,6 +397,8 @@ async function loadTrends() {
 }
 
 function initEvents() {
+  if (eventsInitialized) return;
+  eventsInitialized = true;
   const refreshBtn = document.getElementById('refresh-btn');
   if (refreshBtn) refreshBtn.addEventListener('click', loadTrends);
   document.getElementById('range-pills').addEventListener('click', async (event) => {
@@ -409,12 +414,38 @@ function initEvents() {
     if (!bar) return;
     const dayKey = bar.dataset.dayKey;
     if (!dayKey) return;
-    window.location.href = dayKey ? `/?date=${encodeURIComponent(dayKey)}` : '/';
+    const target = dayKey ? `/app?date=${encodeURIComponent(dayKey)}` : '/app';
+    if (document.body?.matches('[data-app-shell]')) {
+      window.history.pushState({ route: 'chart' }, '', target);
+      window.dispatchEvent(new CustomEvent('glide:shell-navigate', { detail: { pathname: '/app' } }));
+      window.dispatchEvent(new CustomEvent('glide:chart-date', { detail: { dayKey } }));
+    } else {
+      window.location.href = dayKey ? `/?date=${encodeURIComponent(dayKey)}` : '/';
+    }
   });
 }
 
-setInterval(updateClock, 1000);
-updateClock();
-loadSettings();
-initEvents();
-loadTrends();
+function mountHistoryView() {
+  if (!clockTimer) clockTimer = setInterval(updateClock, 1000);
+  updateClock();
+  loadSettings();
+  initEvents();
+  loadTrends();
+}
+
+function unmountHistoryView() {
+  if (clockTimer) {
+    clearInterval(clockTimer);
+    clockTimer = null;
+  }
+}
+
+window.GlideHistoryView = {
+  mount: mountHistoryView,
+  unmount: unmountHistoryView,
+};
+
+if (!document.body?.matches('[data-app-shell]')) {
+  mountHistoryView();
+}
+})();

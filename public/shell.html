@@ -10,8 +10,10 @@
   <title>Glide Bedside App</title>
   <link rel="stylesheet" href="/vendor/phosphor/regular/style.css" />
   <link rel="stylesheet" href="/vendor/phosphor/fill/style.css" />
-  <script src="theme.js"></script>
-  <link rel="stylesheet" href="style.css" />
+  <script src="/theme.js"></script>
+  <link rel="stylesheet" href="/style.css" />
+  <link rel="stylesheet" href="/history.css" />
+  <link rel="stylesheet" href="/chat.css" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
 </head>
 <body data-app-shell>
@@ -53,14 +55,14 @@
         </span>
         <span class="tab-label">Day</span>
       </a>
-      <a href="/history" class="tab-item" data-route="trends">
+      <a href="/app/history" class="tab-item" data-shell-link data-route="trends">
         <span class="tab-icon" aria-hidden="true">
           <i class="tab-icon-outline ph ph-chart-line-up"></i>
           <i class="tab-icon-fill ph-fill ph-chart-line-up"></i>
         </span>
         <span class="tab-label">Trends</span>
       </a>
-      <a href="/chat" class="tab-item" data-route="chat">
+      <a href="/app/chat" class="tab-item" data-shell-link data-route="chat">
         <span class="tab-icon" aria-hidden="true">
           <i class="tab-icon-outline ph ph-microphone"></i>
           <i class="tab-icon-fill ph-fill ph-microphone"></i>
@@ -70,7 +72,7 @@
     </nav>
   </header>
 
-  <section class="day-controller-bar" aria-label="Day navigator">
+  <section class="day-controller-bar" aria-label="Day navigator" data-chart-only>
     <div class="day-controller-shell">
       <div class="day-nav-row">
         <button class="day-nav-btn" id="day-prev" aria-label="Previous day"><i class="ph ph-caret-left" aria-hidden="true"></i></button>
@@ -86,9 +88,9 @@
     </div>
   </section>
 
-  <div class="day-context-banner" id="day-context-banner" style="display:none;"></div>
+  <div class="day-context-banner" id="day-context-banner" style="display:none;" data-chart-only></div>
 
-  <main class="main">
+  <main class="main" data-shell-view="chart">
     <section class="card quick-log-card">
       <div class="card-header">
         <span class="card-icon" aria-hidden="true"><i class="ph ph-lightning"></i></span>
@@ -201,6 +203,77 @@
 
   </main>
 
+  <main class="main history-main" data-shell-view="trends" hidden>
+    <section class="trends-toolbar card">
+      <div class="trends-toolbar-top">
+        <div>
+          <h2 class="trends-heading"><span class="heading-icon" aria-hidden="true"><i class="ph ph-chart-line-up"></i></span> Trends</h2>
+          <p class="trends-subheading">Tap any bar or point to jump into that day.</p>
+        </div>
+      </div>
+      <div class="range-pills" id="range-pills">
+        <button class="range-pill active" data-range="7">7D</button>
+        <button class="range-pill" data-range="30">30D</button>
+        <button class="range-pill" data-range="90">90D</button>
+      </div>
+    </section>
+
+    <div id="trends-container">
+      <div class="h-loading">Loading trends...</div>
+    </div>
+  </main>
+
+  <main class="chat-main" data-shell-view="chat" hidden>
+    <section class="voice-section" id="voice-section">
+      <div class="mic-wrapper">
+        <button
+          class="mic-btn"
+          id="mic-btn"
+          aria-label="Hold to record"
+          aria-pressed="false"
+        ><i class="ph ph-microphone" aria-hidden="true"></i></button>
+        <div class="mic-label" id="mic-label">Hold to record</div>
+        <div class="mic-timer" id="mic-timer" style="display:none;">0:00</div>
+      </div>
+
+      <div class="transcription-area" id="transcription-area" style="display:none;">
+        <div class="transcription-label">Edit if needed, then log:</div>
+        <textarea
+          class="transcription-input"
+          id="transcription-input"
+          rows="2"
+          placeholder="Transcribed text..."
+        ></textarea>
+        <div class="transcription-buttons">
+          <button class="btn-log-it" id="btn-log-it">Log It <i class="ph ph-check-circle" aria-hidden="true"></i></button>
+          <button class="btn-cancel-transcription" id="btn-cancel-transcription">Cancel</button>
+        </div>
+      </div>
+
+      <div class="transcribing-spinner" id="transcribing-spinner" style="display:none;">
+        <div class="spinner"></div>
+        <span>Transcribing...</span>
+      </div>
+    </section>
+
+    <section class="chat-section" id="chat-section">
+      <div class="chat-history" id="chat-history"></div>
+    </section>
+  </main>
+
+  <div class="chat-input-bar" id="chat-input-bar" data-shell-view="chat" hidden>
+    <input
+      type="text"
+      class="chat-text-input"
+      id="chat-text-input"
+      placeholder="e.g. 80ml urine, or pediasure 200ml..."
+      autocomplete="off"
+      autocorrect="off"
+      spellcheck="false"
+    />
+    <button class="chat-send-btn" id="chat-send-btn" aria-label="Send"><i class="ph ph-paper-plane-right" aria-hidden="true"></i></button>
+  </div>
+
   <div class="sheet-backdrop" id="entry-sheet" style="display:none;">
     <div class="entry-sheet" role="dialog" aria-modal="true" aria-labelledby="entry-sheet-title">
       <div class="sheet-handle"></div>
@@ -229,11 +302,13 @@
     <span id="app-version">Version loading…</span>
   </footer>
 
-  <script src="auth-fetch.js"></script>
-  <script src="viewport-guard.js"></script>
-  <script src="version-watch.js"></script>
-  <script src="nav.js"></script>
-  <script src="shell-router.js"></script>
-  <script src="app.js"></script>
+  <script src="/auth-fetch.js"></script>
+  <script src="/viewport-guard.js"></script>
+  <script src="/version-watch.js"></script>
+  <script src="/nav.js"></script>
+  <script src="/history.js"></script>
+  <script src="/chat.js"></script>
+  <script src="/shell-router.js"></script>
+  <script src="/app.js"></script>
 </body>
 </html>

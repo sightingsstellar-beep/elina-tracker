@@ -1099,6 +1099,13 @@ function applyInitialDateFromUrl() {
   }
 }
 
+window.addEventListener('glide:chart-date', async (event) => {
+  const dayKey = event.detail?.dayKey;
+  if (!dayKey || !/^\d{4}-\d{2}-\d{2}$/.test(dayKey)) return;
+  state.selectedDayKey = dayKey;
+  await refreshDay();
+});
+
 setInterval(updateClock, 1000);
 setInterval(refreshDay, 30 * 60 * 1000);
 updateClock();

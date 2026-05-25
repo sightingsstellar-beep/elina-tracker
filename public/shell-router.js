@@ -12,10 +12,14 @@
   if (!document.body?.matches('[data-app-shell]')) return;
 
   const routes = {
-    '/app': { route: 'chart', title: 'Glide Bedside' },
-    '/app/': { route: 'chart', title: 'Glide Bedside' },
-    '/app/chart': { route: 'chart', title: 'Glide Bedside' },
+    '/app': { route: 'chart', title: 'Glide Bedside', mount: null },
+    '/app/': { route: 'chart', title: 'Glide Bedside', mount: null },
+    '/app/chart': { route: 'chart', title: 'Glide Bedside', mount: null },
+    '/app/history': { route: 'trends', title: 'Glide Bedside - Trends', mount: 'GlideHistoryView' },
+    '/app/chat': { route: 'chat', title: 'Glide Bedside - Chat', mount: null },
   };
+
+  let activeMountedView = null;
 
   function routeForPath(pathname) {
     return routes[pathname] || routes['/app'];
@@ -23,17 +27,41 @@
 
   function setActiveRoute(routeName) {
     document.querySelectorAll('[data-route]').forEach((link) => {
-      const isActive = link.dataset.route === routeName;
+      const isTopChartLink = link.classList.contains('top-nav-item') && link.dataset.route === 'chart';
+      const isChartSubroute = routeName === 'chart' || routeName === 'trends' || routeName === 'chat';
+      const isActive = link.dataset.route === routeName || (isTopChartLink && isChartSubroute);
       link.classList.toggle('active', isActive);
       if (isActive) link.setAttribute('aria-current', 'page');
       else link.removeAttribute('aria-current');
     });
   }
 
+  function setActiveView(routeName) {
+    document.querySelectorAll('[data-shell-view]').forEach((view) => {
+      view.hidden = view.dataset.shellView !== routeName;
+    });
+    document.querySelectorAll('[data-chart-only]').forEach((element) => {
+      element.hidden = routeName !== 'chart';
+    });
+  }
+
+  function mountRoute(route) {
+    if (activeMountedView && activeMountedView !== route.mount) {
+      window[activeMountedView]?.unmount?.();
+      activeMountedView = null;
+    }
+    if (route.mount && window[route.mount]?.mount) {
+      window[route.mount].mount();
+      activeMountedView = route.mount;
+    }
+  }
+
   function renderRoute(pathname) {
     const route = routeForPath(pathname);
     document.title = route.title;
     setActiveRoute(route.route);
+    setActiveView(route.route);
+    mountRoute(route);
   }
 
   function navigate(url) {
@@ -57,6 +85,10 @@
 
   window.addEventListener('popstate', () => {
     renderRoute(window.location.pathname);
+  });
+
+  window.addEventListener('glide:shell-navigate', (event) => {
+    renderRoute(event.detail?.pathname || window.location.pathname);
   });
 
   renderRoute(window.location.pathname);
