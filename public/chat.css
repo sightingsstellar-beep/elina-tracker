@@ -389,6 +389,16 @@ body {
   }
 }
 
+@media (min-width: 980px) {
+  .chat-main {
+    max-width: 860px;
+  }
+
+  .chat-input-bar {
+    max-width: 860px;
+  }
+}
+
 /* Palette-aware page refinements */
 .voice-section,
 .messages-panel,

@@ -39,6 +39,7 @@
   --shadow: 0 10px 26px rgba(23, 47, 69, 0.08);
   --shadow-hover: 0 16px 36px rgba(23, 47, 69, 0.16);
   --glide-gradient: linear-gradient(135deg, #2f7f9f 0%, #319a9a 48%, #5fc7bd 100%);
+  --desktop-content-max: 1040px;
   --safe-top: env(safe-area-inset-top, 0px);
   --mobile-sticky-header-offset: calc(69px + var(--safe-top));
 }
@@ -1406,6 +1407,18 @@ body.quick-log-modal-open {
   body { background: #e8edf2; }
   .main { padding: 24px 0; }
   .header { border-radius: 0; }
+}
+
+@media (min-width: 980px) {
+  .main,
+  .day-controller-shell {
+    max-width: var(--desktop-content-max);
+  }
+
+  .main {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
 }
 
 /* Undo button */

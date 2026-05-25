@@ -335,6 +335,14 @@
   }
 }
 
+@media (min-width: 980px) {
+  .settings-main {
+    max-width: var(--desktop-content-max);
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
 /* Palette-aware page refinements */
 .settings-card,
 .family-member-row,
