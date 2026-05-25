@@ -109,8 +109,8 @@ function isTodaySelected() {
 
 function formatChipLabel(dayKey) {
   if (!dayKey) return 'Pick a chart';
-  if (dayKey === state.todayDayKey) return "Today's Daily Chart";
-  if (dayKey === shiftDayKey(state.todayDayKey, -1)) return "Yesterday's Daily Chart";
+  if (dayKey === state.todayDayKey) return "Today's Chart";
+  if (dayKey === shiftDayKey(state.todayDayKey, -1)) return "Yesterday's Chart";
   const [year, month, day] = dayKey.split('-').map(Number);
   const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
   return `${date.toLocaleDateString('en-US', {
@@ -118,7 +118,7 @@ function formatChipLabel(dayKey) {
     month: 'short',
     day: 'numeric',
     timeZone: 'UTC',
-  })} Daily Chart`;
+  })} Chart`;
 }
 
 function formatLongDay(dayKey) {
