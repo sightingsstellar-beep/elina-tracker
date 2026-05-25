@@ -339,10 +339,25 @@ function renderClerkLoginPage({ misconfigured = false } = {}) {
           window.Clerk.load({ publishableKey: ${key}, localization: clerkLocalization }),
           new Promise((_, reject) => setTimeout(() => reject(new Error('Clerk browser library timed out while loading.')), 8000)),
         ]);
+        const params = new URLSearchParams(window.location.search);
+        const arrivedFromSignOut = params.has('signed_out');
+        if (arrivedFromSignOut && (window.Clerk.user || window.Clerk.session) && !params.has('retry')) {
+          await Promise.race([
+            window.Clerk.signOut(),
+            new Promise((resolve) => setTimeout(resolve, 4000)),
+          ]);
+          window.location.replace('/login?signed_out=1&retry=1');
+          return;
+        }
+        if (window.Clerk.user || window.Clerk.session) {
+          window.location.replace('/');
+          return;
+        }
         window.Clerk.mountSignIn(signIn, {
-          afterSignInUrl: '/',
-          afterSignUpUrl: '/',
-          redirectUrl: '/',
+          forceRedirectUrl: '/',
+          fallbackRedirectUrl: '/',
+          signUpForceRedirectUrl: '/',
+          signUpFallbackRedirectUrl: '/',
         });
         help.hidden = true;
       } catch (error) {
@@ -359,6 +374,7 @@ app.get('/api/auth/status', (req, res) => res.json(authStatus(req)));
 
 // Login page (public — no auth required)
 app.get('/login', (req, res) => {
+  res.set('Cache-Control', 'no-store, max-age=0');
   if (CLERK_AUTH_ENABLED) {
     if (!CLERK_CONFIGURED) return res.status(503).type('html').send(renderClerkLoginPage({ misconfigured: true }));
     const auth = getAuth(req);
@@ -394,14 +410,36 @@ app.post('/login', (req, res) => {
 
 // Logout
 app.get('/logout', (req, res) => {
+  res.set('Cache-Control', 'no-store, max-age=0');
   if (CLERK_AUTH_ENABLED) {
     if (!CLERK_CONFIGURED) return res.redirect('/login');
+    const key = JSON.stringify(CLERK_PUBLISHABLE_KEY);
+    const clerkScriptSrc = getClerkScriptSrc();
     return res.type('html').send(`<!doctype html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover"><title>Signing out — Glide Bedside</title></head>
 <body><p>Signing out…</p>
 <script src="viewport-guard.js"></script>
-<script async crossorigin="anonymous" data-clerk-publishable-key=${JSON.stringify(CLERK_PUBLISHABLE_KEY)} src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
-<script>window.addEventListener('load', async () => { await window.Clerk.load(); await window.Clerk.signOut(); window.location.assign('/login'); });</script>
+<script async crossorigin="anonymous" data-clerk-publishable-key=${key} src="${clerkScriptSrc}"></script>
+<script>
+  window.addEventListener('load', async () => {
+    const destination = '/login?signed_out=1';
+    try {
+      if (!window.Clerk) throw new Error('Clerk browser library did not load.');
+      await Promise.race([
+        window.Clerk.load({ publishableKey: ${key} }),
+        new Promise((_, reject) => setTimeout(() => reject(new Error('Clerk browser library timed out while loading.')), 8000)),
+      ]);
+      await Promise.race([
+        window.Clerk.signOut({ redirectUrl: destination }),
+        new Promise((resolve) => setTimeout(resolve, 4000)),
+      ]);
+      window.setTimeout(() => window.location.replace(destination), 1200);
+    } catch (error) {
+      console.error('[auth] Clerk sign-out failed:', error);
+      window.location.replace(destination);
+    }
+  });
+</script>
 </body></html>`);
   }
   req.session.destroy(() => res.redirect('/login'));
