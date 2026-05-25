@@ -31,6 +31,7 @@
   };
 
   let activeMountedView = null;
+  let activeRouteName = null;
 
   function routeForPath(pathname) {
     return routes[pathname] || routes['/app'];
@@ -73,12 +74,21 @@
     }
   }
 
-  function renderRoute(pathname) {
+  function resetScrollForRouteChange() {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+    document.documentElement.scrollTop = 0;
+    document.body.scrollTop = 0;
+  }
+
+  function renderRoute(pathname, options = {}) {
     const route = routeForPath(pathname);
+    const shouldResetScroll = options.resetScroll && route.route !== activeRouteName;
     document.title = route.title;
     setActiveRoute(route.route);
     setActiveView(route.view || route.route, route.route);
     mountRoute(route);
+    activeRouteName = route.route;
+    if (shouldResetScroll) requestAnimationFrame(resetScrollForRouteChange);
   }
 
   function navigate(url) {
@@ -88,7 +98,7 @@
     if (target !== current) {
       window.history.pushState({ route: routeForPath(next.pathname).route }, '', target);
     }
-    renderRoute(next.pathname);
+    renderRoute(next.pathname, { resetScroll: true });
   }
 
   document.addEventListener('click', (event) => {
@@ -101,11 +111,11 @@
   });
 
   window.addEventListener('popstate', () => {
-    renderRoute(window.location.pathname);
+    renderRoute(window.location.pathname, { resetScroll: true });
   });
 
   window.addEventListener('glide:shell-navigate', (event) => {
-    renderRoute(event.detail?.pathname || window.location.pathname);
+    renderRoute(event.detail?.pathname || window.location.pathname, { resetScroll: true });
   });
 
   renderRoute(window.location.pathname);
