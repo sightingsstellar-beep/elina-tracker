@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <meta name="theme-color" content="#2f7f9f" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <link rel="manifest" href="/manifest.json" />
+  <title>Glide Bedside App</title>
+  <link rel="stylesheet" href="/vendor/phosphor/regular/style.css" />
+  <link rel="stylesheet" href="/vendor/phosphor/fill/style.css" />
+  <script src="theme.js"></script>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+</head>
+<body data-app-shell>
+  <header class="header">
+    <div class="header-top">
+      <div class="header-left">
+        <h1 class="title"><span id="child-name">…</span> <span class="heart" aria-hidden="true"><i class="ph-fill ph-heart"></i></span></h1>
+        <div class="subtitle" id="current-date">Loading...</div>
+      </div>
+      <div class="header-right">
+        <div class="top-menu" data-top-menu>
+          <button class="top-menu-toggle" type="button" aria-label="Open menu" aria-expanded="false" data-top-menu-toggle>
+            <span class="top-menu-toggle-line"></span>
+            <span class="top-menu-toggle-line"></span>
+            <span class="top-menu-toggle-line"></span>
+          </button>
+          <div class="top-nav" data-top-menu-panel>
+            <a href="/app" class="top-nav-item active" aria-current="page" data-shell-link data-route="chart"><i class="ph ph-chart-line-up" aria-hidden="true"></i> <span>Chart</span></a>
+            <a href="/patient-profile" class="top-nav-item"><i class="ph ph-heart" aria-hidden="true"></i> <span>Patient Profile</span></a>
+            <a href="/settings" class="top-nav-item"><i class="ph ph-gear-six" aria-hidden="true"></i> <span>App Settings</span></a>
+            <div class="account-menu">
+              <button class="top-nav-trigger" type="button" aria-expanded="false" data-account-menu-button><i class="ph ph-user-circle" aria-hidden="true"></i> <span data-caregiver-name>Caregiver</span> <i class="ph ph-caret-down" aria-hidden="true"></i></button>
+              <div class="account-menu-panel" hidden data-account-menu-panel>
+                <a href="/caregiver-profile"><i class="ph ph-user-circle" aria-hidden="true"></i> Profile</a>
+                <a href="/caregivers"><i class="ph ph-users" aria-hidden="true"></i> Caregivers</a>
+                <a href="/logout"><i class="ph ph-power" aria-hidden="true"></i> Log out</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="clock" id="current-time">--:--</div>
+      </div>
+    </div>
+    <nav class="tab-bar" aria-label="Primary">
+      <a href="/app" class="tab-item active" aria-current="page" data-shell-link data-route="chart">
+        <span class="tab-icon" aria-hidden="true">
+          <i class="tab-icon-outline ph ph-drop"></i>
+          <i class="tab-icon-fill ph-fill ph-drop"></i>
+        </span>
+        <span class="tab-label">Day</span>
+      </a>
+      <a href="/history" class="tab-item" data-route="trends">
+        <span class="tab-icon" aria-hidden="true">
+          <i class="tab-icon-outline ph ph-chart-line-up"></i>
+          <i class="tab-icon-fill ph-fill ph-chart-line-up"></i>
+        </span>
+        <span class="tab-label">Trends</span>
+      </a>
+      <a href="/chat" class="tab-item" data-route="chat">
+        <span class="tab-icon" aria-hidden="true">
+          <i class="tab-icon-outline ph ph-microphone"></i>
+          <i class="tab-icon-fill ph-fill ph-microphone"></i>
+        </span>
+        <span class="tab-label">Chat</span>
+      </a>
+    </nav>
+  </header>
+
+  <section class="day-controller-bar" aria-label="Day navigator">
+    <div class="day-controller-shell">
+      <div class="day-nav-row">
+        <button class="day-nav-btn" id="day-prev" aria-label="Previous day"><i class="ph ph-caret-left" aria-hidden="true"></i></button>
+        <div class="day-picker-field day-picker-field--chip">
+          <div class="day-date-chip" id="day-date-chip" aria-hidden="true">Loading…</div>
+          <input type="date" id="day-picker" class="day-picker-input" aria-label="Choose day" />
+        </div>
+        <button class="day-nav-btn" id="day-next" aria-label="Next day"><i class="ph ph-caret-right" aria-hidden="true"></i></button>
+      </div>
+      <div class="day-status-row">
+        <button class="back-to-today-btn" id="back-to-today" style="display:none;">Back to Today</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="day-context-banner" id="day-context-banner" style="display:none;"></div>
+
+  <main class="main">
+    <section class="card quick-log-card">
+      <div class="card-header">
+        <span class="card-icon" aria-hidden="true"><i class="ph ph-lightning"></i></span>
+        <h2>Quick Add</h2>
+      </div>
+      <p class="quick-log-hint">Tap a button to log an entry for the selected day.</p>
+      <div class="quick-buttons">
+        <button class="quick-btn quick-btn--water" data-type="input" data-fluid="water"><span class="quick-btn-icon" aria-hidden="true"><i class="ph ph-drop"></i></span><span class="quick-btn-label">Water</span></button>
+        <button class="quick-btn quick-btn--nutrition" data-type="input" data-fluid="pediasure"><span class="quick-btn-icon" aria-hidden="true"><i class="ph ph-first-aid-kit"></i></span><span class="quick-btn-label">PediaSure</span></button>
+        <button class="quick-btn quick-btn--output" data-type="output" data-fluid="urine"><span class="quick-btn-icon" aria-hidden="true"><i class="ph ph-toilet"></i></span><span class="quick-btn-label">Urine</span></button>
+        <button class="quick-btn quick-btn--juice" data-type="input" data-fluid="juice"><span class="quick-btn-icon" aria-hidden="true"><i class="ph ph-orange-slice"></i></span><span class="quick-btn-label">Juice</span></button>
+        <button class="quick-btn quick-btn--nutrition" data-type="input" data-fluid="yogurt_drink"><span class="quick-btn-icon" aria-hidden="true"><i class="ph ph-bowl-food"></i></span><span class="quick-btn-label">Yogurt</span></button>
+        <button class="quick-btn quick-btn--output" data-type="output" data-fluid="poop"><span class="quick-btn-icon" aria-hidden="true"><i class="ph ph-toilet-paper"></i></span><span class="quick-btn-label">Poop</span></button>
+        <button class="quick-btn quick-btn--nutrition" data-type="input" data-fluid="milk"><span class="quick-btn-icon" aria-hidden="true"><i class="ph ph-cow"></i></span><span class="quick-btn-label">Milk</span></button>
+        <button class="quick-btn quick-btn--gag" data-type="gag" data-count="1"><span class="quick-btn-icon" aria-hidden="true"><i class="ph ph-warning-circle"></i></span><span class="quick-btn-label">Gag ×1</span></button>
+        <button class="quick-btn quick-btn--gag" data-type="output" data-fluid="vomit"><span class="quick-btn-icon" aria-hidden="true"><i class="ph ph-spiral"></i></span><span class="quick-btn-label">Vomit</span></button>
+      </div>
+      <div class="poop-subtype-popup" id="poop-subtype-popup" style="display:none;" role="dialog" aria-label="Choose poop type">
+        <button class="poop-subtype-btn" data-subtype="normal"><span class="subtype-btn-icon" aria-hidden="true"><i class="ph ph-toilet-paper"></i></span> Normal</button>
+        <button class="poop-subtype-btn" data-subtype="diarrhea"><span class="subtype-btn-icon" aria-hidden="true"><i class="ph ph-toilet-paper"></i></span> Diarrhea</button>
+        <button class="poop-subtype-btn" data-subtype="undigested"><span class="subtype-btn-icon" aria-hidden="true"><i class="ph ph-toilet-paper"></i></span> Undigested</button>
+      </div>
+      <div class="undo-row">
+        <button class="undo-btn" id="undo-btn"><i class="ph ph-arrow-counter-clockwise" aria-hidden="true"></i> Undo Last Entry</button>
+      </div>
+      <div class="amount-modal" id="amount-modal" style="display:none;">
+        <div class="amount-modal-inner">
+          <h3 id="modal-amount-label">Enter amount</h3>
+          <input type="number" id="amount-input" min="0" max="1000" step="0.1" placeholder="e.g. 85" inputmode="decimal" />
+          <div class="modal-time-wrap" id="modal-time-wrap">
+            <label for="modal-time-input" class="modal-field-label">Time for this entry</label>
+            <input type="time" id="modal-time-input" />
+          </div>
+          <div class="modal-buttons">
+            <button class="btn-cancel" id="modal-cancel" type="button">Cancel</button>
+            <button class="btn-confirm" id="modal-confirm" type="button">Save</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="card intake-card" id="intake-section">
+      <div class="card-header card-header--actionable">
+        <span class="card-icon" aria-hidden="true"><i class="ph ph-drop"></i></span>
+        <h2>Intake</h2>
+        <span class="badge" id="intake-count">0</span>
+        <button class="card-action-btn" id="add-intake-btn">+ Add</button>
+      </div>
+      <div class="intake-totals">
+        <span class="intake-amount" id="intake-amount">-- ml</span>
+        <span class="intake-limit" id="intake-limit">/ -- ml</span>
+        <span class="intake-pct" id="intake-pct">--%</span>
+      </div>
+      <div class="progress-container" aria-label="Intake progress">
+        <div class="progress-bar" id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
+      </div>
+      <div class="over-limit-warning" id="over-limit-warning" style="display:none;"><i class="ph ph-traffic-signal" aria-hidden="true"></i> Daily limit exceeded!</div>
+      <ul class="output-list intake-list" id="intake-list">
+        <li class="empty-state">No intake logged yet</li>
+      </ul>
+    </section>
+
+    <section class="card output-card">
+      <div class="card-header card-header--actionable">
+        <span class="card-icon" aria-hidden="true"><i class="ph ph-toilet"></i></span>
+        <h2>Outputs</h2>
+        <span class="badge" id="output-count">0</span>
+        <button class="card-action-btn" id="add-output-btn">+ Add</button>
+      </div>
+      <div class="intake-totals output-totals">
+        <span class="intake-amount" id="output-total-amount">-- g</span>
+        <span class="output-total-events" id="output-total-events">0 events</span>
+      </div>
+      <ul class="output-list" id="output-list">
+        <li class="empty-state">No outputs logged yet</li>
+      </ul>
+    </section>
+
+    <section class="card gag-card">
+      <div class="card-header card-header--actionable">
+        <span class="card-icon" aria-hidden="true"><i class="ph ph-warning-circle"></i></span>
+        <h2>Gag Episodes</h2>
+        <span class="badge badge-warn" id="gag-count">0</span>
+        <button class="card-action-btn" id="add-gag-btn">+ Add</button>
+      </div>
+      <ul class="gag-list" id="gag-list">
+        <li class="empty-state">No gag episodes logged yet</li>
+      </ul>
+    </section>
+
+    <div class="section-divider"></div>
+    <div class="daily-checks-label">Daily Checks</div>
+
+    <section class="card" id="weight-card">
+      <div class="card-header card-header--actionable">
+        <span class="card-icon" aria-hidden="true"><i class="ph ph-scales"></i></span>
+        <h2>Weight</h2>
+        <button class="card-action-btn" id="weight-action-btn">Add</button>
+      </div>
+      <div class="weight-summary" id="weight-summary"></div>
+    </section>
+
+    <section class="card wellness-card" id="wellness-card">
+      <div class="card-header">
+        <span class="card-icon" aria-hidden="true"><i class="ph ph-stethoscope"></i></span>
+        <h2>Wellness</h2>
+      </div>
+      <div class="wellness-period-list" id="wellness-period-list"></div>
+    </section>
+
+  </main>
+
+  <div class="sheet-backdrop" id="entry-sheet" style="display:none;">
+    <div class="entry-sheet" role="dialog" aria-modal="true" aria-labelledby="entry-sheet-title">
+      <div class="sheet-handle"></div>
+      <div class="sheet-header">
+        <div>
+          <h3 id="entry-sheet-title">Edit entry</h3>
+          <p class="sheet-subtitle" id="entry-sheet-subtitle"></p>
+        </div>
+        <button class="sheet-close-btn" id="entry-sheet-close" type="button" aria-label="Close"><i class="ph ph-x" aria-hidden="true"></i></button>
+      </div>
+      <form class="entry-sheet-form" id="entry-sheet-form">
+        <div class="entry-sheet-fields" id="entry-sheet-fields"></div>
+        <div class="sheet-actions">
+          <button class="sheet-secondary-btn" id="entry-sheet-delete" type="button" style="display:none;">Delete</button>
+          <button class="sheet-primary-btn" id="entry-sheet-save" type="submit">Save</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="app-alert" id="app-alert" role="alert" aria-live="assertive" style="display:none;"></div>
+
+  <footer class="footer">
+    <span>Last updated: <span id="last-updated">--</span></span>
+    <span>Auto-refresh fallback: 30 min</span>
+    <span id="app-version">Version loading…</span>
+  </footer>
+
+  <script src="auth-fetch.js"></script>
+  <script src="viewport-guard.js"></script>
+  <script src="version-watch.js"></script>
+  <script src="nav.js"></script>
+  <script src="shell-router.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

@@ -3484,6 +3484,10 @@ app.post('/api/settings', async (req, res) => {
 });
 
 // Settings page
+app.get(['/app', '/app/*'], (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'shell.html'));
+});
+
 app.get('/settings', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'settings.html'));
 });
