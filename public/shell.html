@@ -472,7 +472,7 @@
       <div class="settings-section-title"><span class="section-title-icon" aria-hidden="true"><i class="ph ph-shield-check"></i></span> Login</div>
       <div class="account-detail-grid" id="account-detail-grid" aria-live="polite">
         <div class="account-detail-row"><span>Login type</span><strong id="account-login-type">Loading…</strong></div>
-        <div class="account-detail-row"><span>Email</span><strong id="account-email">Loading…</strong></div>
+        <div class="account-detail-row"><span>Login email</span><strong id="account-email">Loading…</strong></div>
         <div class="account-detail-row"><span>Display name</span><strong id="account-display-name">Loading…</strong></div>
         <div class="account-detail-row"><span>Role</span><strong id="account-role">Loading…</strong></div>
         <div class="account-detail-row"><span>Family</span><strong id="account-family">Loading…</strong></div>
@@ -487,8 +487,9 @@
         <input type="text" id="caregiver_name" name="caregiver_name" maxlength="80" placeholder="Your name" />
       </div>
       <div class="settings-field">
-        <label for="caregiver_email">Email</label>
-        <input type="email" id="caregiver_email" name="caregiver_email" maxlength="120" placeholder="you@example.com" autocomplete="email" />
+        <label for="caregiver_email">Contact email</label>
+        <input type="email" id="caregiver_email" name="caregiver_email" maxlength="120" placeholder="contact@example.com" autocomplete="email" aria-describedby="caregiver-email-help" />
+        <p class="settings-help field-help" id="caregiver-email-help">Used for care coordination contact only. This does not change the login email above.</p>
       </div>
       <div class="settings-field">
         <label for="caregiver_phone">Phone</label>

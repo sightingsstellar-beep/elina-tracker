@@ -205,6 +205,11 @@
   line-height: 1.4;
 }
 
+.field-help {
+  margin: 6px 0 0;
+  font-size: 0.82rem;
+}
+
 .about-card {
   margin-top: 4px;
 }
