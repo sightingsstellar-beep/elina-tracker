@@ -39,7 +39,7 @@
   --shadow: 0 10px 26px rgba(23, 47, 69, 0.08);
   --shadow-hover: 0 16px 36px rgba(23, 47, 69, 0.16);
   --glide-gradient: linear-gradient(135deg, #2f7f9f 0%, #319a9a 48%, #5fc7bd 100%);
-  --desktop-content-max: 1040px;
+  --desktop-content-max: 940px;
   --safe-top: env(safe-area-inset-top, 0px);
   --mobile-sticky-header-offset: calc(69px + var(--safe-top));
 }
@@ -1430,10 +1430,6 @@ body.quick-log-modal-open {
   .main {
     padding-left: 24px;
     padding-right: 24px;
-  }
-
-  .main[data-shell-view="chart"] {
-    max-width: 940px;
   }
 
   .chart-log-columns {

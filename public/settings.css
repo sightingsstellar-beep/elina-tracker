@@ -341,6 +341,26 @@
     padding-left: 24px;
     padding-right: 24px;
   }
+
+  .settings-main[data-settings-view="settings"] {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    align-items: start;
+  }
+
+  .settings-main[data-settings-view="settings"] .settings-heading,
+  .settings-main[data-settings-view="settings"] .settings-save-row {
+    grid-column: 1 / -1;
+  }
+
+  .settings-main[data-settings-view="settings"] .settings-card {
+    margin-bottom: 0;
+  }
+
+  .settings-main[data-settings-view="settings"] .settings-save-row {
+    padding-top: 0;
+  }
 }
 
 /* Palette-aware page refinements */

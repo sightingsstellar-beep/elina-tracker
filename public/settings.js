@@ -467,6 +467,7 @@ function renderShellSettingsView(viewKey) {
   if (!template) return;
   host.replaceChildren(template.content.cloneNode(true));
   host.dataset.currentView = viewKey;
+  host.dataset.settingsView = viewKey;
 }
 
 function initEventHandlers() {

@@ -391,11 +391,11 @@ body {
 
 @media (min-width: 980px) {
   .chat-main {
-    max-width: 860px;
+    max-width: var(--desktop-content-max);
   }
 
   .chat-input-bar {
-    max-width: 860px;
+    max-width: var(--desktop-content-max);
   }
 }
 
