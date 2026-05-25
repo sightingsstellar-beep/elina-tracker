@@ -111,12 +111,59 @@ for (const publicScript of ['theme.js', 'version-watch.js', 'viewport-guard.js']
   });
 }
 
-function authStatus(req = null) {
+function normalizeClerkProviderLabel(provider) {
+  if (!provider || typeof provider !== 'string') return null;
+  return provider
+    .replace(/^oauth_/, '')
+    .replace(/^from_oauth_/, '')
+    .split(/[_-]+/)
+    .filter(Boolean)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function inferClerkLoginType(user) {
+  if (!user) return { loginType: 'Clerk account', loginProvider: null };
+
+  const externalProvider = user.externalAccounts
+    ?.map((account) => account.provider || account.providerName || account.strategy)
+    .find(Boolean);
+  const verifiedEmailProvider = user.emailAddresses
+    ?.map((email) => email.verification?.strategy)
+    .find((strategy) => typeof strategy === 'string' && strategy.includes('oauth'));
+  const providerLabel = normalizeClerkProviderLabel(externalProvider || verifiedEmailProvider);
+
+  if (providerLabel) {
+    return {
+      loginType: providerLabel,
+      loginProvider: externalProvider || verifiedEmailProvider || null,
+    };
+  }
+
+  return {
+    loginType: 'Email',
+    loginProvider: 'email',
+  };
+}
+
+async function authStatus(req = null) {
   let clerkAuthenticated = false;
+  let clerkLoginType = null;
+  let clerkLoginProvider = null;
   if (req && CLERK_AUTH_ENABLED && CLERK_CONFIGURED) {
     try {
       const auth = getAuth(req);
       clerkAuthenticated = Boolean(auth?.isAuthenticated && auth?.userId);
+      if (clerkAuthenticated && clerkClient) {
+        try {
+          const user = await clerkClient.users.getUser(auth.userId);
+          const login = inferClerkLoginType(user);
+          clerkLoginType = login.loginType;
+          clerkLoginProvider = login.loginProvider;
+        } catch (err) {
+          console.warn('[auth] Clerk login type lookup failed:', err.message);
+        }
+      }
     } catch (_) {
       clerkAuthenticated = false;
     }
@@ -127,6 +174,8 @@ function authStatus(req = null) {
     clerkConfigured: CLERK_CONFIGURED,
     defaultTenantAllowlistEnabled: CLERK_DEFAULT_TENANT_ALLOWED_EMAILS.size > 0,
     clerkAuthenticated,
+    clerkLoginType,
+    clerkLoginProvider,
     legacySessionAuthenticated: Boolean(req?.session?.authenticated),
     clerkPublishableKey: CLERK_AUTH_ENABLED && CLERK_CONFIGURED ? CLERK_PUBLISHABLE_KEY : null,
     clerkScriptSrc: CLERK_AUTH_ENABLED && CLERK_CONFIGURED ? getClerkScriptSrc() : null,
@@ -334,7 +383,7 @@ function renderClerkLoginPage({ misconfigured = false } = {}) {
 </html>`;
 }
 
-app.get('/api/auth/status', (req, res) => res.json(authStatus(req)));
+app.get('/api/auth/status', async (req, res) => res.json(await authStatus(req)));
 
 // Login page (public — no auth required)
 app.get('/login', (req, res) => {
@@ -2724,6 +2773,7 @@ module.exports.start = start;
 module.exports.buildReport = buildReport;
 module.exports.formatFluidType = formatFluidType;
 module.exports.getDailyLimit = getDailyLimit;
+module.exports.inferClerkLoginType = inferClerkLoginType;
 module.exports.publishCareChange = publishCareChange;
 
 if (require.main === module) {

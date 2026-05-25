@@ -122,7 +122,7 @@ async function loadAccountInfo() {
     const me = meRes?.ok ? await meRes.json() : null;
     const scope = me?.scope || {};
     const loginType = auth?.mode === "clerk"
-      ? (auth.clerkAuthenticated ? "Clerk account" : "Clerk")
+      ? (auth.clerkLoginType || (auth.clerkAuthenticated ? "Clerk account" : "Clerk"))
       : "Shared password";
 
     setAccountDetail("account-login-type", loginType);

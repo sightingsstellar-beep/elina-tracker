@@ -423,9 +423,12 @@ async function loadTrends(options = {}) {
     await loadPromise;
 
     if (!quiet && shouldRenderTrends()) renderTrends();
-    document.getElementById('last-updated').textContent = new Date().toLocaleTimeString('en-US', {
-      hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true,
-    });
+    const lastUpdatedEl = document.getElementById('last-updated');
+    if (lastUpdatedEl) {
+      lastUpdatedEl.textContent = new Date().toLocaleTimeString('en-US', {
+        hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true,
+      });
+    }
   } catch (err) {
     console.error('[trends] Load error:', err.message);
     if (!quiet) {
