@@ -1,6 +1,6 @@
 {
   "name": "glide-bedside",
-  "version": "1.2.3",
+  "version": "1.2.4",
   "description": "Glide Bedside — fluid intake/output, wellness checks, and daily reports via Telegram bot and web dashboard",
   "main": "server.js",
   "scripts": {
