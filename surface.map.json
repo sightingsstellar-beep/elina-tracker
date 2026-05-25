@@ -28,7 +28,7 @@
       "status": "active",
       "label": "Browser dashboard and family settings",
       "kind": "product",
-      "summary": "Mobile-first app shell, caregiver dashboard, chart/trends/chat navigation, display mode, profile/family views, settings, theme, auth fetch, and client release/version behavior.",
+      "summary": "Mobile-first app shell, caregiver dashboard, daily chart/trends/assistant navigation, display mode, profile/family views, settings, theme, auth fetch, and client release/version behavior.",
       "paths": [
         "public/shell.html",
         "public/shell-router.js",

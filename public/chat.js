@@ -1,9 +1,9 @@
 /**
- * chat.js — Voice + text logging for Elina Tracker
+ * chat.js — Assistant voice + text surface for Glide Bedside
  *
  * - Press-and-hold mic button to record
  * - Web Speech API first, MediaRecorder + Whisper as fallback
- * - Text chat interface with chat history
+ * - Assistant interface with message history
  * - All entries POSTed to /api/chat (same NLP pipeline as Telegram bot)
  */
 
@@ -100,7 +100,7 @@ if (!document.body?.matches('[data-app-shell]')) loadSettings();
 // Show initial welcome message
 appendMessage(
   'bot',
-  'Hi! You can type or hold the mic to log entries. Try: 120ml pediasure and 45ml water or pee 80ml',
+  'Hi! For now, I can add care entries here. Type or hold the mic for something like: 120ml pediasure and 45ml water, or pee 80ml.',
   'normal'
 );
 
@@ -506,6 +506,6 @@ micBtn.addEventListener('touchcancel', () => stopRecording(true));
 micBtn.addEventListener('contextmenu', (e) => e.preventDefault());
 
 // ---------------------------------------------------------------------------
-// Voice section is always visible on the chat page — no toggle needed.
+// Voice section is always visible on the Assistant page; no toggle needed.
 
 })();

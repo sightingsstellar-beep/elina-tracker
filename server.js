@@ -1317,7 +1317,7 @@ function buildAplDirective(intakeMl, limitMl, mode, selectedFluid, outputMl, int
                           type: 'Frame', backgroundColor: '#0d1a40', borderRadius: 10,
                           alignSelf: 'stretch', width: '100%',
                           paddingTop: '14dp', paddingBottom: '14dp',
-                          item: { type: 'Text', text: '🎙️  Log by Voice', color: '#8ab4f8',
+                          item: { type: 'Text', text: 'Assistant', color: '#8ab4f8',
                             width: '100%', fontSize: '20dp', fontWeight: 'bold',
                             textAlign: 'center', textAlignVertical: 'center' },
                         },

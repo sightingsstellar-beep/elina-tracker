@@ -173,9 +173,9 @@
 
     <!-- Left: Intake breakdown -->
     <div class="panel">
-      <div class="panel-label intake"><i class="ph ph-arrow-up" aria-hidden="true"></i> Intake by type</div>
+      <div class="panel-label intake"><i class="ph ph-arrow-up" aria-hidden="true"></i> Fluid intake by type</div>
       <div class="fluid-list" id="intake-list">
-        <div class="no-data">No intake today</div>
+        <div class="no-data">No fluid intake today</div>
       </div>
     </div>
 
@@ -203,9 +203,9 @@
 
     <!-- Right: Output breakdown -->
     <div class="panel">
-      <div class="panel-label output"><i class="ph ph-arrow-down" aria-hidden="true"></i> Output by type</div>
+      <div class="panel-label output"><i class="ph ph-arrow-down" aria-hidden="true"></i> Fluid output by type</div>
       <div class="fluid-list" id="output-list">
-        <div class="no-data">No output today</div>
+        <div class="no-data">No fluid output today</div>
       </div>
     </div>
 
@@ -332,7 +332,7 @@
             <span class="fluid-amount">${ml} ml</span>
           </div>`).join('');
       } else {
-        intakeEl.innerHTML = '<div class="no-data">No intake today</div>';
+        intakeEl.innerHTML = '<div class="no-data">No fluid intake today</div>';
       }
 
       // Output list (right panel)
@@ -349,7 +349,7 @@
             <span class="fluid-amount">${data.display}</span>
           </div>`).join('');
       } else {
-        outputEl.innerHTML = '<div class="no-data">No output today</div>';
+        outputEl.innerHTML = '<div class="no-data">No fluid output today</div>';
       }
     }
 

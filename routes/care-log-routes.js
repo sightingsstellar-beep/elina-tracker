@@ -50,7 +50,7 @@ function createCareLogRouter({
       if (body.type !== 'wellness' && body.type !== 'gag') {
         const isPoop = body.fluid_type === 'poop';
         if (!isPoop && (!body.amount_ml || typeof body.amount_ml !== 'number' || body.amount_ml <= 0)) {
-          return res.status(400).json({ ok: false, error: 'amount_ml is required for input and output entries' });
+          return res.status(400).json({ ok: false, error: 'Amount is required for fluid intake and fluid output entries' });
         }
       }
 
@@ -127,7 +127,7 @@ function createCareLogRouter({
       const hasAmount = Object.prototype.hasOwnProperty.call(body, 'amount_ml');
       const amountMl = hasAmount ? body.amount_ml : existing.amount_ml;
       if (!isPoop && (typeof amountMl !== 'number' || amountMl <= 0)) {
-        return res.status(400).json({ ok: false, error: 'amount_ml is required for input and output entries' });
+        return res.status(400).json({ ok: false, error: 'Amount is required for fluid intake and fluid output entries' });
       }
 
       const timestamp = zonedDateTimeToTimestamp(dateResult.date, timeResult.time, getTimezone());

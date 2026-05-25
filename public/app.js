@@ -109,8 +109,8 @@ function isTodaySelected() {
 
 function formatChipLabel(dayKey) {
   if (!dayKey) return 'Pick a chart';
-  if (dayKey === state.todayDayKey) return "Today's Chart";
-  if (dayKey === shiftDayKey(state.todayDayKey, -1)) return "Yesterday's Chart";
+  if (dayKey === state.todayDayKey) return "Today's Daily Chart";
+  if (dayKey === shiftDayKey(state.todayDayKey, -1)) return "Yesterday's Daily Chart";
   const [year, month, day] = dayKey.split('-').map(Number);
   const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
   return `${date.toLocaleDateString('en-US', {
@@ -118,7 +118,7 @@ function formatChipLabel(dayKey) {
     month: 'short',
     day: 'numeric',
     timeZone: 'UTC',
-  })} Chart`;
+  })} Daily Chart`;
 }
 
 function formatLongDay(dayKey) {
@@ -465,7 +465,7 @@ function renderIntake() {
 
   if (!inputs.length) {
     const dayLabel = isTodaySelected() ? 'today' : formatLongDay(state.selectedDayKey);
-    list.innerHTML = `<li class="empty-state">No intake logged for ${escapeHtml(dayLabel.toLowerCase())}</li>`;
+    list.innerHTML = `<li class="empty-state">No fluid intake logged for ${escapeHtml(dayLabel.toLowerCase())}</li>`;
     return;
   }
 
@@ -496,7 +496,7 @@ function renderOutputs() {
   document.getElementById('output-total-events').textContent = `${outputs.length} ${outputs.length === 1 ? 'event' : 'events'}`;
 
   if (!outputs.length) {
-    list.innerHTML = '<li class="empty-state">No outputs logged for this day</li>';
+    list.innerHTML = '<li class="empty-state">No fluid output logged for this day</li>';
     return;
   }
 
@@ -762,7 +762,7 @@ function renderSheet() {
     const subtypeValue = entry?.subtype || 'normal';
     const amountLabel = entryType === 'output' ? 'Amount (g)' : 'Amount (ml)';
 
-    titleEl.textContent = state.sheet.mode === 'edit' ? 'Edit entry' : `Add ${entryType === 'input' ? 'intake' : 'output'}`;
+    titleEl.textContent = state.sheet.mode === 'edit' ? 'Edit entry' : `Add ${entryType === 'input' ? 'fluid intake' : 'fluid output'}`;
     fieldsEl.innerHTML = `
       <div class="form-field">
         <label for="sheet-fluid-type">Type</label>

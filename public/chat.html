@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <link rel="manifest" href="/manifest.json" />
-  <title>Glide Bedside — Chat</title>
+  <title>Glide Bedside — Assistant</title>
   <link rel="stylesheet" href="/vendor/phosphor/regular/style.css" />
   <link rel="stylesheet" href="/vendor/phosphor/fill/style.css" />
   <script src="theme.js"></script>
@@ -31,7 +31,7 @@
             <span class="top-menu-toggle-line"></span>
           </button>
           <div class="top-nav" data-top-menu-panel>
-            <a href="/" class="top-nav-item active" aria-current="page"><i class="ph ph-chart-line-up" aria-hidden="true"></i> <span>Chart</span></a>
+            <a href="/" class="top-nav-item active" aria-current="page"><i class="ph ph-chart-line-up" aria-hidden="true"></i> <span>Daily Chart</span></a>
             <a href="/patient-profile" class="top-nav-item"><i class="ph ph-heart" aria-hidden="true"></i> <span>Patient Profile</span></a>
             <a href="/settings" class="top-nav-item"><i class="ph ph-gear-six" aria-hidden="true"></i> <span>App Settings</span></a>
             <a href="/account" class="top-nav-item"><i class="ph ph-user-circle" aria-hidden="true"></i> <span>Account</span></a>
@@ -58,10 +58,10 @@
       </a>
       <a href="/chat" class="tab-item active" aria-current="page">
         <span class="tab-icon" aria-hidden="true">
-          <i class="tab-icon-outline ph ph-microphone"></i>
-          <i class="tab-icon-fill ph-fill ph-microphone"></i>
+          <i class="tab-icon-outline ph ph-chat-circle-text"></i>
+          <i class="tab-icon-fill ph-fill ph-chat-circle-text"></i>
         </span>
-        <span class="tab-label">Log by Voice</span>
+        <span class="tab-label">Assistant</span>
       </a>
       <a href="/history" class="tab-item">
         <span class="tab-icon" aria-hidden="true">
@@ -90,7 +90,7 @@
 
       <!-- Transcription result (shown after recording) -->
       <div class="transcription-area" id="transcription-area" style="display:none;">
-        <div class="transcription-label">Edit if needed, then log:</div>
+        <div class="transcription-label">Review transcription before adding it:</div>
         <textarea
           class="transcription-input"
           id="transcription-input"
@@ -98,7 +98,7 @@
           placeholder="Transcribed text..."
         ></textarea>
         <div class="transcription-buttons">
-          <button class="btn-log-it" id="btn-log-it">Log It <i class="ph ph-check-circle" aria-hidden="true"></i></button>
+          <button class="btn-log-it" id="btn-log-it">Add Entry <i class="ph ph-check-circle" aria-hidden="true"></i></button>
           <button class="btn-cancel-transcription" id="btn-cancel-transcription">Cancel</button>
         </div>
       </div>
@@ -124,7 +124,7 @@
       type="text"
       class="chat-text-input"
       id="chat-text-input"
-      placeholder="e.g. 80ml urine, or pediasure 200ml..."
+      placeholder="Type a care entry, e.g. 80ml urine..."
       autocomplete="off"
       autocorrect="off"
       spellcheck="false"

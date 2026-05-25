@@ -42,7 +42,7 @@ function createChatRouter({
     const totalOut = summary.outputs.reduce((sum, o) => sum + (o.amount_ml || 0), 0);
     const outStr = totalOut > 0 ? `${totalOut}g` : `${summary.outputs.length} event${summary.outputs.length !== 1 ? 's' : ''}`;
 
-    return `Logged: ${logged} | Total In: ${summary.totalIntake}/${limit}ml (${pct}%) · Total Out: ${outStr}`;
+    return `Added: ${logged} | Fluid intake: ${summary.totalIntake}/${limit}ml (${pct}%) · Fluid output: ${outStr}`;
   }
 
   router.post('/api/chat', async (req, res) => {
@@ -64,7 +64,7 @@ function createChatRouter({
       if (parsed.unparseable || parsed.actions.length === 0) {
         return res.json({
           ok: false,
-          message: 'I couldn\'t understand that. Try something like: "120ml pediasure" or "pee 80ml" or "gag x2".',
+          message: 'I couldn\'t turn that into a care entry yet. Try: "120ml pediasure", "pee 80ml", or "gag x2".',
           entries: [],
         });
       }

@@ -389,7 +389,7 @@ async function saveCaregiverProfile() {
     statusEl.className = 'settings-status error';
   } finally {
     btn.disabled = false;
-    btn.innerHTML = '<i class="ph ph-floppy-disk" aria-hidden="true"></i> Save Account';
+    btn.innerHTML = '<i class="ph ph-floppy-disk" aria-hidden="true"></i> Save Contact';
   }
 }
 

@@ -42,7 +42,7 @@
               </div>
               <button class="mobile-menu-close" type="button" aria-label="Close menu" data-top-menu-close><i class="ph ph-x" aria-hidden="true"></i></button>
             </div>
-            <a href="/" class="top-nav-item active" aria-current="page" data-shell-link data-route="chart"><i class="ph ph-chart-line-up" aria-hidden="true"></i> <span>Chart</span></a>
+            <a href="/" class="top-nav-item active" aria-current="page" data-shell-link data-route="chart"><i class="ph ph-chart-line-up" aria-hidden="true"></i> <span>Daily Chart</span></a>
             <a href="/patient-profile" class="top-nav-item" data-shell-link data-route="patient-profile"><i class="ph ph-heart" aria-hidden="true"></i> <span>Patient Profile</span></a>
             <a href="/settings" class="top-nav-item" data-shell-link data-route="settings"><i class="ph ph-gear-six" aria-hidden="true"></i> <span>App Settings</span></a>
             <a href="/account" class="top-nav-item" data-shell-link data-route="account"><i class="ph ph-user-circle" aria-hidden="true"></i> <span>Account</span></a>
@@ -70,10 +70,10 @@
       </a>
       <a href="/chat" class="tab-item" data-shell-link data-route="chat">
         <span class="tab-icon" aria-hidden="true">
-          <i class="tab-icon-outline ph ph-microphone"></i>
-          <i class="tab-icon-fill ph-fill ph-microphone"></i>
+          <i class="tab-icon-outline ph ph-chat-circle-text"></i>
+          <i class="tab-icon-fill ph-fill ph-chat-circle-text"></i>
         </span>
-        <span class="tab-label">Log by Voice</span>
+        <span class="tab-label">Assistant</span>
       </a>
       <a href="/history" class="tab-item" data-shell-link data-route="trends">
         <span class="tab-icon" aria-hidden="true">
@@ -107,9 +107,9 @@
     <section class="card quick-log-card">
       <div class="card-header">
         <span class="card-icon" aria-hidden="true"><i class="ph ph-lightning"></i></span>
-        <h2>Quick Add</h2>
+        <h2>Quick Log</h2>
       </div>
-      <p class="quick-log-hint">Tap a button to log an entry for the selected day.</p>
+      <p class="quick-log-hint">Tap a shortcut to add an entry for the selected day.</p>
       <div class="quick-buttons">
         <button class="quick-btn quick-btn--water" data-type="input" data-fluid="water"><span class="quick-btn-icon" aria-hidden="true"><i class="ph ph-drop"></i></span><span class="quick-btn-label">Water</span></button>
         <button class="quick-btn quick-btn--nutrition" data-type="input" data-fluid="pediasure"><span class="quick-btn-icon" aria-hidden="true"><i class="ph ph-first-aid-kit"></i></span><span class="quick-btn-label">PediaSure</span></button>
@@ -159,12 +159,12 @@
             <span class="intake-limit" id="intake-limit">/ -- ml</span>
             <span class="intake-pct" id="intake-pct">--%</span>
           </div>
-          <div class="progress-container" aria-label="Intake progress">
+          <div class="progress-container" aria-label="Fluid intake progress">
             <div class="progress-bar" id="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100"></div>
           </div>
           <div class="over-limit-warning" id="over-limit-warning" style="display:none;"><i class="ph ph-traffic-signal" aria-hidden="true"></i> Daily limit exceeded!</div>
           <ul class="output-list intake-list" id="intake-list">
-            <li class="empty-state">No intake logged yet</li>
+            <li class="empty-state">No fluid intake logged yet</li>
           </ul>
         </section>
       </div>
@@ -173,7 +173,7 @@
         <section class="card output-card">
           <div class="card-header card-header--actionable">
             <span class="card-icon" aria-hidden="true"><i class="ph ph-toilet"></i></span>
-            <h2>Outputs</h2>
+            <h2>Fluid Output</h2>
             <span class="badge" id="output-count">0</span>
             <button class="card-action-btn" id="add-output-btn">+ Add</button>
           </div>
@@ -182,7 +182,7 @@
             <span class="output-total-events" id="output-total-events">0 events</span>
           </div>
           <ul class="output-list" id="output-list">
-            <li class="empty-state">No outputs logged yet</li>
+            <li class="empty-state">No fluid output logged yet</li>
           </ul>
         </section>
 
@@ -201,7 +201,7 @@
     </div>
 
     <div class="section-divider"></div>
-    <div class="daily-checks-label">Daily Checks</div>
+    <div class="daily-checks-label">Care Checks</div>
 
     <section class="card" id="weight-card">
       <div class="card-header card-header--actionable">
@@ -256,7 +256,7 @@
       </div>
 
       <div class="transcription-area" id="transcription-area" style="display:none;">
-        <div class="transcription-label">Edit if needed, then log:</div>
+        <div class="transcription-label">Review transcription before adding it:</div>
         <textarea
           class="transcription-input"
           id="transcription-input"
@@ -264,7 +264,7 @@
           placeholder="Transcribed text..."
         ></textarea>
         <div class="transcription-buttons">
-          <button class="btn-log-it" id="btn-log-it">Log It <i class="ph ph-check-circle" aria-hidden="true"></i></button>
+          <button class="btn-log-it" id="btn-log-it">Add Entry <i class="ph ph-check-circle" aria-hidden="true"></i></button>
           <button class="btn-cancel-transcription" id="btn-cancel-transcription">Cancel</button>
         </div>
       </div>
@@ -285,7 +285,7 @@
       type="text"
       class="chat-text-input"
       id="chat-text-input"
-      placeholder="e.g. 80ml urine, or pediasure 200ml..."
+      placeholder="Type a care entry, e.g. 80ml urine..."
       autocomplete="off"
       autocorrect="off"
       spellcheck="false"
@@ -442,7 +442,7 @@
   <template id="settings-template-patient-profile">
     <h2 class="settings-heading"><span class="heading-icon" aria-hidden="true"><i class="ph ph-heart"></i></span> Patient Profile</h2>
     <section class="card settings-card">
-      <div class="settings-section-title"><span class="section-title-icon" aria-hidden="true"><i class="ph ph-identification-card"></i></span> Basic Info</div>
+      <div class="settings-section-title"><span class="section-title-icon" aria-hidden="true"><i class="ph ph-identification-card"></i></span> Patient Details</div>
       <div class="settings-field">
         <label for="child_name">Name</label>
         <input type="text" id="child_name" name="child_name" maxlength="50" placeholder="Patient name" />
@@ -481,7 +481,7 @@
       </div>
     </section>
     <section class="card settings-card">
-      <div class="settings-section-title"><span class="section-title-icon" aria-hidden="true"><i class="ph ph-identification-card"></i></span> Basic Info</div>
+      <div class="settings-section-title"><span class="section-title-icon" aria-hidden="true"><i class="ph ph-identification-card"></i></span> Care Contact</div>
       <div class="settings-field">
         <label for="caregiver_name">Name</label>
         <input type="text" id="caregiver_name" name="caregiver_name" maxlength="80" placeholder="Your name" />
@@ -505,7 +505,7 @@
       </div>
     </section>
     <div class="settings-save-row">
-      <button class="settings-save-btn" id="caregiver-profile-save"><i class="ph ph-floppy-disk" aria-hidden="true"></i> Save Account</button>
+      <button class="settings-save-btn" id="caregiver-profile-save"><i class="ph ph-floppy-disk" aria-hidden="true"></i> Save Contact</button>
       <div class="settings-status" id="caregiver-profile-status" aria-live="polite"></div>
     </div>
   </template>
@@ -513,8 +513,8 @@
   <template id="settings-template-caregivers">
     <h2 class="settings-heading"><span class="heading-icon" aria-hidden="true"><i class="ph ph-users"></i></span> Caregivers</h2>
     <section class="card settings-card" id="caregiver-card">
-      <div class="settings-section-title"><span class="section-title-icon" aria-hidden="true"><i class="ph ph-user-plus"></i></span> Invite Access</div>
-      <p class="settings-help">Invite another caregiver to access this same family/patient tracker with their own login.</p>
+      <div class="settings-section-title"><span class="section-title-icon" aria-hidden="true"><i class="ph ph-user-plus"></i></span> Care Team Access</div>
+      <p class="settings-help">Invite another caregiver to this patient workspace with their own login.</p>
       <div class="family-members" id="family-members" aria-live="polite">
         <div class="family-members-loading">Loading family access...</div>
       </div>

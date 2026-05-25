@@ -304,7 +304,7 @@ function renderTrends() {
     buildTrendCard({
       icon: 'ph-scales',
       title: 'Fluid balance',
-      subtitle: 'Daily intake minus measured output',
+      subtitle: 'Fluid intake minus measured output',
       unit: ' net',
       colorClass: 'trend-bar--green',
       negativeColorClass: 'trend-bar--red',
@@ -325,8 +325,8 @@ function renderTrends() {
     }),
     buildTrendCard({
       icon: 'ph-drop',
-      title: 'Intake over time',
-      subtitle: 'Daily total intake',
+      title: 'Fluid intake over time',
+      subtitle: 'Daily total fluid intake',
       unit: ' ml',
       colorClass: 'trend-bar--blue',
       points: intakePoints,
@@ -335,8 +335,8 @@ function renderTrends() {
     }),
     buildTrendCard({
       icon: 'ph-toilet',
-      title: 'Output events',
-      subtitle: 'Daily count of output entries',
+      title: 'Fluid output events',
+      subtitle: 'Daily count of fluid output entries',
       unit: '',
       colorClass: 'trend-bar--green',
       points: outputPoints,

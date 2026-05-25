@@ -267,9 +267,9 @@ glide-bedside/
 │   ├── history.html   # 7-day history page
 │   ├── history.css    # History styles
 │   ├── history.js     # History JavaScript
-│   ├── chat.html      # Voice + text chat page
-│   ├── chat.css       # Chat styles
-│   ├── chat.js        # Chat JavaScript
+│   ├── chat.html      # Assistant voice + text page
+│   ├── chat.css       # Assistant styles
+│   ├── chat.js        # Assistant JavaScript
 │   ├── settings.html  # Settings page
 │   ├── settings.css   # Settings styles
 │   ├── settings.js    # Settings JavaScript
@@ -301,8 +301,8 @@ For the native-app readiness inventory and proposed mobile-facing contract, see
 | `POST` | `/api/weight` | Log or replace a daily weight entry |
 | `GET` | `/api/weight/today` | Weight for a requested day, supports `?relative=` or `?date=` |
 | `GET` | `/api/weight/history?days=7` | Recent weight history, optionally bounded with `throughDate=YYYY-MM-DD` |
-| `POST` | `/api/chat` | Parse and log natural-language text through the same NLP pipeline as Telegram |
-| `POST` | `/api/transcribe` | Transcribe uploaded audio before chat parsing |
+| `POST` | `/api/chat` | Parse and add natural-language care entries through the same NLP pipeline as Telegram |
+| `POST` | `/api/transcribe` | Transcribe uploaded audio before Assistant parsing |
 | `GET` | `/api/settings` | Get all settings as a flat object |
 | `POST` | `/api/settings` | Update one or more settings |
 | `POST` | `/api/alexa` | Alexa webhook endpoint |

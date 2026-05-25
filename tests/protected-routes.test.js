@@ -451,7 +451,8 @@ test('POST /api/chat logs a parsed entry with API key auth', async () => {
   assert.equal(response.body.dayKey, '2026-05-25');
   assert.equal(response.body.entries[0].kind, 'input');
   assert.equal(response.body.entries[0].amount_ml, 125);
-  assert.match(response.body.message, /Logged: 125ml Water/);
+  assert.match(response.body.message, /Added: 125ml Water/);
+  assert.match(response.body.message, /Fluid intake:/);
 });
 
 test('POST /api/chat returns guidance for unparseable text', async () => {
