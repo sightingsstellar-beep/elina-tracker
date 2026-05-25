@@ -325,7 +325,18 @@ test('POST /api/weight logs a weight entry with API key auth', async () => {
   assert.equal(response.body.replaced, true);
 });
 
-test('GET /api/weight/today returns a requested weight entry with API key auth', async () => {
+test('GET /api/weight/day returns a requested weight entry with API key auth', async () => {
+  const response = await request('/api/weight/day?date=2026-05-25', {
+    headers: { 'x-api-key': 'test-api-key' },
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(response.body.ok, true);
+  assert.equal(response.body.date, '2026-05-25');
+  assert.equal(response.body.weight.weight_kg, 19.2);
+});
+
+test('GET /api/weight/today remains a requested weight compatibility alias', async () => {
   const response = await request('/api/weight/today?date=2026-05-25', {
     headers: { 'x-api-key': 'test-api-key' },
   });

@@ -269,7 +269,7 @@ async function loadSelectedDayWeight() {
 
   try {
     const [weightRes, historyRes] = await Promise.all([
-      fetch(`/api/weight/today?date=${encodeURIComponent(state.selectedDayKey)}`, {
+      fetch(`/api/weight/day?date=${encodeURIComponent(state.selectedDayKey)}`, {
         cache: 'no-store',
         headers: { Accept: 'application/json' },
       }),

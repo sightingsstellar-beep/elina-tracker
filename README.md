@@ -299,7 +299,7 @@ For the native-app readiness inventory and proposed mobile-facing contract, see
 | `DELETE` | `/api/log/:id` | Delete a specific fluid log entry |
 | `DELETE` | `/api/gag/:id` | Delete a specific gag event |
 | `POST` | `/api/weight` | Log or replace a daily weight entry |
-| `GET` | `/api/weight/today` | Weight for a requested day, supports `?relative=` or `?date=` |
+| `GET` | `/api/weight/day` | Weight for a requested day, supports `?relative=` or `?date=`. `/api/weight/today` remains a compatibility alias. |
 | `GET` | `/api/weight/history?days=7` | Recent weight history, optionally bounded with `throughDate=YYYY-MM-DD` |
 | `POST` | `/api/chat` | Parse and add natural-language care entries through the same NLP pipeline as Telegram |
 | `POST` | `/api/transcribe` | Transcribe uploaded audio before Assistant parsing |

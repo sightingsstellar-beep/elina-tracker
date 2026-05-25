@@ -41,10 +41,11 @@ function createWeightRouter({
   });
 
   /**
-   * GET /api/weight/today
+   * GET /api/weight/day
    * Returns the requested day's weight entry or { ok, weight: null }.
+   * /api/weight/today is kept as a compatibility alias for older clients.
    */
-  router.get('/api/weight/today', async (req, res) => {
+  router.get(['/api/weight/day', '/api/weight/today'], async (req, res) => {
     try {
       const scope = requestScope(req);
       const dayResult = resolveRequestedDayKey({
@@ -59,7 +60,7 @@ function createWeightRouter({
       const entry = await db.getWeightForDate(date, scope);
       res.json({ ok: true, date, weight: entry || null });
     } catch (err) {
-      console.error('[GET /api/weight/today]', err);
+      console.error('[GET /api/weight/day]', err);
       res.status(500).json({ ok: false, error: err.message });
     }
   });

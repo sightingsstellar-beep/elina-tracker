@@ -85,7 +85,8 @@ contract.
 | DELETE | /api/gag/:id | Delete gag event | Core native endpoint |
 | DELETE | /api/wellness?date=&check_time= | Delete wellness entry | Core native endpoint, should move to path/body contract |
 | POST | /api/weight | Create/replace daily weight | Core native endpoint |
-| GET | /api/weight/today?date= | Requested day weight | Core native endpoint, should be renamed |
+| GET | /api/weight/day?date= | Requested day weight | Core native endpoint |
+| GET | /api/weight/today?date= | Requested day weight | Compatibility alias for older clients; prefer /api/weight/day |
 | GET | /api/weight/history?days=&throughDate= | Weight history | Core native endpoint |
 | DELETE | /api/weight/:date | Delete daily weight | Core native endpoint |
 | GET | /api/history?days= | Trends/history summaries | Core native endpoint |
@@ -106,7 +107,7 @@ contract.
 
 | Client/surface | Current API usage | Notes |
 |---|---|---|
-| Dashboard day view public/app.js | /api/me, /api/settings, /api/day, /api/weight/today, /api/weight/history, /api/events, /api/log, /api/gag/:id, /api/wellness, /api/weight, /api/version | Primary mobile web workflow; good source for native flow requirements |
+| Dashboard day view public/app.js | /api/me, /api/settings, /api/day, /api/weight/day, /api/weight/history, /api/events, /api/log, /api/gag/:id, /api/wellness, /api/weight, /api/version | Primary mobile web workflow; good source for native flow requirements |
 | Trends view public/history.js | /api/settings, /api/history, /api/weight/history | Some trend derivation still happens client-side |
 | Settings view public/settings.js | /api/settings, /api/account/preferences, /api/family/members, /api/family/invitations | Defines caregiver/admin management needs |
 | Chat view public/chat.js | /api/settings, /api/chat, /api/transcribe | Natural-language logging surface |
