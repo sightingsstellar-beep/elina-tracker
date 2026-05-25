@@ -292,20 +292,29 @@ async function loadSelectedDayWeight() {
   }
 }
 
-async function refreshDay() {
+let dayRefreshSeq = 0;
+
+async function refreshDay(options = {}) {
+  const requestId = ++dayRefreshSeq;
+  const requestedDayKey = options.dayKey || state.selectedDayKey || null;
+
   try {
     const url = new URL('/api/day', window.location.origin);
-    if (state.selectedDayKey) url.searchParams.set('date', state.selectedDayKey);
+    if (requestedDayKey) url.searchParams.set('date', requestedDayKey);
     const res = await fetch(url);
     await requireWriteOk(res);
 
     const data = await res.json();
+    if (requestId !== dayRefreshSeq) return;
+
     state.data = data;
     state.selectedDayKey = data.dayKey;
     state.todayDayKey = data.todayDayKey || data.dayKey;
     updateUrlForSelectedDay();
 
     await loadSelectedDayWeight();
+    if (requestId !== dayRefreshSeq) return;
+
     renderAll();
 
     document.getElementById('last-updated').textContent = new Date().toLocaleTimeString('en-US', {
@@ -317,6 +326,13 @@ async function refreshDay() {
   } catch (err) {
     console.error('[day] Fetch error:', err.message);
   }
+}
+
+async function navigateToDay(dayKey) {
+  if (!dayKey || !/^\d{4}-\d{2}-\d{2}$/.test(dayKey)) return;
+  state.selectedDayKey = dayKey;
+  renderDayController();
+  await refreshDay({ dayKey });
 }
 
 let realtimeRefreshTimer = null;
@@ -985,26 +1001,22 @@ async function handleUndoCurrentDay() {
 
 function initEventListeners() {
   document.getElementById('day-prev').addEventListener('click', async () => {
-    state.selectedDayKey = shiftDayKey(state.selectedDayKey || state.todayDayKey, -1);
-    await refreshDay();
+    await navigateToDay(shiftDayKey(state.selectedDayKey || state.todayDayKey, -1));
   });
 
   document.getElementById('day-next').addEventListener('click', async () => {
     if (isTodaySelected()) return;
-    state.selectedDayKey = shiftDayKey(state.selectedDayKey || state.todayDayKey, 1);
-    await refreshDay();
+    await navigateToDay(shiftDayKey(state.selectedDayKey || state.todayDayKey, 1));
   });
 
   document.querySelectorAll('.day-picker-input').forEach((input) => {
     input.addEventListener('change', async (event) => {
       if (!event.target.value) return;
-      state.selectedDayKey = event.target.value;
-      await refreshDay();
+      await navigateToDay(event.target.value);
     });
   });
   document.getElementById('back-to-today').addEventListener('click', async () => {
-    state.selectedDayKey = state.todayDayKey;
-    await refreshDay();
+    await navigateToDay(state.todayDayKey);
   });
 
   document.querySelectorAll('.quick-btn').forEach((btn) => {
@@ -1142,12 +1154,13 @@ function applyInitialDateFromUrl() {
 
 window.addEventListener('glide:chart-date', async (event) => {
   const dayKey = event.detail?.dayKey;
-  if (!dayKey || !/^\d{4}-\d{2}-\d{2}$/.test(dayKey)) return;
-  state.selectedDayKey = dayKey;
-  await refreshDay();
+  await navigateToDay(dayKey);
 });
 
 window.addEventListener('resize', scheduleChartLogLayout);
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') refreshDay();
+});
 
 setInterval(updateClock, 1000);
 setInterval(refreshDay, 30 * 60 * 1000);
