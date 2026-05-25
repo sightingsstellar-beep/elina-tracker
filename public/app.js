@@ -108,17 +108,17 @@ function isTodaySelected() {
 }
 
 function formatChipLabel(dayKey) {
-  if (!dayKey) return 'Pick a day';
-  if (dayKey === state.todayDayKey) return 'Today';
-  if (dayKey === shiftDayKey(state.todayDayKey, -1)) return 'Yesterday';
+  if (!dayKey) return 'Pick a chart';
+  if (dayKey === state.todayDayKey) return "Today's Chart";
+  if (dayKey === shiftDayKey(state.todayDayKey, -1)) return "Yesterday's Chart";
   const [year, month, day] = dayKey.split('-').map(Number);
   const date = new Date(Date.UTC(year, month - 1, day, 12, 0, 0));
-  return date.toLocaleDateString('en-US', {
+  return `${date.toLocaleDateString('en-US', {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
     timeZone: 'UTC',
-  });
+  })} Chart`;
 }
 
 function formatLongDay(dayKey) {
@@ -423,12 +423,6 @@ function renderDayController() {
   const banner = document.getElementById('day-context-banner');
   const backBtn = document.getElementById('back-to-today');
   const nextBtn = document.getElementById('day-next');
-  const pageContext = document.getElementById('chart-page-context');
-  if (pageContext) {
-    pageContext.textContent = isTodaySelected()
-      ? 'Today'
-      : formatLongDay(state.selectedDayKey);
-  }
 
   if (isTodaySelected()) {
     banner.style.display = 'none';
@@ -467,7 +461,8 @@ function renderIntake() {
   document.getElementById('intake-count').textContent = inputs.length;
 
   if (!inputs.length) {
-    list.innerHTML = `<li class="empty-state">No intake logged for ${escapeHtml(formatChipLabel(state.selectedDayKey).toLowerCase())}</li>`;
+    const dayLabel = isTodaySelected() ? 'today' : formatLongDay(state.selectedDayKey);
+    list.innerHTML = `<li class="empty-state">No intake logged for ${escapeHtml(dayLabel.toLowerCase())}</li>`;
     return;
   }
 
