@@ -232,17 +232,21 @@ async function requireWriteOk(res) {
 
 function updateClock() {
   const now = new Date();
-  document.getElementById('current-time').textContent = now.toLocaleTimeString('en-US', {
+  const timeText = now.toLocaleTimeString('en-US', {
     hour: 'numeric',
     minute: '2-digit',
     hour12: true,
   });
+  const timeEl = document.getElementById('current-time');
+  if (timeEl && timeEl.textContent !== timeText) timeEl.textContent = timeText;
 
-  document.getElementById('current-date').textContent = now.toLocaleDateString('en-US', {
+  const dateText = now.toLocaleDateString('en-US', {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
   });
+  const dateEl = document.getElementById('current-date');
+  if (dateEl && dateEl.textContent !== dateText) dateEl.textContent = dateText;
 }
 
 async function loadSettings() {
@@ -251,7 +255,8 @@ async function loadSettings() {
     if (!res.ok) return;
     const settings = await res.json();
     if (settings.child_name) {
-      document.getElementById('child-name').textContent = settings.child_name;
+      const nameEl = document.getElementById('child-name');
+      if (nameEl && nameEl.textContent !== settings.child_name) nameEl.textContent = settings.child_name;
     }
   } catch (_) {}
 }

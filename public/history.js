@@ -426,9 +426,11 @@ function initEvents() {
 }
 
 function mountHistoryView() {
-  if (!clockTimer) clockTimer = setInterval(updateClock, 1000);
-  updateClock();
-  loadSettings();
+  if (!document.body?.matches('[data-app-shell]')) {
+    if (!clockTimer) clockTimer = setInterval(updateClock, 1000);
+    updateClock();
+    loadSettings();
+  }
   initEvents();
   loadTrends();
 }

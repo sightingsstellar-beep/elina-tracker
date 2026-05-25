@@ -34,8 +34,10 @@ function updateClock() {
     });
   }
 }
-setInterval(updateClock, 1000);
-updateClock();
+if (!document.body?.matches('[data-app-shell]')) {
+  setInterval(updateClock, 1000);
+  updateClock();
+}
 
 // ---------------------------------------------------------------------------
 // Chat history
@@ -93,7 +95,7 @@ async function loadSettings() {
   } catch (_) {}
 }
 
-loadSettings();
+if (!document.body?.matches('[data-app-shell]')) loadSettings();
 
 // Show initial welcome message
 appendMessage(

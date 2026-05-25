@@ -21,21 +21,24 @@ function updateClock() {
   const timeEl = document.getElementById('current-time');
   const dateEl = document.getElementById('current-date');
   if (timeEl) {
-    timeEl.textContent = now.toLocaleTimeString('en-US', {
+    const timeText = now.toLocaleTimeString('en-US', {
       hour: 'numeric',
       minute: '2-digit',
       hour12: true,
     });
+    if (timeEl.textContent !== timeText) timeEl.textContent = timeText;
   }
   if (dateEl) {
-    dateEl.textContent = now.toLocaleDateString('en-US', {
+    const dateText = now.toLocaleDateString('en-US', {
       weekday: 'long',
       month: 'long',
       day: 'numeric',
     });
+    if (dateEl.textContent !== dateText) dateEl.textContent = dateText;
   }
 }
 function startClock() {
+  if (document.body?.matches('[data-app-shell]')) return;
   if (!clockTimer) clockTimer = setInterval(updateClock, 1000);
   updateClock();
 }
@@ -88,7 +91,7 @@ async function loadSettings() {
     // Populate child name in header
     const nameEl = document.getElementById('child-name');
     if (nameEl && settings.child_name) {
-      nameEl.textContent = settings.child_name;
+      if (nameEl.textContent !== settings.child_name) nameEl.textContent = settings.child_name;
     }
 
     // Populate each field
