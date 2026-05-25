@@ -28,8 +28,6 @@
     '/app/account': { route: 'account', view: 'settings', title: 'Glide Bedside - Account', mount: 'GlideSettingsView', viewKey: 'account' },
     '/caregiver-profile': { route: 'account', view: 'settings', title: 'Glide Bedside - Account', mount: 'GlideSettingsView', viewKey: 'account' },
     '/app/caregiver-profile': { route: 'account', view: 'settings', title: 'Glide Bedside - Account', mount: 'GlideSettingsView', viewKey: 'account' },
-    '/caregivers': { route: 'caregivers', view: 'settings', title: 'Glide Bedside - Caregivers', mount: 'GlideSettingsView', viewKey: 'caregivers' },
-    '/app/caregivers': { route: 'caregivers', view: 'settings', title: 'Glide Bedside - Caregivers', mount: 'GlideSettingsView', viewKey: 'caregivers' },
   };
 
   let activeMountedView = null;
@@ -49,7 +47,7 @@
       else link.removeAttribute('aria-current');
     });
     document.querySelectorAll('[data-account-menu-button]').forEach((button) => {
-      button.classList.toggle('active', routeName === 'account' || routeName === 'caregivers');
+      button.classList.toggle('active', routeName === 'account');
     });
   }
 

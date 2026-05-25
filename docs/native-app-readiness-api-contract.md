@@ -109,7 +109,7 @@ contract.
 |---|---|---|
 | Dashboard day view public/app.js | /api/me, /api/settings, /api/day, /api/weight/day, /api/weight/history, /api/events, /api/log, /api/gag/:id, /api/wellness, /api/weight, /api/version | Primary mobile web workflow; good source for native flow requirements |
 | Trends view public/history.js | /api/settings, /api/history, /api/weight/history | Some trend derivation still happens client-side |
-| Settings view public/settings.js | /api/settings, /api/account/preferences, /api/family/members, /api/family/invitations | Defines caregiver/admin management needs |
+| Account and settings views public/settings.js | /api/settings, /api/account/preferences, /api/family/members, /api/family/invitations | Defines caregiver/admin management needs |
 | Chat view public/chat.js | /api/settings, /api/chat, /api/transcribe | Natural-language logging surface |
 | Kiosk display public/display.html | /api/display-data?token= | Separate token model; not user-auth native API |
 | Auth helper public/auth-fetch.js | /api/auth/status; injects Clerk bearer token for writes | Native apps need explicit token flow instead of browser script injection |

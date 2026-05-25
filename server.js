@@ -2727,7 +2727,6 @@ app.get([
   '/chat',
   '/settings',
   '/account',
-  '/caregivers',
   '/caregiver-profile',
   '/patient-profile',
 ], (req, res) => {

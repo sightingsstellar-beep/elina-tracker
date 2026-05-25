@@ -44,7 +44,6 @@
         "public/chat.html",
         "public/chat.js",
         "public/caregiver-profile.html",
-        "public/caregivers.html",
         "public/patient-profile.html",
         "public/display.html",
         "public/auth-fetch.js",
@@ -61,7 +60,6 @@
         "GET /chat",
         "GET /account",
         "GET /caregiver-profile",
-        "GET /caregivers",
         "GET /patient-profile",
         "GET /display"
       ],
