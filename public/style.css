@@ -2286,6 +2286,8 @@ body.quick-log-modal-open {
   align-items: flex-end;
   justify-content: center;
   padding: 12px;
+  overscroll-behavior: contain;
+  touch-action: none;
 }
 
 .entry-sheet {
@@ -2297,6 +2299,8 @@ body.quick-log-modal-open {
   box-shadow: var(--shadow-hover);
   max-height: min(82vh, 760px);
   overflow-y: auto;
+  overscroll-behavior: contain;
+  touch-action: auto;
 }
 
 .sheet-handle {

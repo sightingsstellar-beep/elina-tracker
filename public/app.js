@@ -624,7 +624,7 @@ function hidePoopSubtypePopup() {
   document.getElementById('poop-subtype-popup').style.display = 'none';
 }
 
-function lockQuickLogScroll() {
+function lockPageScroll() {
   if (document.body.classList.contains('quick-log-modal-open')) return;
 
   const scrollY = window.scrollY || document.documentElement.scrollTop || 0;
@@ -637,7 +637,7 @@ function lockQuickLogScroll() {
   document.body.classList.add('quick-log-modal-open');
 }
 
-function unlockQuickLogScroll() {
+function unlockPageScroll() {
   if (!document.body.classList.contains('quick-log-modal-open')) return;
 
   const scrollY = Number(document.body.dataset.quickLogScrollY || 0);
@@ -664,7 +664,7 @@ function showQuickLogModal() {
   amountInput.value = state.pendingQuickLog?.amount_ml ? String(state.pendingQuickLog.amount_ml) : '';
   timeWrap.style.display = isTodaySelected() ? 'none' : 'flex';
   timeInput.value = getCurrentTimeInputValue();
-  lockQuickLogScroll();
+  lockPageScroll();
   document.getElementById('amount-modal').style.display = 'flex';
 
   setTimeout(() => {
@@ -675,7 +675,7 @@ function showQuickLogModal() {
 
 function hideQuickLogModal() {
   document.getElementById('amount-modal').style.display = 'none';
-  unlockQuickLogScroll();
+  unlockPageScroll();
   document.getElementById('amount-input').value = '';
   document.getElementById('modal-time-input').value = '';
   document.getElementById('amount-input').style.display = 'block';
@@ -837,12 +837,14 @@ function renderSheet() {
 
 function openEntrySheet(config) {
   state.sheet = config;
+  lockPageScroll();
   renderSheet();
 }
 
 function closeEntrySheet() {
   state.sheet = null;
   document.getElementById('entry-sheet').style.display = 'none';
+  unlockPageScroll();
 }
 
 async function handleSheetSubmit(event) {
