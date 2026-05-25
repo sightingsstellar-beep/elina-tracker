@@ -42,6 +42,24 @@ const pool = new Pool({
 });
 
 const settingsCache = new Map(Object.entries(DEFAULT_SETTINGS));
+let readyPromise = null;
+
+function ensureReady() {
+  if (!readyPromise) readyPromise = initSchema();
+  return readyPromise;
+}
+
+const ready = {
+  then(onFulfilled, onRejected) {
+    return ensureReady().then(onFulfilled, onRejected);
+  },
+  catch(onRejected) {
+    return ensureReady().catch(onRejected);
+  },
+  finally(onFinally) {
+    return ensureReady().finally(onFinally);
+  },
+};
 
 function normalizeRow(row) {
   if (!row) return row;
@@ -497,8 +515,6 @@ async function createFamilyWithPatient({ familyName, patientName, pronouns = 'sh
   }
 }
 
-const ready = initSchema();
-
 function getDayKey(date = new Date()) {
   const tz = getSetting('timezone') || process.env.TZ || 'America/New_York';
   const localStr = date.toLocaleString('en-CA', {
@@ -708,6 +724,17 @@ async function getGagsByDay(dayKey, scope = {}) {
   return rows.map(normalizeRow);
 }
 
+async function getGagsForDayKeys(dayKeys, scope = {}) {
+  const unique = [...new Set(dayKeys || [])].filter(Boolean);
+  if (!unique.length) return [];
+  const { familyId, patientId } = scopeIds(scope);
+  const { rows } = await query(
+    'SELECT * FROM gag_events WHERE family_id=$1 AND patient_id=$2 AND day_key = ANY($3) ORDER BY timestamp ASC, id ASC',
+    [familyId, patientId, unique]
+  );
+  return rows.map(normalizeRow);
+}
+
 async function getGagById(id, scope = {}) {
   const { familyId, patientId } = scopeIds(scope);
   const { rows } = await query('SELECT * FROM gag_events WHERE family_id=$1 AND patient_id=$2 AND id=$3', [familyId, patientId, id]);
@@ -732,12 +759,7 @@ async function deleteGag(id, scope = {}) {
   return { changes: result.rowCount };
 }
 
-async function getDaySummary(dayKey, scope = {}) {
-  const [logs, wellnessRows, gags] = await Promise.all([
-    getLogsByDay(dayKey, scope),
-    getWellnessByDay(dayKey, scope),
-    getGagsByDay(dayKey, scope),
-  ]);
+function buildDaySummary(dayKey, logs = [], wellnessRows = [], gags = []) {
   const wellness = collapseLatestWellnessRows(wellnessRows);
   const inputs = logs.filter((l) => l.entry_type === 'input');
   const outputs = logs.filter((l) => l.entry_type === 'output');
@@ -745,6 +767,42 @@ async function getDaySummary(dayKey, scope = {}) {
   const intakeByType = {};
   for (const l of inputs) intakeByType[l.fluid_type] = (intakeByType[l.fluid_type] || 0) + (l.amount_ml || 0);
   return { dayKey, totalIntake, intakeByType, inputs, outputs, wellness, gags, gagCount: gags.length };
+}
+
+async function getDaySummary(dayKey, scope = {}) {
+  const [logs, wellnessRows, gags] = await Promise.all([
+    getLogsByDay(dayKey, scope),
+    getWellnessByDay(dayKey, scope),
+    getGagsByDay(dayKey, scope),
+  ]);
+  return buildDaySummary(dayKey, logs, wellnessRows, gags);
+}
+
+async function getDaySummaries(dayKeys, scope = {}) {
+  const unique = [...new Set(dayKeys || [])].filter(Boolean);
+  if (!unique.length) return [];
+  const { familyId, patientId } = scopeIds(scope);
+  const [logRows, wellnessRows, gagRows] = await Promise.all([
+    query(
+      'SELECT * FROM fluid_logs WHERE family_id=$1 AND patient_id=$2 AND day_key = ANY($3) ORDER BY timestamp ASC, id ASC',
+      [familyId, patientId, unique]
+    ),
+    query(
+      'SELECT * FROM wellness_checks WHERE family_id=$1 AND patient_id=$2 AND day_key = ANY($3) ORDER BY timestamp ASC, id ASC',
+      [familyId, patientId, unique]
+    ),
+    getGagsForDayKeys(unique, scope),
+  ]);
+
+  const byDay = new Map(unique.map((dayKey) => [dayKey, { logs: [], wellness: [], gags: [] }]));
+  for (const row of logRows.rows.map(normalizeRow)) byDay.get(row.day_key)?.logs.push(row);
+  for (const row of wellnessRows.rows.map(normalizeRow)) byDay.get(row.day_key)?.wellness.push(row);
+  for (const row of gagRows) byDay.get(row.day_key)?.gags.push(row);
+
+  return unique.map((dayKey) => {
+    const rows = byDay.get(dayKey) || { logs: [], wellness: [], gags: [] };
+    return buildDaySummary(dayKey, rows.logs, rows.wellness, rows.gags);
+  });
 }
 
 function collapseLatestWellnessRows(rows) {
@@ -898,11 +956,13 @@ module.exports = {
   deleteWellness,
   logGag,
   getGagsByDay,
+  getGagsForDayKeys,
   getGagById,
   updateGag,
   deleteLastGag,
   deleteGag,
   getDaySummary,
+  getDaySummaries,
   getSetting,
   getAllSettings,
   getSettings,

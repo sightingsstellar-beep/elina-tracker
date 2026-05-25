@@ -6,7 +6,7 @@
 
 const cron = require('node-cron');
 const db = require('./db');
-const { buildReport } = require('./server');
+const { buildReport } = require('./services/reports');
 
 function getBot() {
   return require('./bot');

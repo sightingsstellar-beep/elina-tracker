@@ -62,15 +62,47 @@
       "summary": "HTTP routes for health, version, dashboard data, settings, logging, backups, display access, machine API keys, sessions, and Clerk/Alexa auth boundaries.",
       "paths": [
         "server.js",
+        "routes/account-family-routes.js",
+        "routes/backup-routes.js",
+        "routes/care-read-routes.js",
+        "routes/care-log-routes.js",
+        "routes/chat-routes.js",
+        "routes/display-routes.js",
+        "routes/weight-routes.js",
+        "routes/settings-routes.js",
         "app-version.js",
+        "services/day-presenter.js",
+        "services/postgres-session-store.js",
+        "tests/server-import.test.js",
+        "tests/day-presenter.test.js",
+        "tests/public-routes.test.js",
+        "tests/protected-routes.test.js",
         ".env.example"
       ],
       "routes": [
         "GET /health",
         "GET /api/version",
+        "GET /api/display-data",
         "GET /api/settings",
         "POST /api/settings",
+        "GET /api/me",
+        "GET /api/account/preferences",
+        "POST /api/account/preferences",
+        "GET /api/family/members",
+        "POST /api/family/invitations",
+        "POST /api/chat",
+        "GET /api/backup",
         "GET /api/today",
+        "POST /api/log",
+        "PATCH /api/log/:id",
+        "DELETE /api/log/:id",
+        "PATCH /api/gag/:id",
+        "DELETE /api/gag/:id",
+        "DELETE /api/wellness",
+        "POST /api/weight",
+        "GET /api/weight/today",
+        "GET /api/weight/history",
+        "DELETE /api/weight/:date",
         "POST /api/entries",
         "POST /api/alexa"
       ],
@@ -90,6 +122,8 @@
       "summary": "Database schema initialization, scoped query helpers, settings cache, sessions, entries, patients, families, and migration path from the retired SQLite shape.",
       "paths": [
         "db.js",
+        "services/care-format.js",
+        "services/care-labels.js",
         "scripts/migrate-sqlite-to-postgres.js",
         "seed-sample-data.js"
       ],
@@ -112,7 +146,9 @@
         "parser.js",
         "scheduler.js",
         "mailer.js",
-        "realtime.js"
+        "realtime.js",
+        "services/care-events.js",
+        "services/reports.js"
       ],
       "checks": [
         "npm run test"
@@ -182,6 +218,7 @@
       "summary": "Human-readable design notes for tenancy, Clerk auth, native app readiness, account linking, and family-care product evolution.",
       "paths": [
         "README.md",
+        "docs/backend-efficiency-plan.md",
         "docs/family-tenancy-access-design.md",
         "docs/clerk-auth-spike.md",
         "docs/native-app-readiness-api-contract.md"

@@ -10,7 +10,9 @@
 const TelegramBot = require('node-telegram-bot-api');
 const db = require('./db');
 const { parseMessage } = require('./parser');
-const { buildReport, formatFluidType, getDailyLimit, publishCareChange } = require('./server');
+const { formatFluidType, getDailyLimit } = require('./services/care-format');
+const { publishCareChange } = require('./services/care-events');
+const { buildReport } = require('./services/reports');
 
 const token = process.env.TELEGRAM_BOT_TOKEN;
 if (!token) {

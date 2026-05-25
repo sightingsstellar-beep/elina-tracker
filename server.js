@@ -20,6 +20,17 @@ const mailer = require('./mailer');
 const realtime = require('./realtime');
 const { parseMessage } = require('./parser');
 const { APP_VERSION, ALEXA_SKILL_VERSION, releaseInfo } = require('./app-version');
+const { buildReport } = require('./services/reports');
+const { PostgresSessionStore } = require('./services/postgres-session-store');
+const { presentDay, presentHistory } = require('./services/day-presenter');
+const { createCareReadRouter } = require('./routes/care-read-routes');
+const { createCareLogRouter } = require('./routes/care-log-routes');
+const { createWeightRouter } = require('./routes/weight-routes');
+const { createSettingsRouter } = require('./routes/settings-routes');
+const { createAccountFamilyRouter } = require('./routes/account-family-routes');
+const { createChatRouter } = require('./routes/chat-routes');
+const { createDisplayRouter } = require('./routes/display-routes');
+const { createBackupRouter } = require('./routes/backup-routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -55,53 +66,6 @@ if ((CLERK_AUTH_ENABLED || CLERK_SPIKE_ENABLED) && CLERK_CONFIGURED) {
 // ---------------------------------------------------------------------------
 
 const session = require('express-session');
-
-// ---------------------------------------------------------------------------
-// PostgresSessionStore — persists sessions in the application Postgres DB.
-// ---------------------------------------------------------------------------
-class PostgresSessionStore extends session.Store {
-  constructor(database, ttlSeconds = 7 * 24 * 60 * 60) {
-    super();
-    this._db = database;
-    this._ttl = ttlSeconds;
-
-    setInterval(() => {
-      this._db.sessionPrune(Math.floor(Date.now() / 1000)).catch(() => {});
-    }, 60 * 60 * 1000).unref();
-  }
-
-  async get(sid, cb) {
-    try {
-      const row = await this._db.sessionGet(sid);
-      if (!row) return cb(null, null);
-      if (row.expires < Math.floor(Date.now() / 1000)) {
-        await this._db.sessionDestroy(sid);
-        return cb(null, null);
-      }
-      cb(null, JSON.parse(row.data));
-    } catch (err) { cb(err); }
-  }
-
-  async set(sid, sess, cb) {
-    try {
-      const expires = Math.floor(Date.now() / 1000) + this._ttl;
-      await this._db.sessionSet(sid, expires, JSON.stringify(sess));
-      cb(null);
-    } catch (err) { cb(err); }
-  }
-
-  async destroy(sid, cb) {
-    try { await this._db.sessionDestroy(sid); cb(null); } catch (err) { cb(err); }
-  }
-
-  async touch(sid, sess, cb) {
-    try {
-      const expires = Math.floor(Date.now() / 1000) + this._ttl;
-      await this._db.sessionTouch(sid, expires);
-      cb(null);
-    } catch (err) { cb(err); }
-  }
-}
 
 app.use(session({
   store: new PostgresSessionStore(db),
@@ -2331,47 +2295,11 @@ app.post('/api/alexa', async (req, res) => {
   }
 });
 
-// ---------------------------------------------------------------------------
-// Display kiosk — token-authenticated, no login required
-// ---------------------------------------------------------------------------
-
-app.get('/display', (req, res) => {
-  const displayToken = process.env.DISPLAY_TOKEN;
-  if (!displayToken || req.query.token !== displayToken) {
-    return res.status(401).send('Unauthorized');
-  }
-  res.sendFile(path.join(__dirname, 'public', 'display.html'));
-});
-
-app.get('/api/display-data', async (req, res) => {
-  const displayToken = process.env.DISPLAY_TOKEN;
-  if (!displayToken || req.query.token !== displayToken) {
-    return res.status(403).json({ error: 'Forbidden' });
-  }
-
-  const summary = await db.getDaySummary(db.getDayKey());
-  const limit = getDailyLimit();
-
-  // Output breakdown by type (ml + count for poop)
-  const outputByType = {};
-  for (const l of summary.outputs) {
-    if (!outputByType[l.fluid_type]) outputByType[l.fluid_type] = { ml: 0, count: 0 };
-    outputByType[l.fluid_type].ml    += (l.amount_ml || 0);
-    outputByType[l.fluid_type].count += 1;
-  }
-  // Format display string per type
-  for (const [type, data] of Object.entries(outputByType)) {
-    data.display = type === 'poop' ? `${data.count}×` : `${data.ml} ml`;
-  }
-
-  return res.json({
-    totalIntake:  summary.totalIntake,
-    dailyLimit:   limit,
-    intakeByType: summary.intakeByType,
-    outputByType,
-    patientName:  db.getSetting('child_name') || null,
-  });
-});
+app.use(createDisplayRouter({
+  db,
+  getDailyLimit,
+  publicDir: path.join(__dirname, 'public'),
+}));
 
 // Auth gate — everything below this line requires a valid session or API key
 async function requireAuth(req, res, next) {
@@ -2427,149 +2355,21 @@ app.use('/api', (req, res, next) => {
   next();
 });
 
-app.get('/api/me', async (req, res) => {
-  const scope = req.scope || null;
-  res.json({
-    ok: true,
-    scope,
-    permissions: {
-      canInviteCaregivers: scope?.role === 'owner',
-    },
-  });
-});
-
-app.get('/api/account/preferences', async (req, res) => {
-  try {
-    const subject = accountPreferenceSubject(req);
-    if (!subject) return res.json({ ok: true, accountScoped: false, preferences: {} });
-    const preferences = await db.getAccountPreferences(subject);
-    res.json({ ok: true, accountScoped: true, preferences });
-  } catch (err) {
-    console.error('[GET /api/account/preferences]', err);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-app.post('/api/account/preferences', async (req, res) => {
-  try {
-    const subject = accountPreferenceSubject(req);
-    if (!subject) return res.status(400).json({ ok: false, error: 'Account-scoped preferences require an authenticated account.' });
-    const body = req.body;
-    if (!body || typeof body !== 'object') {
-      return res.status(400).json({ ok: false, error: 'Invalid request body' });
-    }
-    const allowedKeys = new Set([
-      'ui_palette',
-      'caregiver_name',
-      'caregiver_email',
-      'caregiver_phone',
-      'caregiver_relationship',
-      'caregiver_notes',
-    ]);
-    if (body.ui_palette !== undefined) {
-      const palette = ['calm', 'contrast', 'sage', 'lavender', 'sunrise', 'dark', 'midnight'].includes(body.ui_palette) ? body.ui_palette : 'calm';
-      await db.setAccountPreference(subject, 'ui_palette', palette);
-    }
-    for (const [key, value] of Object.entries(body)) {
-      if (key === 'ui_palette' || !allowedKeys.has(key) || value === undefined || value === null) continue;
-      await db.setAccountPreference(subject, key, String(value).slice(0, 1000));
-    }
-    const preferences = await db.getAccountPreferences(subject);
-    res.json({ ok: true, accountScoped: true, preferences });
-  } catch (err) {
-    console.error('[POST /api/account/preferences]', err);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-app.get('/api/family/members', async (req, res) => {
-  try {
-    const scope = requestScope(req);
-    if (!scope.familyId) return res.status(400).json({ ok: false, error: 'family_scope_required' });
-    const members = await db.getFamilyAccessList(scope.familyId);
-    res.json({
-      ok: true,
-      family: { id: scope.familyId, name: scope.familyName || null },
-      currentUser: {
-        role: scope.role || 'caregiver',
-        email: scope.email || null,
-        displayName: scope.displayName || null,
-      },
-      permissions: {
-        canInviteCaregivers: scope.role === 'owner',
-      },
-      members,
-    });
-  } catch (err) {
-    console.error('[GET /api/family/members]', err);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
+app.use(createAccountFamilyRouter({
+  accountPreferenceSubject,
+  db,
+  mailer,
+  requestScope,
+}));
 
 app.get('/api/events', (req, res) => {
   realtime.addClient(requestScope(req), req, res);
 });
 
-app.post('/api/family/invitations', async (req, res) => {
-  try {
-    const scope = requestScope(req);
-    if (scope.role !== 'owner') {
-      return res.status(403).json({ ok: false, error: 'Only the family owner can invite caregivers.' });
-    }
-    const email = String(req.body.email || '').trim().toLowerCase();
-    const role = ['caregiver', 'viewer'].includes(req.body.role) ? req.body.role : 'caregiver';
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      return res.status(400).json({ ok: false, error: 'Valid email is required.' });
-    }
-    const invite = await db.createFamilyInvitation({
-      familyId: scope.familyId,
-      email,
-      role,
-      invitedByClerkUserId: scope.clerkUserId,
-    });
-    let emailDelivery = { sent: false, reason: 'mail_not_configured' };
-    try {
-      emailDelivery = await mailer.sendCaregiverInviteEmail({
-        to: email,
-        familyName: scope.familyName,
-        patientName: scope.patientName,
-        inviterName: scope.displayName || scope.email,
-        role,
-      });
-    } catch (emailErr) {
-      console.error('[invite-email] Failed to send caregiver invite:', emailErr.message);
-      emailDelivery = { sent: false, reason: 'mail_send_failed' };
-    }
-    res.json({
-      ok: true,
-      invitation: { id: invite.id, email: invite.email, role: invite.role, status: invite.status },
-      email: emailDelivery,
-    });
-  } catch (err) {
-    console.error('[POST /api/family/invitations]', err);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-// ---------------------------------------------------------------------------
-// Database backup endpoint (API key only — for automated backups)
-// ---------------------------------------------------------------------------
-app.get('/api/backup', async (req, res) => {
-  // Restrict to API key auth only (not browser sessions)
-  if (!API_KEY || req.headers['x-api-key'] !== API_KEY) {
-    return res.status(403).json({ ok: false, error: 'API key required for backup' });
-  }
-  try {
-    const datestamp = new Date().toISOString().slice(0, 10);
-    const data = await db.exportAllData();
-    res.setHeader('Content-Type', 'application/json');
-    res.setHeader('Content-Disposition', `attachment; filename=elina-postgres-backup-${datestamp}.json`);
-    res.send(JSON.stringify(data, null, 2));
-  } catch (err) {
-    console.error('[GET /api/backup]', err);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
+app.use(createBackupRouter({
+  apiKey: API_KEY,
+  db,
+}));
 
 // Static files (served after auth check). Revalidate browser assets so
 // deployed UI changes are picked up promptly without sticky stale JS/CSS.
@@ -2767,666 +2567,52 @@ function formatTimeInput(tsMs) {
 // API Routes
 // ---------------------------------------------------------------------------
 
-/**
- * GET /api/today and /api/day
- * Returns all data for the requested fluid day.
- */
-app.get(['/api/today', '/api/day'], async (req, res) => {
-  try {
-    const dayResult = resolveRequestedDayKey({
-      date: req.query.date,
-      relative: req.query.relative,
-    });
-    if (!dayResult.ok) {
-      return res.status(400).json({ ok: false, error: dayResult.error });
-    }
+app.use(createCareReadRouter({
+  db,
+  buildReport,
+  getDailyLimitForScope,
+  getTimezoneForScope,
+  presentDay,
+  presentHistory,
+  requestScope,
+  resolveRequestedDayKey,
+}));
 
-    const scope = requestScope(req);
-    const dayKey = dayResult.date;
-    const summary = await db.getDaySummary(dayKey, scope);
-    const limitMl = await getDailyLimitForScope(scope);
-    res.json({
-      ok: true,
-      dayKey,
-      todayDayKey: db.getDayKey(),
-      limit_ml: limitMl,
-      totalIntake: summary.totalIntake,
-      percent: Math.round((summary.totalIntake / limitMl) * 100),
-      intakeByType: summary.intakeByType,
-      inputs: summary.inputs.map((l) => ({
-        ...l,
-        time: formatTimestamp(l.timestamp),
-        time24: formatTimeInput(l.timestamp),
-        fluid_type_label: formatFluidType(l.fluid_type),
-      })),
-      outputs: summary.outputs.map((l) => ({
-        ...l,
-        time: formatTimestamp(l.timestamp),
-        time24: formatTimeInput(l.timestamp),
-        fluid_type_label: formatFluidType(l.fluid_type),
-      })),
-      wellness: summary.wellness,
-      gags: summary.gags.map((g) => ({
-        ...g,
-        time: formatTimestamp(g.timestamp),
-        time24: formatTimeInput(g.timestamp),
-      })),
-      gagCount: summary.gagCount,
-    });
-  } catch (err) {
-    console.error('[GET /api/today]', err);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
+app.use(createCareLogRouter({
+  db,
+  formatFluidType,
+  formatTimeInput,
+  formatTimestamp,
+  getTimezone,
+  publishCareChange,
+  requestScope,
+  validateLogDate,
+  validateLogTime,
+  zonedDateTimeToTimestamp,
+}));
 
-/**
- * GET /api/report
- * Returns the formatted nurse handoff report for today.
- */
-app.get('/api/report', async (req, res) => {
-  try {
-    const scope = requestScope(req);
-    const dayKey = db.getDayKey();
-    const text = await buildReport(dayKey, scope);
-    res.json({ ok: true, dayKey, report: text });
-  } catch (err) {
-    console.error('[GET /api/report]', err);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
+app.use(createWeightRouter({
+  db,
+  publishCareChange,
+  requestScope,
+  resolveRequestedDayKey,
+  validateLogDate,
+}));
 
-/**
- * POST /api/log
- * Log a fluid entry, wellness check, or gag event directly via API.
- * Body: { entry_type, fluid_type, amount_ml, notes, source }
- *   OR  { type: 'wellness', check_time, appetite, energy, mood, cyanosis }
- *   OR  { type: 'gag', count }
- */
-app.post('/api/log', async (req, res) => {
-  try {
-    const scope = requestScope(req);
-    const body = req.body;
-    if (!body || typeof body !== 'object') {
-      return res.status(400).json({ ok: false, error: 'Invalid request body' });
-    }
+app.use(createSettingsRouter({
+  db,
+  requestScope,
+}));
 
-    // Validate optional date/time fields
-    const dateResult = validateLogDate(body.date);
-    if (!dateResult.ok) {
-      return res.status(400).json({ ok: false, error: dateResult.error });
-    }
-    const timeResult = validateLogTime(body.time);
-    if (!timeResult.ok) {
-      return res.status(400).json({ ok: false, error: timeResult.error });
-    }
-    const dayKey = dateResult.date;
-    const tz = getTimezone();
-    const overrideTimestamp = timeResult.time
-      ? zonedDateTimeToTimestamp(dayKey, timeResult.time, tz)
-      : null;
-
-    const results = [];
-
-    // Require amount_ml for all fluid inputs and outputs (poop is optional — no measurable amount)
-    if (body.type !== 'wellness' && body.type !== 'gag') {
-      const isPoop = body.fluid_type === 'poop';
-      if (!isPoop && (!body.amount_ml || typeof body.amount_ml !== 'number' || body.amount_ml <= 0)) {
-        return res.status(400).json({ ok: false, error: 'amount_ml is required for input and output entries' });
-      }
-    }
-
-    if (body.type === 'wellness') {
-      const w = await db.upsertWellness({
-        day_key: dayKey,
-        check_time: body.check_time || '5pm',
-        appetite: body.appetite ?? null,
-        energy: body.energy ?? null,
-        mood: body.mood ?? null,
-        cyanosis: body.cyanosis ?? null,
-        source: 'api',
-        ...scope,
-      });
-      results.push({ kind: 'wellness', data: w });
-    } else if (body.type === 'gag') {
-      const count = Math.max(1, parseInt(body.count, 10) || 1);
-      const gags = await db.logGag(count, overrideTimestamp || Date.now(), dayKey, scope);
-      results.push({ kind: 'gag', count, data: gags });
-    } else {
-      // Fluid input or output
-      const entry = await db.logEntry({
-        timestamp: overrideTimestamp || Date.now(),
-        day_key: dayKey,
-        entry_type: body.entry_type,
-        fluid_type: body.fluid_type,
-        amount_ml: body.amount_ml ?? null,
-        subtype: body.subtype ?? null,
-        notes: body.notes ?? null,
-        source: 'api',
-        ...scope,
-      });
-      results.push({ kind: 'fluid', data: entry });
-    }
-
-    const summary = await db.getDaySummary(db.getDayKey(), scope);
-    publishCareChange(scope, { action: 'create', source: 'api-log', dayKey });
-    res.json({ ok: true, results, totalIntake: summary.totalIntake });
-  } catch (err) {
-    console.error('[POST /api/log]', err);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-/**
- * PATCH /api/log/:id
- * Update a specific fluid input/output entry.
- */
-app.patch('/api/log/:id', async (req, res) => {
-  try {
-    const scope = requestScope(req);
-    const id = parseInt(req.params.id, 10);
-    if (!id || isNaN(id)) {
-      return res.status(400).json({ ok: false, error: 'Invalid ID' });
-    }
-
-    const existing = await db.getLogById(id, scope);
-    if (!existing) {
-      return res.status(404).json({ ok: false, error: 'Entry not found' });
-    }
-
-    const body = req.body || {};
-    const entryType = body.entry_type || existing.entry_type;
-    const fluidType = body.fluid_type || existing.fluid_type;
-    const dateResult = validateLogDate(body.date || existing.day_key);
-    if (!dateResult.ok) {
-      return res.status(400).json({ ok: false, error: dateResult.error });
-    }
-    const timeResult = validateLogTime(body.time || formatTimeInput(existing.timestamp));
-    if (!timeResult.ok) {
-      return res.status(400).json({ ok: false, error: timeResult.error });
-    }
-
-    const isPoop = fluidType === 'poop';
-    const hasAmount = Object.prototype.hasOwnProperty.call(body, 'amount_ml');
-    const amountMl = hasAmount ? body.amount_ml : existing.amount_ml;
-    if (!isPoop && (typeof amountMl !== 'number' || amountMl <= 0)) {
-      return res.status(400).json({ ok: false, error: 'amount_ml is required for input and output entries' });
-    }
-
-    const timestamp = zonedDateTimeToTimestamp(dateResult.date, timeResult.time, getTimezone());
-
-    await db.updateLog({
-      id,
-      timestamp,
-      day_key: dateResult.date,
-      entry_type: entryType,
-      fluid_type: fluidType,
-      amount_ml: isPoop ? (amountMl ?? null) : amountMl,
-      subtype: body.subtype ?? existing.subtype ?? null,
-      notes: body.notes ?? existing.notes ?? null,
-      ...scope,
-    });
-
-    const updated = await db.getLogById(id, scope);
-    publishCareChange(scope, { action: 'update', source: 'api-log', dayKey: updated?.day_key || dateResult.date, id });
-    res.json({
-      ok: true,
-      entry: {
-        ...updated,
-        time: formatTimestamp(updated.timestamp),
-        time24: formatTimeInput(updated.timestamp),
-        fluid_type_label: formatFluidType(updated.fluid_type),
-      },
-    });
-  } catch (err) {
-    console.error('[PATCH /api/log/:id]', err);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-/**
- * PATCH /api/gag/:id
- * Update a specific gag event time/day.
- */
-app.patch('/api/gag/:id', async (req, res) => {
-  try {
-    const scope = requestScope(req);
-    const id = parseInt(req.params.id, 10);
-    if (!id || isNaN(id)) {
-      return res.status(400).json({ ok: false, error: 'Invalid ID' });
-    }
-
-    const existing = await db.getGagById(id, scope);
-    if (!existing) {
-      return res.status(404).json({ ok: false, error: 'Gag entry not found' });
-    }
-
-    const body = req.body || {};
-    const dateResult = validateLogDate(body.date || existing.day_key);
-    if (!dateResult.ok) {
-      return res.status(400).json({ ok: false, error: dateResult.error });
-    }
-    const timeResult = validateLogTime(body.time || formatTimeInput(existing.timestamp));
-    if (!timeResult.ok) {
-      return res.status(400).json({ ok: false, error: timeResult.error });
-    }
-
-    const timestamp = zonedDateTimeToTimestamp(dateResult.date, timeResult.time, getTimezone());
-    await db.updateGag({ id, timestamp, day_key: dateResult.date, ...scope });
-
-    const updated = await db.getGagById(id, scope);
-    publishCareChange(scope, { action: 'update', source: 'api-gag', dayKey: updated?.day_key || dateResult.date, id });
-    res.json({ ok: true, entry: { ...updated, time: formatTimestamp(updated.timestamp), time24: formatTimeInput(updated.timestamp) } });
-  } catch (err) {
-    console.error('[PATCH /api/gag/:id]', err);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-/**
- * GET /api/history?days=7
- * Returns a richer per-day summary for the last N fluid days.
- */
-app.get('/api/history', async (req, res) => {
-  try {
-    const scope = requestScope(req);
-    const days = Math.min(90, Math.max(1, parseInt(req.query.days, 10) || 7));
-    const todayKey = db.getDayKey();
-    const tz = getTimezone();
-    const limit_ml = await getDailyLimitForScope(scope);
-
-    // Build list of unique day keys (most recent first)
-    const dayKeys = [];
-    const now = new Date();
-    for (let i = 0; i < days; i++) {
-      const shifted = new Date(now);
-      shifted.setDate(shifted.getDate() - i);
-      dayKeys.push(db.getDayKey(shifted));
-    }
-    const uniqueKeys = [...new Set(dayKeys)].slice(0, days);
-
-    const dayData = await Promise.all(uniqueKeys.map(async (dayKey) => {
-      const summary = await db.getDaySummary(dayKey, scope);
-
-      // Build a readable label from the dayKey string
-      const [year, month, day] = dayKey.split('-').map(Number);
-      const dateObj = new Date(year, month - 1, day, 12, 0, 0);
-      const label = dateObj.toLocaleDateString('en-US', {
-        weekday: 'long',
-        month: 'short',
-        day: 'numeric',
-      });
-
-      const total_ml = summary.totalIntake;
-      const percent = Math.round((total_ml / limit_ml) * 100);
-
-      const outputs = summary.outputs.map((o) => ({
-        id: o.id,
-        fluid_type: o.fluid_type,
-        subtype: o.subtype ?? null,
-        amount_ml: o.amount_ml,
-        time: formatTimestamp(o.timestamp),
-        time24: formatTimeInput(o.timestamp),
-      }));
-      const inputs = summary.inputs.map((l) => ({
-        id: l.id,
-        time: formatTimestamp(l.timestamp),
-        time24: formatTimeInput(l.timestamp),
-        fluid_type: l.fluid_type,
-        fluid_type_label: formatFluidType(l.fluid_type),
-        amount_ml: l.amount_ml,
-      }));
-      const gags = summary.gags.map((g) => ({
-        id: g.id,
-        time: formatTimestamp(g.timestamp),
-        time24: formatTimeInput(g.timestamp),
-      }));
-
-      // Split wellness into afternoon (5pm) and evening (10pm)
-      const afternoonRow = summary.wellness.find((w) => w.check_time === '5pm') || null;
-      const eveningRow = summary.wellness.find((w) => w.check_time === '10pm') || null;
-
-      const pickWellness = (row) => row ? {
-        check_time: row.check_time,
-        appetite: row.appetite,
-        energy: row.energy,
-        mood: row.mood,
-        cyanosis: row.cyanosis,
-      } : null;
-
-      return {
-        dayKey,
-        label,
-        isToday: dayKey === todayKey,
-        intake: { total_ml, limit_ml, percent, byType: summary.intakeByType },
-        inputs,
-        outputs,
-        gags,
-        gagCount: summary.gagCount,
-        wellness: {
-          afternoon: pickWellness(afternoonRow),
-          evening: pickWellness(eveningRow),
-        },
-      };
-    }));
-
-    res.json({ ok: true, days: dayData });
-  } catch (err) {
-    console.error('[GET /api/history]', err);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-/**
- * DELETE /api/gag/:id
- * Remove a specific gag event by ID.
- */
-app.delete('/api/gag/:id', async (req, res) => {
-  try {
-    const scope = requestScope(req);
-    const id = parseInt(req.params.id, 10);
-    if (!id || isNaN(id)) {
-      return res.status(400).json({ ok: false, error: 'Invalid ID' });
-    }
-    const result = await db.deleteGag(id, scope);
-    if (result.changes === 0) {
-      return res.status(404).json({ ok: false, error: 'Gag entry not found' });
-    }
-    publishCareChange(scope, { action: 'delete', source: 'api-gag', id });
-    res.json({ ok: true, deleted: id });
-  } catch (err) {
-    console.error('[DELETE /api/gag/:id]', err);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-/**
- * DELETE /api/log/:id
- * Remove a specific log entry by ID.
- */
-app.delete('/api/log/:id', async (req, res) => {
-  try {
-    const scope = requestScope(req);
-    const id = parseInt(req.params.id, 10);
-    if (!id || isNaN(id)) {
-      return res.status(400).json({ ok: false, error: 'Invalid ID' });
-    }
-    const result = await db.deleteLog(id, scope);
-    if (result.changes === 0) {
-      return res.status(404).json({ ok: false, error: 'Entry not found' });
-    }
-    publishCareChange(scope, { action: 'delete', source: 'api-log', id });
-    res.json({ ok: true, deleted: id });
-  } catch (err) {
-    console.error('[DELETE /api/log/:id]', err);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-/**
- * DELETE /api/wellness?date=YYYY-MM-DD&check_time=5pm|10pm
- * Remove a specific wellness entry for the day/period.
- */
-app.delete('/api/wellness', async (req, res) => {
-  try {
-    const scope = requestScope(req);
-    const dateResult = validateLogDate(req.query.date);
-    if (!dateResult.ok) {
-      return res.status(400).json({ ok: false, error: dateResult.error });
-    }
-
-    const checkTime = req.query.check_time;
-    if (!['5pm', '10pm'].includes(checkTime)) {
-      return res.status(400).json({ ok: false, error: 'Invalid check_time. Use 5pm or 10pm.' });
-    }
-
-    const result = await db.deleteWellness(dateResult.date, checkTime, scope);
-    if (result.changes === 0) {
-      return res.status(404).json({ ok: false, error: 'Wellness entry not found' });
-    }
-
-    publishCareChange(scope, { action: 'delete', source: 'api-wellness', dayKey: dateResult.date });
-    res.json({ ok: true, deleted: { date: dateResult.date, check_time: checkTime } });
-  } catch (err) {
-    console.error('[DELETE /api/wellness]', err);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-// ---------------------------------------------------------------------------
-// Weight API
-// ---------------------------------------------------------------------------
-
-/**
- * POST /api/weight
- * Body: { weight_kg, notes? }
- * Logs weight for today's fluid day key. Returns { ok, weight_kg, date, replaced }.
- */
-app.post('/api/weight', async (req, res) => {
-  try {
-    const scope = requestScope(req);
-    const { weight_kg, notes } = req.body;
-    if (typeof weight_kg !== 'number' || weight_kg <= 0) {
-      return res.status(400).json({ ok: false, error: 'weight_kg must be a positive number' });
-    }
-
-    // Validate optional date field
-    const dateResult = validateLogDate(req.body.date);
-    if (!dateResult.ok) {
-      return res.status(400).json({ ok: false, error: dateResult.error });
-    }
-    const date = dateResult.date;
-
-    const existing = await db.getWeightForDate(date, scope);
-    await db.logWeight(date, weight_kg, notes ?? null, scope);
-    publishCareChange(scope, { action: existing ? 'update' : 'create', source: 'api-weight', dayKey: date });
-    res.json({ ok: true, weight_kg, date, replaced: !!existing });
-  } catch (err) {
-    console.error('[POST /api/weight]', err);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-/**
- * GET /api/weight/today
- * Returns the requested day's weight entry or { ok, weight: null }.
- */
-app.get('/api/weight/today', async (req, res) => {
-  try {
-    const scope = requestScope(req);
-    const dayResult = resolveRequestedDayKey({
-      date: req.query.date,
-      relative: req.query.relative,
-    });
-    if (!dayResult.ok) {
-      return res.status(400).json({ ok: false, error: dayResult.error });
-    }
-
-    const date = dayResult.date;
-    const entry = await db.getWeightForDate(date, scope);
-    res.json({ ok: true, date, weight: entry || null });
-  } catch (err) {
-    console.error('[GET /api/weight/today]', err);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-/**
- * GET /api/weight/history?days=7
- * Returns last N weight entries ordered by date desc.
- */
-app.get('/api/weight/history', async (req, res) => {
-  try {
-    const scope = requestScope(req);
-    const days = Math.min(90, Math.max(1, parseInt(req.query.days, 10) || 7));
-    let entries;
-
-    if (req.query.throughDate) {
-      const dateResult = validateLogDate(req.query.throughDate);
-      if (!dateResult.ok) {
-        return res.status(400).json({ ok: false, error: dateResult.error });
-      }
-      entries = await db.getWeightHistoryUpTo(dateResult.date, days, scope);
-    } else {
-      entries = await db.getWeightHistory(days, scope);
-    }
-
-    res.json({ ok: true, entries });
-  } catch (err) {
-    console.error('[GET /api/weight/history]', err);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-/**
- * DELETE /api/weight/:date
- * Remove a specific day weight entry.
- */
-app.delete('/api/weight/:date', async (req, res) => {
-  try {
-    const scope = requestScope(req);
-    const dateResult = validateLogDate(req.params.date);
-    if (!dateResult.ok) {
-      return res.status(400).json({ ok: false, error: dateResult.error });
-    }
-
-    const result = await db.deleteWeight(dateResult.date, scope);
-    if (result.changes === 0) {
-      return res.status(404).json({ ok: false, error: 'Weight entry not found' });
-    }
-
-    publishCareChange(scope, { action: 'delete', source: 'api-weight', dayKey: dateResult.date });
-    res.json({ ok: true, deleted: dateResult.date });
-  } catch (err) {
-    console.error('[DELETE /api/weight/:date]', err);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-// ---------------------------------------------------------------------------
-// /api/chat — NLP text logging (same pipeline as Telegram bot)
-// ---------------------------------------------------------------------------
-
-/**
- * Builds a short confirmation message listing what was just logged,
- * with a brief intake + output summary.
- */
-async function buildChatConfirmation(actions, summary, scope = {}) {
-  const parts = [];
-  for (const action of actions) {
-    if (action.type === 'input') {
-      const label = formatFluidType(action.fluid_type);
-      const amount = action.amount_ml ? `${action.amount_ml}ml` : '(no amount)';
-      parts.push(`${amount} ${label}`);
-    } else if (action.type === 'output') {
-      const label = formatFluidType(action.fluid_type);
-      const amount = action.amount_ml ? ` ${action.amount_ml}ml` : '';
-      if (action.fluid_type === 'poop' && action.subtype) {
-        const subtypeLabel = formatPoopSubtype(action.subtype) || action.subtype;
-        parts.push(`${label} (${subtypeLabel.toLowerCase()})${amount} (output)`);
-      } else {
-        parts.push(`${label}${amount} (output)`);
-      }
-    } else if (action.type === 'wellness') {
-      parts.push(`Wellness check (${action.check_time})`);
-    } else if (action.type === 'gag') {
-      parts.push(`Gag ×${action.count}`);
-    }
-  }
-  const logged = parts.length > 0 ? parts.join(' + ') : 'entry';
-  const limit = await getDailyLimitForScope(scope);
-  const pct = Math.round((summary.totalIntake / limit) * 100);
-
-  const totalOut = summary.outputs.reduce((sum, o) => sum + (o.amount_ml || 0), 0);
-  const outStr = totalOut > 0 ? `${totalOut}g` : `${summary.outputs.length} event${summary.outputs.length !== 1 ? 's' : ''}`;
-
-  return `Logged: ${logged} | Total In: ${summary.totalIntake}/${limit}ml (${pct}%) · Total Out: ${outStr}`;
-}
-
-app.post('/api/chat', async (req, res) => {
-  try {
-    const scope = requestScope(req);
-    const { text } = req.body;
-    if (!text || typeof text !== 'string' || !text.trim()) {
-      return res.status(400).json({ ok: false, error: 'Missing or empty text' });
-    }
-
-    let parsed;
-    try {
-      parsed = await parseMessage(text.trim());
-    } catch (err) {
-      console.error('[POST /api/chat] Parser error:', err.message);
-      return res.status(500).json({ ok: false, error: 'Parser error: ' + err.message });
-    }
-
-    if (parsed.unparseable || parsed.actions.length === 0) {
-      return res.json({
-        ok: false,
-        message: "I couldn't understand that. Try something like: \"120ml pediasure\" or \"pee 80ml\" or \"gag x2\".",
-        entries: [],
-      });
-    }
-
-    // Require a measurement for every input and output
-    const missingAmount = parsed.actions.find((a) => {
-      if (a.type === 'input') return !a.amount_ml;
-      if (a.type === 'output') return !a.amount_ml;  // poop included — amount always required
-      return false;
-    });
-    if (missingAmount) {
-      const label = formatFluidType(missingAmount.fluid_type);
-      return res.json({
-        ok: false,
-        message: `I need a measurement for ${label}. How many ml was it? (e.g. "${label} 80ml")`,
-        entries: [],
-      });
-    }
-
-    // Persist all actions (same as bot)
-    const now = Date.now();
-    const dayKey = db.getDayKey();
-    const entries = [];
-
-    for (const action of parsed.actions) {
-      if (action.type === 'input' || action.type === 'output') {
-        const entry = await db.logEntry({
-          timestamp: now,
-          day_key: dayKey,
-          entry_type: action.type,
-          fluid_type: action.fluid_type,
-          amount_ml: action.amount_ml,
-          subtype: action.subtype ?? null,
-          source: 'chat',
-          ...scope,
-        });
-        entries.push({ kind: action.type, ...action, id: entry?.id });
-      } else if (action.type === 'wellness') {
-        await db.logWellness({
-          timestamp: now,
-          day_key: dayKey,
-          check_time: action.check_time,
-          appetite: action.appetite,
-          energy: action.energy,
-          mood: action.mood,
-          cyanosis: action.cyanosis,
-          ...scope,
-        });
-        entries.push({ kind: 'wellness', ...action });
-      } else if (action.type === 'gag') {
-        await db.logGag(action.count, now, null, scope);
-        entries.push({ kind: 'gag', count: action.count });
-      }
-    }
-
-    const summary = await db.getDaySummary(dayKey, scope);
-    const message = await buildChatConfirmation(parsed.actions, summary, scope);
-    publishCareChange(scope, { action: 'create', source: 'api-chat', dayKey });
-
-    res.json({ ok: true, message, entries });
-  } catch (err) {
-    console.error('[POST /api/chat]', err);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
+app.use(createChatRouter({
+  db,
+  formatFluidType,
+  formatPoopSubtype,
+  getDailyLimitForScope,
+  parseMessage,
+  publishCareChange,
+  requestScope,
+}));
 
 // ---------------------------------------------------------------------------
 // /api/transcribe — Whisper audio transcription
@@ -3482,48 +2668,6 @@ app.post('/api/transcribe', upload.single('audio'), async (req, res) => {
   }
 });
 
-// ---------------------------------------------------------------------------
-// Settings API
-// ---------------------------------------------------------------------------
-
-/**
- * GET /api/settings
- * Returns all settings as a flat object.
- */
-app.get('/api/settings', async (req, res) => {
-  try {
-    const settings = await db.getSettings(requestScope(req));
-    res.json({ ok: true, ...settings });
-  } catch (err) {
-    console.error('[GET /api/settings]', err);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
-/**
- * POST /api/settings
- * Accepts partial object, updates provided keys, returns updated settings.
- */
-app.post('/api/settings', async (req, res) => {
-  try {
-    const scope = requestScope(req);
-    const body = req.body;
-    if (!body || typeof body !== 'object') {
-      return res.status(400).json({ ok: false, error: 'Invalid request body' });
-    }
-    for (const [key, value] of Object.entries(body)) {
-      if (value !== undefined && value !== null) {
-        await db.setSetting(key, value, scope);
-      }
-    }
-    const settings = await db.getSettings(scope);
-    res.json({ ok: true, ...settings });
-  } catch (err) {
-    console.error('[POST /api/settings]', err);
-    res.status(500).json({ ok: false, error: err.message });
-  }
-});
-
 // App shell routes
 app.get([
   '/',
@@ -3545,92 +2689,45 @@ app.get('*', (req, res) => {
 });
 
 // ---------------------------------------------------------------------------
-// Report builder (shared by API and scheduler)
+// Start server
 // ---------------------------------------------------------------------------
 
-async function buildReport(dayKey, scope = {}) {
-  const summary = await db.getDaySummary(dayKey, scope);
-  const tz = await getTimezoneForScope(scope);
-  const now = new Date();
-  const dateStr = now.toLocaleDateString('en-US', { timeZone: tz, weekday: 'short', month: 'short', day: 'numeric' });
-  const timeStr = now.toLocaleTimeString('en-US', { timeZone: tz, hour: 'numeric', minute: '2-digit', hour12: true });
+function start() {
+  return db.ready.then(() => {
+    const httpServer = app.listen(PORT, () => {
+      console.log(`[server] Glide Bedside running on port ${PORT}`);
+      console.log(`[server] Dashboard: http://localhost:${PORT}`);
+      console.log(`[server] Fluid day TZ: ${getTimezone()}`);
+    });
 
-  const limit = await getDailyLimitForScope(scope);
-  const percent = Math.round((summary.totalIntake / limit) * 100);
-
-  const childName = await getChildNameForScope(scope);
-  let report = `📋 ${childName}'s Report — ${dateStr} ${timeStr}\n`;
-  report += `━━━━━━━━━━━━━━━━━━━━━━━\n`;
-  report += `\n🫧 FLUID INTAKE: ${summary.totalIntake}ml / ${limit}ml (${percent}%)\n`;
-
-  if (Object.keys(summary.intakeByType).length > 0) {
-    for (const [type, ml] of Object.entries(summary.intakeByType)) {
-      report += `  ${formatFluidType(type)}: ${ml}ml\n`;
+    // Start Telegram bot (non-fatal if token missing in dev)
+    try {
+      require('./bot');
+    } catch (err) {
+      console.warn('[server] Bot failed to start:', err.message);
     }
-  } else {
-    report += `  No intake logged\n`;
-  }
 
-  report += `\n🚽 OUTPUTS:\n`;
-  if (summary.outputs.length > 0) {
-    for (const o of summary.outputs) {
-      const time = formatTimestamp(o.timestamp);
-      const amount = o.amount_ml ? ` ${o.amount_ml}ml` : '';
-      report += `  ${time} — ${formatFluidType(o.fluid_type)}${amount}\n`;
+    // Start cron scheduler
+    try {
+      require('./scheduler').start();
+    } catch (err) {
+      console.warn('[server] Scheduler failed to start:', err.message);
     }
-  } else {
-    report += `  No outputs logged\n`;
-  }
 
-  report += `\n🤢 Gag episodes: ${summary.gagCount}\n`;
-
-  // Latest wellness check
-  if (summary.wellness.length > 0) {
-    const latest = summary.wellness[summary.wellness.length - 1];
-    report += `\n🩺 WELLNESS (${latest.check_time} check):\n`;
-    if (latest.appetite !== null) report += `  Appetite: ${latest.appetite}/10\n`;
-    if (latest.energy !== null) report += `  Energy: ${latest.energy}/10\n`;
-    if (latest.mood !== null) report += `  Mood: ${latest.mood}/10\n`;
-    if (latest.cyanosis !== null) report += `  Cyanosis: ${latest.cyanosis}/10\n`;
-  } else {
-    report += `\n🩺 WELLNESS: No check logged yet\n`;
-  }
-
-  report += `━━━━━━━━━━━━━━━━━━━━━━━`;
-  return report;
+    return httpServer;
+  });
 }
 
-// Export for use by bot and scheduler
+module.exports.app = app;
+module.exports.start = start;
 module.exports.buildReport = buildReport;
 module.exports.formatFluidType = formatFluidType;
 module.exports.getDailyLimit = getDailyLimit;
 module.exports.publishCareChange = publishCareChange;
 
-// ---------------------------------------------------------------------------
-// Start server
-// ---------------------------------------------------------------------------
-
-db.ready.then(() => {
-  app.listen(PORT, () => {
-    console.log(`[server] Glide Bedside running on port ${PORT}`);
-    console.log(`[server] Dashboard: http://localhost:${PORT}`);
-    console.log(`[server] Fluid day TZ: ${getTimezone()}`);
+if (require.main === module) {
+  start().catch((err) => {
+    console.error('[server] Database initialization failed:', err);
+    process.exit(1);
   });
-
-  // Start Telegram bot (non-fatal if token missing in dev)
-  try {
-    require('./bot');
-  } catch (err) {
-    console.warn('[server] Bot failed to start:', err.message);
-  }
-
-  // Start cron scheduler
-  try {
-    require('./scheduler').start();
-  } catch (err) {
-    console.warn('[server] Scheduler failed to start:', err.message);
-  }
-}).catch((err) => {
-  console.error('[server] Database initialization failed:', err);
-  process.exit(1);
-});
+}
