@@ -3024,6 +3024,7 @@ app.get('/api/history', async (req, res) => {
     const days = Math.min(90, Math.max(1, parseInt(req.query.days, 10) || 7));
     const todayKey = db.getDayKey();
     const tz = getTimezone();
+    const limit_ml = await getDailyLimitForScope(scope);
 
     // Build list of unique day keys (most recent first)
     const dayKeys = [];
@@ -3048,7 +3049,6 @@ app.get('/api/history', async (req, res) => {
       });
 
       const total_ml = summary.totalIntake;
-      const limit_ml = await getDailyLimitForScope(scope);
       const percent = Math.round((total_ml / limit_ml) * 100);
 
       const outputs = summary.outputs.map((o) => ({

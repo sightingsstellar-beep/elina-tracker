@@ -290,6 +290,13 @@ function renderTrends() {
     value: computeWellnessAverage(day),
   }));
 
+  const balanceAverage = mean(balancePoints.map((point) => point.value));
+  const weightAverage = mean(weightPoints.map((point) => point.value));
+  const intakeAverage = mean(intakePoints.map((point) => point.value));
+  const outputAverage = mean(outputPoints.map((point) => point.value));
+  const gagAverage = mean(gagPoints.map((point) => point.value));
+  const wellnessAverage = mean(wellnessPoints.map((point) => point.value));
+
   const cards = [
     buildTrendCard({
       icon: 'ph-scales',
@@ -301,7 +308,7 @@ function renderTrends() {
       signed: true,
       points: balancePoints,
       latestLabel: formatSignedValue(balancePoints[balancePoints.length - 1]?.value || 0, ' net'),
-      averageLabel: formatSignedValue(mean(balancePoints.map((point) => point.value)) || 0, ' / day'),
+      averageLabel: formatSignedValue(balanceAverage || 0, ' / day'),
     }),
     buildLineTrendCard({
       icon: 'ph-scales',
@@ -311,7 +318,7 @@ function renderTrends() {
       colorClass: 'trend-line--purple',
       points: weightPoints,
       latestLabel: weightPoints[weightPoints.length - 1]?.value !== null ? `${formatNumber(weightPoints[weightPoints.length - 1].value)} kg` : 'No data',
-      averageLabel: mean(weightPoints.map((point) => point.value)) !== null ? `${formatNumber(mean(weightPoints.map((point) => point.value)))} kg` : 'No data',
+      averageLabel: weightAverage !== null ? `${formatNumber(weightAverage)} kg` : 'No data',
     }),
     buildTrendCard({
       icon: 'ph-drop',
@@ -321,7 +328,7 @@ function renderTrends() {
       colorClass: 'trend-bar--blue',
       points: intakePoints,
       latestLabel: `${formatNumber(intakePoints[intakePoints.length - 1]?.value || 0)} ml`,
-      averageLabel: `${formatNumber(mean(intakePoints.map((point) => point.value)) || 0)} ml`,
+      averageLabel: `${formatNumber(intakeAverage || 0)} ml`,
     }),
     buildTrendCard({
       icon: 'ph-toilet',
@@ -331,7 +338,7 @@ function renderTrends() {
       colorClass: 'trend-bar--green',
       points: outputPoints,
       latestLabel: `${formatNumber(outputPoints[outputPoints.length - 1]?.value || 0)} events`,
-      averageLabel: `${formatNumber(mean(outputPoints.map((point) => point.value)) || 0)} / day`,
+      averageLabel: `${formatNumber(outputAverage || 0)} / day`,
     }),
     buildTrendCard({
       icon: 'ph-warning-circle',
@@ -341,7 +348,7 @@ function renderTrends() {
       colorClass: 'trend-bar--red',
       points: gagPoints,
       latestLabel: `${formatNumber(gagPoints[gagPoints.length - 1]?.value || 0)} episodes`,
-      averageLabel: `${formatNumber(mean(gagPoints.map((point) => point.value)) || 0)} / day`,
+      averageLabel: `${formatNumber(gagAverage || 0)} / day`,
     }),
     buildTrendCard({
       icon: 'ph-stethoscope',
@@ -351,7 +358,7 @@ function renderTrends() {
       colorClass: 'trend-bar--orange',
       points: wellnessPoints,
       latestLabel: wellnessPoints[wellnessPoints.length - 1]?.value !== null ? `${formatNumber(wellnessPoints[wellnessPoints.length - 1].value)} / 10` : 'No data',
-      averageLabel: mean(wellnessPoints.map((point) => point.value)) !== null ? `${formatNumber(mean(wellnessPoints.map((point) => point.value)))} / 10` : 'No data',
+      averageLabel: wellnessAverage !== null ? `${formatNumber(wellnessAverage)} / 10` : 'No data',
     }),
   ];
 

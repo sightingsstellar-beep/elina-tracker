@@ -733,9 +733,12 @@ async function deleteGag(id, scope = {}) {
 }
 
 async function getDaySummary(dayKey, scope = {}) {
-  const logs = await getLogsByDay(dayKey, scope);
-  const wellness = collapseLatestWellnessRows(await getWellnessByDay(dayKey, scope));
-  const gags = await getGagsByDay(dayKey, scope);
+  const [logs, wellnessRows, gags] = await Promise.all([
+    getLogsByDay(dayKey, scope),
+    getWellnessByDay(dayKey, scope),
+    getGagsByDay(dayKey, scope),
+  ]);
+  const wellness = collapseLatestWellnessRows(wellnessRows);
   const inputs = logs.filter((l) => l.entry_type === 'input');
   const outputs = logs.filter((l) => l.entry_type === 'output');
   const totalIntake = inputs.reduce((sum, l) => sum + (l.amount_ml || 0), 0);
