@@ -12,14 +12,21 @@
   if (!document.body?.matches('[data-app-shell]')) return;
 
   const routes = {
+    '/': { route: 'chart', view: 'chart', title: 'Glide Bedside', mount: null },
     '/app': { route: 'chart', view: 'chart', title: 'Glide Bedside', mount: null },
     '/app/': { route: 'chart', view: 'chart', title: 'Glide Bedside', mount: null },
     '/app/chart': { route: 'chart', view: 'chart', title: 'Glide Bedside', mount: null },
+    '/history': { route: 'trends', view: 'trends', title: 'Glide Bedside - Trends', mount: 'GlideHistoryView' },
     '/app/history': { route: 'trends', view: 'trends', title: 'Glide Bedside - Trends', mount: 'GlideHistoryView' },
+    '/chat': { route: 'chat', view: 'chat', title: 'Glide Bedside - Chat', mount: null },
     '/app/chat': { route: 'chat', view: 'chat', title: 'Glide Bedside - Chat', mount: null },
+    '/settings': { route: 'settings', view: 'settings', title: 'Glide Bedside - App Settings', mount: 'GlideSettingsView', viewKey: 'settings' },
     '/app/settings': { route: 'settings', view: 'settings', title: 'Glide Bedside - App Settings', mount: 'GlideSettingsView', viewKey: 'settings' },
+    '/patient-profile': { route: 'patient-profile', view: 'settings', title: 'Glide Bedside - Patient Profile', mount: 'GlideSettingsView', viewKey: 'patient-profile' },
     '/app/patient-profile': { route: 'patient-profile', view: 'settings', title: 'Glide Bedside - Patient Profile', mount: 'GlideSettingsView', viewKey: 'patient-profile' },
+    '/caregiver-profile': { route: 'caregiver-profile', view: 'settings', title: 'Glide Bedside - Profile', mount: 'GlideSettingsView', viewKey: 'caregiver-profile' },
     '/app/caregiver-profile': { route: 'caregiver-profile', view: 'settings', title: 'Glide Bedside - Profile', mount: 'GlideSettingsView', viewKey: 'caregiver-profile' },
+    '/caregivers': { route: 'caregivers', view: 'settings', title: 'Glide Bedside - Caregivers', mount: 'GlideSettingsView', viewKey: 'caregivers' },
     '/app/caregivers': { route: 'caregivers', view: 'settings', title: 'Glide Bedside - Caregivers', mount: 'GlideSettingsView', viewKey: 'caregivers' },
   };
 

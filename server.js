@@ -3483,40 +3483,24 @@ app.post('/api/settings', async (req, res) => {
   }
 });
 
-// Settings page
-app.get(['/app', '/app/*'], (req, res) => {
+// App shell routes
+app.get([
+  '/',
+  '/app',
+  '/app/*',
+  '/history',
+  '/chat',
+  '/settings',
+  '/caregivers',
+  '/caregiver-profile',
+  '/patient-profile',
+], (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'shell.html'));
 });
 
-app.get('/settings', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'settings.html'));
-});
-
-app.get('/caregivers', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'caregivers.html'));
-});
-
-app.get('/caregiver-profile', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'caregiver-profile.html'));
-});
-
-app.get('/patient-profile', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'patient-profile.html'));
-});
-
-// History page
-app.get('/history', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'history.html'));
-});
-
-// Chat page
-app.get('/chat', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'chat.html'));
-});
-
-// Fallback — serve dashboard for any unknown route
+// Fallback — serve dashboard shell for any unknown route
 app.get('*', (req, res) => {
-  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+  res.sendFile(path.join(__dirname, 'public', 'shell.html'));
 });
 
 // ---------------------------------------------------------------------------

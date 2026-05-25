@@ -14,6 +14,19 @@
   const accountPanel = menu.querySelector('[data-account-menu-panel]');
   const caregiverNameEls = menu.querySelectorAll('[data-caregiver-name]');
   const path = window.location.pathname === '/index.html' ? '/' : window.location.pathname;
+  const caregiverNameStorageKey = 'glide.caregiverDisplayName';
+
+  function setCaregiverName(name) {
+    const displayName = name || 'Caregiver';
+    caregiverNameEls.forEach((el) => {
+      if (el.textContent !== displayName) el.textContent = displayName;
+    });
+  }
+
+  try {
+    const cachedName = window.sessionStorage?.getItem(caregiverNameStorageKey);
+    if (cachedName) setCaregiverName(cachedName);
+  } catch (_) {}
 
   menu.querySelectorAll('a[href]').forEach((link) => {
     if (link.getAttribute('href') === path) {
@@ -74,7 +87,10 @@
     .then((res) => (res.ok ? res.json() : null))
     .then((data) => {
       const name = data?.scope?.displayName || data?.scope?.email || 'Caregiver';
-      caregiverNameEls.forEach((el) => { el.textContent = name; });
+      setCaregiverName(name);
+      try {
+        if (name && name !== 'Caregiver') window.sessionStorage?.setItem(caregiverNameStorageKey, name);
+      } catch (_) {}
     })
     .catch(() => {});
 })();

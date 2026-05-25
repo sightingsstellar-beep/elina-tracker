@@ -414,7 +414,7 @@ function initEvents() {
     if (!bar) return;
     const dayKey = bar.dataset.dayKey;
     if (!dayKey) return;
-    const target = dayKey ? `/app?date=${encodeURIComponent(dayKey)}` : '/app';
+    const target = dayKey ? `/?date=${encodeURIComponent(dayKey)}` : '/';
     if (document.body?.matches('[data-app-shell]')) {
       window.history.pushState({ route: 'chart' }, '', target);
       window.dispatchEvent(new CustomEvent('glide:shell-navigate', { detail: { pathname: '/app' } }));
