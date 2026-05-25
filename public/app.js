@@ -269,8 +269,14 @@ async function loadSelectedDayWeight() {
 
   try {
     const [weightRes, historyRes] = await Promise.all([
-      fetch(`/api/weight/today?date=${encodeURIComponent(state.selectedDayKey)}`),
-      fetch(`/api/weight/history?days=2&throughDate=${encodeURIComponent(state.selectedDayKey)}`),
+      fetch(`/api/weight/today?date=${encodeURIComponent(state.selectedDayKey)}`, {
+        cache: 'no-store',
+        headers: { Accept: 'application/json' },
+      }),
+      fetch(`/api/weight/history?days=2&throughDate=${encodeURIComponent(state.selectedDayKey)}`, {
+        cache: 'no-store',
+        headers: { Accept: 'application/json' },
+      }),
     ]);
 
     if (weightRes.ok) {
@@ -301,7 +307,10 @@ async function refreshDay(options = {}) {
   try {
     const url = new URL('/api/day', window.location.origin);
     if (requestedDayKey) url.searchParams.set('date', requestedDayKey);
-    const res = await fetch(url);
+    const res = await fetch(url, {
+      cache: 'no-store',
+      headers: { Accept: 'application/json' },
+    });
     await requireWriteOk(res);
 
     const data = await res.json();
