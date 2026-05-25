@@ -32,6 +32,16 @@
             <span class="top-menu-toggle-line"></span>
           </button>
           <div class="top-nav" data-top-menu-panel>
+            <div class="mobile-menu-header">
+              <div class="mobile-menu-profile">
+                <span class="mobile-menu-avatar" aria-hidden="true"><i class="ph ph-user-circle"></i></span>
+                <span class="mobile-menu-profile-text">
+                  <span class="mobile-menu-name" data-caregiver-name>Caregiver</span>
+                  <span class="mobile-menu-role">Caregiver account</span>
+                </span>
+              </div>
+              <button class="mobile-menu-close" type="button" aria-label="Close menu" data-top-menu-close><i class="ph ph-x" aria-hidden="true"></i></button>
+            </div>
             <a href="/" class="top-nav-item active" aria-current="page" data-shell-link data-route="chart"><i class="ph ph-chart-line-up" aria-hidden="true"></i> <span>Chart</span></a>
             <a href="/patient-profile" class="top-nav-item" data-shell-link data-route="patient-profile"><i class="ph ph-heart" aria-hidden="true"></i> <span>Patient Profile</span></a>
             <a href="/settings" class="top-nav-item" data-shell-link data-route="settings"><i class="ph ph-gear-six" aria-hidden="true"></i> <span>App Settings</span></a>
@@ -43,6 +53,7 @@
                 <a href="/logout"><i class="ph ph-power" aria-hidden="true"></i> Log out</a>
               </div>
             </div>
+            <a href="/logout" class="top-nav-mobile-logout"><i class="ph ph-power" aria-hidden="true"></i> Log out</a>
           </div>
         </div>
         <div class="clock" id="current-time">--:--</div>
@@ -92,6 +103,13 @@
   <div class="day-context-banner" id="day-context-banner" style="display:none;" data-chart-only></div>
 
   <main class="main" data-shell-view="chart">
+    <section class="chart-page-title" aria-labelledby="chart-page-title">
+      <div>
+        <h2 id="chart-page-title">Chart</h2>
+        <p id="chart-page-context">Loading day...</p>
+      </div>
+    </section>
+
     <section class="card quick-log-card">
       <div class="card-header">
         <span class="card-icon" aria-hidden="true"><i class="ph ph-lightning"></i></span>

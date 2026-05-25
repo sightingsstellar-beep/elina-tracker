@@ -10,6 +10,7 @@
 
   const toggle = menu.querySelector('[data-top-menu-toggle]');
   const panel = menu.querySelector('[data-top-menu-panel]');
+  const closeButton = menu.querySelector('[data-top-menu-close]');
   const accountButton = menu.querySelector('[data-account-menu-button]');
   const accountPanel = menu.querySelector('[data-account-menu-panel]');
   const caregiverNameEls = menu.querySelectorAll('[data-caregiver-name]');
@@ -36,6 +37,9 @@
       const chartTrigger = chartGroup?.querySelector('.top-nav-trigger');
       if (chartTrigger) chartTrigger.classList.add('active');
     }
+    link.addEventListener('click', () => {
+      window.setTimeout(closeMenu, 0);
+    });
   });
 
   function setExpanded(button, expanded) {
@@ -52,6 +56,7 @@
   function closeMenu() {
     if (!panel || !toggle) return;
     menu.classList.remove('top-menu--open');
+    document.body.classList.remove('top-menu-open');
     setExpanded(toggle, false);
     closeAccount();
   }
@@ -59,10 +64,13 @@
   if (toggle) {
     toggle.addEventListener('click', () => {
       const isOpen = menu.classList.toggle('top-menu--open');
+      document.body.classList.toggle('top-menu-open', isOpen);
       setExpanded(toggle, isOpen);
       if (!isOpen) closeAccount();
     });
   }
+
+  closeButton?.addEventListener('click', closeMenu);
 
   if (accountButton && accountPanel) {
     accountButton.addEventListener('click', (event) => {

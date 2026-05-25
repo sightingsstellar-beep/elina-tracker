@@ -414,6 +414,12 @@ function renderDayController() {
   const banner = document.getElementById('day-context-banner');
   const backBtn = document.getElementById('back-to-today');
   const nextBtn = document.getElementById('day-next');
+  const pageContext = document.getElementById('chart-page-context');
+  if (pageContext) {
+    pageContext.textContent = isTodaySelected()
+      ? 'Today'
+      : formatLongDay(state.selectedDayKey);
+  }
 
   if (isTodaySelected()) {
     banner.style.display = 'none';
