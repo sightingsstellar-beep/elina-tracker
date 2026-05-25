@@ -5,9 +5,12 @@ const state = {
   range: 7,
   days: [],
   weightByDate: {},
+  loaded: false,
 };
 let eventsInitialized = false;
 let clockTimer = null;
+let loadPromise = null;
+let loadPromiseRange = null;
 
 function updateClock() {
   const now = new Date();
@@ -365,41 +368,69 @@ function renderTrends() {
   container.innerHTML = cards.join('');
 }
 
-async function loadTrends() {
-  const container = document.getElementById('trends-container');
-  container.innerHTML = '<div class="h-loading">Loading trends…</div>';
+async function fetchTrendData() {
+  const [historyRes, weightRes] = await Promise.all([
+    fetch(`/api/history?days=${state.range}`),
+    fetch(`/api/weight/history?days=${state.range}`),
+  ]);
 
-  try {
-    const [historyRes, weightRes] = await Promise.all([
-      fetch(`/api/history?days=${state.range}`),
-      fetch(`/api/weight/history?days=${state.range}`),
-    ]);
+  if (!historyRes.ok) throw new Error(`HTTP ${historyRes.status}`);
+  const historyData = await historyRes.json();
+  if (!historyData.ok || !Array.isArray(historyData.days)) {
+    throw new Error('Invalid response from server');
+  }
 
-    if (!historyRes.ok) throw new Error(`HTTP ${historyRes.status}`);
-    const historyData = await historyRes.json();
-    if (!historyData.ok || !Array.isArray(historyData.days)) {
-      throw new Error('Invalid response from server');
-    }
+  state.days = historyData.days;
+  state.weightByDate = {};
 
-    state.days = historyData.days;
-    state.weightByDate = {};
-
-    if (weightRes.ok) {
-      const weightData = await weightRes.json();
-      if (weightData.ok && Array.isArray(weightData.entries)) {
-        for (const entry of weightData.entries) {
-          state.weightByDate[entry.date] = entry.weight_kg;
-        }
+  if (weightRes.ok) {
+    const weightData = await weightRes.json();
+    if (weightData.ok && Array.isArray(weightData.entries)) {
+      for (const entry of weightData.entries) {
+        state.weightByDate[entry.date] = entry.weight_kg;
       }
     }
+  }
 
-    renderTrends();
+  state.loaded = true;
+}
+
+function shouldRenderTrends() {
+  return !document.body?.matches('[data-app-shell]') || !document.querySelector('[data-shell-view="trends"]')?.hidden;
+}
+
+async function loadTrends(options = {}) {
+  const container = document.getElementById('trends-container');
+  const quiet = options.quiet === true;
+  const hasRenderedContent = state.loaded && container && !container.querySelector('.h-loading, .h-error');
+
+  if (!quiet && !hasRenderedContent) {
+    container.innerHTML = '<div class="h-loading">Loading trends…</div>';
+  }
+
+  try {
+    if (!loadPromise || loadPromiseRange !== state.range) {
+      const pendingRange = state.range;
+      const pendingPromise = fetchTrendData().finally(() => {
+        if (loadPromise === pendingPromise) {
+          loadPromise = null;
+          loadPromiseRange = null;
+        }
+      });
+      loadPromiseRange = pendingRange;
+      loadPromise = pendingPromise;
+    }
+    await loadPromise;
+
+    if (!quiet && shouldRenderTrends()) renderTrends();
     document.getElementById('last-updated').textContent = new Date().toLocaleTimeString('en-US', {
       hour: 'numeric', minute: '2-digit', second: '2-digit', hour12: true,
     });
   } catch (err) {
     console.error('[trends] Load error:', err.message);
-    container.innerHTML = `<div class="h-error"><i class="ph ph-traffic-signal" aria-hidden="true"></i> Failed to load trends: ${escapeHtml(err.message)}</div>`;
+    if (!quiet) {
+      container.innerHTML = `<div class="h-error"><i class="ph ph-traffic-signal" aria-hidden="true"></i> Failed to load trends: ${escapeHtml(err.message)}</div>`;
+    }
   }
 }
 
@@ -439,6 +470,7 @@ function mountHistoryView() {
     loadSettings();
   }
   initEvents();
+  if (state.loaded) renderTrends();
   loadTrends();
 }
 
@@ -452,9 +484,17 @@ function unmountHistoryView() {
 window.GlideHistoryView = {
   mount: mountHistoryView,
   unmount: unmountHistoryView,
+  preload: () => loadTrends({ quiet: true }),
 };
 
 if (!document.body?.matches('[data-app-shell]')) {
   mountHistoryView();
+} else {
+  const schedulePreload = () => window.GlideHistoryView.preload();
+  if ('requestIdleCallback' in window) {
+    window.requestIdleCallback(schedulePreload, { timeout: 1800 });
+  } else {
+    window.setTimeout(schedulePreload, 800);
+  }
 }
 })();
