@@ -7,7 +7,10 @@
 
 'use strict';
 
+(function initSettingsModule() {
+
 const SAVE_BUTTON_HTML = '<i class="ph ph-floppy-disk" aria-hidden="true"></i> Save Settings';
+let clockTimer = null;
 
 // ---------------------------------------------------------------------------
 // Clock
@@ -32,8 +35,17 @@ function updateClock() {
     });
   }
 }
-setInterval(updateClock, 1000);
-updateClock();
+function startClock() {
+  if (!clockTimer) clockTimer = setInterval(updateClock, 1000);
+  updateClock();
+}
+
+function stopClock() {
+  if (clockTimer) {
+    clearInterval(clockTimer);
+    clockTimer = null;
+  }
+}
 
 // ---------------------------------------------------------------------------
 // Field list
@@ -444,22 +456,50 @@ function showStatus(message, type) {
   }
 }
 
-// ---------------------------------------------------------------------------
-// Init
-// ---------------------------------------------------------------------------
-
-loadSettings();
-loadFamilyMembers();
-
-const saveBtn = document.getElementById('save-btn');
-if (saveBtn) saveBtn.addEventListener('click', saveSettings);
-const paletteSelect = document.getElementById('ui_palette');
-if (paletteSelect) {
-  paletteSelect.addEventListener('change', () => {
-    if (window.GlideTheme) window.GlideTheme.apply(paletteSelect.value);
-  });
+function renderShellSettingsView(viewKey) {
+  const host = document.querySelector('[data-settings-shell]');
+  if (!host) return;
+  if (host.dataset.currentView === viewKey) return;
+  const template = document.getElementById(`settings-template-${viewKey}`);
+  if (!template) return;
+  host.replaceChildren(template.content.cloneNode(true));
+  host.dataset.currentView = viewKey;
 }
-const inviteBtn = document.getElementById('invite-btn');
-if (inviteBtn) inviteBtn.addEventListener('click', sendCaregiverInvite);
-const caregiverProfileSaveBtn = document.getElementById('caregiver-profile-save');
-if (caregiverProfileSaveBtn) caregiverProfileSaveBtn.addEventListener('click', saveCaregiverProfile);
+
+function initEventHandlers() {
+  const saveBtn = document.getElementById('save-btn');
+  if (saveBtn) saveBtn.addEventListener('click', saveSettings);
+  const paletteSelect = document.getElementById('ui_palette');
+  if (paletteSelect) {
+    paletteSelect.addEventListener('change', () => {
+      if (window.GlideTheme) window.GlideTheme.apply(paletteSelect.value);
+    });
+  }
+  const inviteBtn = document.getElementById('invite-btn');
+  if (inviteBtn) inviteBtn.addEventListener('click', sendCaregiverInvite);
+  const caregiverProfileSaveBtn = document.getElementById('caregiver-profile-save');
+  if (caregiverProfileSaveBtn) caregiverProfileSaveBtn.addEventListener('click', saveCaregiverProfile);
+}
+
+async function mountSettingsView(viewKey = 'settings') {
+  renderShellSettingsView(viewKey);
+  startClock();
+  initEventHandlers();
+  await loadSettings();
+  await loadFamilyMembers();
+}
+
+function unmountSettingsView() {
+  stopClock();
+}
+
+window.GlideSettingsView = {
+  mount: mountSettingsView,
+  unmount: unmountSettingsView,
+};
+
+if (!document.body?.matches('[data-app-shell]')) {
+  mountSettingsView();
+}
+
+})();

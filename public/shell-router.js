@@ -12,11 +12,15 @@
   if (!document.body?.matches('[data-app-shell]')) return;
 
   const routes = {
-    '/app': { route: 'chart', title: 'Glide Bedside', mount: null },
-    '/app/': { route: 'chart', title: 'Glide Bedside', mount: null },
-    '/app/chart': { route: 'chart', title: 'Glide Bedside', mount: null },
-    '/app/history': { route: 'trends', title: 'Glide Bedside - Trends', mount: 'GlideHistoryView' },
-    '/app/chat': { route: 'chat', title: 'Glide Bedside - Chat', mount: null },
+    '/app': { route: 'chart', view: 'chart', title: 'Glide Bedside', mount: null },
+    '/app/': { route: 'chart', view: 'chart', title: 'Glide Bedside', mount: null },
+    '/app/chart': { route: 'chart', view: 'chart', title: 'Glide Bedside', mount: null },
+    '/app/history': { route: 'trends', view: 'trends', title: 'Glide Bedside - Trends', mount: 'GlideHistoryView' },
+    '/app/chat': { route: 'chat', view: 'chat', title: 'Glide Bedside - Chat', mount: null },
+    '/app/settings': { route: 'settings', view: 'settings', title: 'Glide Bedside - App Settings', mount: 'GlideSettingsView', viewKey: 'settings' },
+    '/app/patient-profile': { route: 'patient-profile', view: 'settings', title: 'Glide Bedside - Patient Profile', mount: 'GlideSettingsView', viewKey: 'patient-profile' },
+    '/app/caregiver-profile': { route: 'caregiver-profile', view: 'settings', title: 'Glide Bedside - Profile', mount: 'GlideSettingsView', viewKey: 'caregiver-profile' },
+    '/app/caregivers': { route: 'caregivers', view: 'settings', title: 'Glide Bedside - Caregivers', mount: 'GlideSettingsView', viewKey: 'caregivers' },
   };
 
   let activeMountedView = null;
@@ -34,14 +38,20 @@
       if (isActive) link.setAttribute('aria-current', 'page');
       else link.removeAttribute('aria-current');
     });
+    document.querySelectorAll('[data-account-menu-button]').forEach((button) => {
+      button.classList.toggle('active', routeName === 'caregiver-profile' || routeName === 'caregivers');
+    });
   }
 
-  function setActiveView(routeName) {
+  function setActiveView(viewName, routeName) {
     document.querySelectorAll('[data-shell-view]').forEach((view) => {
-      view.hidden = view.dataset.shellView !== routeName;
+      view.hidden = view.dataset.shellView !== viewName;
     });
     document.querySelectorAll('[data-chart-only]').forEach((element) => {
       element.hidden = routeName !== 'chart';
+    });
+    document.querySelectorAll('[data-chart-section]').forEach((element) => {
+      element.hidden = !(routeName === 'chart' || routeName === 'trends' || routeName === 'chat');
     });
   }
 
@@ -51,7 +61,7 @@
       activeMountedView = null;
     }
     if (route.mount && window[route.mount]?.mount) {
-      window[route.mount].mount();
+      window[route.mount].mount(route.viewKey);
       activeMountedView = route.mount;
     }
   }
@@ -60,7 +70,7 @@
     const route = routeForPath(pathname);
     document.title = route.title;
     setActiveRoute(route.route);
-    setActiveView(route.route);
+    setActiveView(route.view || route.route, route.route);
     mountRoute(route);
   }
 
