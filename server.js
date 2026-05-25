@@ -339,10 +339,6 @@ function renderClerkLoginPage({ misconfigured = false } = {}) {
           window.Clerk.load({ publishableKey: ${key}, localization: clerkLocalization }),
           new Promise((_, reject) => setTimeout(() => reject(new Error('Clerk browser library timed out while loading.')), 8000)),
         ]);
-        if (window.Clerk.user) {
-          window.location.assign('/');
-          return;
-        }
         window.Clerk.mountSignIn(signIn, {
           afterSignInUrl: '/',
           afterSignUpUrl: '/',
@@ -355,7 +351,6 @@ function renderClerkLoginPage({ misconfigured = false } = {}) {
       }
     });
   </script>`}
-  <script src="version-watch.js"></script>
 </body>
 </html>`;
 }
