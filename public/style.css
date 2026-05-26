@@ -383,6 +383,7 @@ body.quick-log-modal-open {
 .top-menu {
   position: relative;
   display: flex;
+  flex: 1 1 auto;
   justify-content: flex-end;
   max-width: 100%;
   min-width: 0;
@@ -419,9 +420,10 @@ body.quick-log-modal-open {
 .top-nav {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   flex-wrap: wrap;
   gap: 28px;
+  width: 100%;
   max-width: 100%;
 }
 
@@ -445,6 +447,14 @@ body.quick-log-modal-open {
   text-decoration: none;
   border-bottom: 2px solid transparent;
   transition: border-color 0.15s, color 0.15s, opacity 0.15s;
+}
+
+.top-nav-item.top-nav-mobile-account {
+  display: none;
+}
+
+.top-nav-secondary-start {
+  margin-left: auto;
 }
 
 .top-nav-item i,
@@ -2603,6 +2613,10 @@ body.quick-log-modal-open {
     line-height: 1.15;
   }
 
+  .top-nav-secondary-start {
+    margin-left: 0;
+  }
+
   .top-nav-item i,
   .top-nav-trigger i,
   .account-menu-panel i {
@@ -2663,7 +2677,7 @@ body.quick-log-modal-open {
     display: none;
   }
 
-  .top-nav-mobile-account {
+  .top-nav-item.top-nav-mobile-account {
     display: inline-flex;
   }
 
