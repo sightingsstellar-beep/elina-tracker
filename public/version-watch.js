@@ -1,8 +1,8 @@
 /*
  * version-watch.js — lightweight client-side deploy freshness check.
  *
- * Watches /api/version for commit changes. Auto-refreshes read-only display pages;
- * prompts first on pages where a caregiver may be typing or editing.
+ * Watches /api/version for commit changes. Prompts app-shell pages before
+ * refreshing so a resumed PWA cannot reload during the caregiver's first tap.
  */
 
 'use strict';
@@ -22,6 +22,7 @@
 
   function shouldPromptBeforeReload() {
     const path = normalizePath();
+    if (document.body?.matches('[data-app-shell]')) return true;
     if (PROMPT_PATHS.has(path)) return true;
     if (document.querySelector('.amount-modal:not([style*="display:none"]), .sheet-backdrop:not([style*="display:none"])')) return true;
     const active = document.activeElement;
