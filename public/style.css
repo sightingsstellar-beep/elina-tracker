@@ -269,6 +269,13 @@
   display: none !important;
 }
 
+body[data-app-shell][data-shell-pending] [data-shell-view],
+body[data-app-shell][data-shell-pending] [data-chart-only],
+body[data-app-shell][data-shell-pending] [data-chart-section] {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 html {
   font-size: 16px;
   -webkit-tap-highlight-color: transparent;

@@ -124,4 +124,5 @@
   });
 
   renderRoute(window.location.pathname);
+  document.body.removeAttribute('data-shell-pending');
 })();
