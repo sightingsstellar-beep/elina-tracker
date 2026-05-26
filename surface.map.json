@@ -147,12 +147,11 @@
       "status": "active",
       "label": "Postgres schema and patient/family data helpers",
       "kind": "data",
-      "summary": "Database schema initialization, scoped query helpers, settings cache, sessions, entries, patients, families, and migration path from the retired SQLite shape.",
+      "summary": "Database schema initialization, scoped query helpers, settings cache, sessions, entries, patients, and families.",
       "paths": [
         "db.js",
         "services/care-format.js",
         "services/care-labels.js",
-        "scripts/migrate-sqlite-to-postgres.js",
         "seed-sample-data.js"
       ],
       "checks": [
@@ -227,7 +226,7 @@
         ".env.example",
         "app-version.js",
         "docs/glide-bedside-release-v1.2.4.md",
-        "docs/smart-patient-tracker-release-v1.1.1.md"
+        "docs/glide-bedside-release-v1.1.1.md"
       ],
       "routes": [
         "GET /health",
@@ -251,7 +250,6 @@
         "README.md",
         "docs/backend-efficiency-plan.md",
         "docs/family-tenancy-access-design.md",
-        "docs/clerk-auth-spike.md",
         "docs/native-app-readiness-api-contract.md"
       ],
       "checks": [

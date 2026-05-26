@@ -4,6 +4,16 @@ All notable changes to the Glide Bedside web app and Alexa skill are documented 
 
 This project follows semantic versioning. Because the tracker is live and used daily, every deployed behavior change should link back to Mission Control context and include verification evidence.
 
+## [Unreleased]
+
+### Removed
+- Removed the retired SQLite-to-Postgres migration utility and its `better-sqlite3` dependency now that production is Postgres-backed.
+- Removed the retired Clerk auth spike page, diagnostics API routes, environment flag, and local-only spike doc now that production Clerk auth/onboarding exists.
+
+### Verification
+- `npm test`
+- `npm run verify:surface-map`
+
 ## [1.2.3] - 2026-05-18
 
 ### Changed

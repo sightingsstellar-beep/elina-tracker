@@ -68,8 +68,6 @@ contract.
 | POST | /api/account/preferences | Saves account preferences | Keep for user preferences |
 | GET | /api/family/members | Settings page access list | Keep, with role-aware contract |
 | POST | /api/family/invitations | Invite caregiver by email/role | Keep, admin/owner only |
-| GET | /api/clerk-spike/status | Clerk spike diagnostics | Internal/dev only |
-| GET | /api/clerk-spike/session | Clerk spike diagnostics | Internal/dev only |
 
 ### Care Data
 

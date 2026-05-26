@@ -1,8 +1,8 @@
 # Family Tenancy and Shared Caregiver Access Design
 
-## Problem
+## Current State
 
-Production Clerk login currently authenticates a person, but the app still routes every authenticated browser user to the legacy default family/patient. That means a new Google login can see the existing Touma/Elina data unless an additional authorization layer maps the user to an allowed family/patient.
+Production Clerk login now resolves authenticated browser users through internal family membership and onboarding. Known caregivers can still be bridged to the original default family/patient through the temporary `CLERK_DEFAULT_TENANT_ALLOWED_EMAILS` guard, but arbitrary new Clerk sign-ins should go through onboarding instead of seeing Touma/Elina data.
 
 The product needs two behaviors:
 
@@ -40,7 +40,9 @@ However, this app is currently plain Express/static, not a React/Next app using 
 3. Add a simple invite/join-code/admin-add flow.
 4. Later map memberships to Clerk Organizations if/when we want Clerk-managed invites and organization switching.
 
-## Proposed schema additions
+## Current Schema Foundation
+
+The production schema includes `families`, `patients`, `family_memberships`, `family_invitations`, and `alexa_account_links`. The original design sketch is retained below as the shape this implementation follows.
 
 ```sql
 ALTER TABLE families ADD COLUMN IF NOT EXISTS clerk_org_id TEXT UNIQUE;
@@ -110,9 +112,9 @@ For an invited spouse/caregiver:
 
 Alexa account linking should map a Clerk/OAuth subject to a family/patient scope through the same membership layer. `alexa_account_links` can remain, but it should point to a verified membership/family/patient rather than defaulting silently.
 
-## Immediate safety guard
+## Temporary Safety Guard
 
-Until full tenancy is implemented, production should keep `CLERK_DEFAULT_TENANT_ALLOWED_EMAILS` set to the known authorized caregiver emails only. This prevents arbitrary new Clerk sign-ins from seeing the default patient.
+While the original Touma/Elina data remains the default tenant, production should keep `CLERK_DEFAULT_TENANT_ALLOWED_EMAILS` restricted to known authorized caregiver emails. This prevents arbitrary new Clerk sign-ins from being auto-attached to the default patient during the transition.
 
 ## Caregiver invite email delivery
 
@@ -127,14 +129,21 @@ Production invite email uses generic SMTP configuration so credentials stay in R
 
 If mail is not configured, the invite endpoint still creates the invitation and returns `email.sent=false`; the Settings UI tells the caregiver that the recipient can sign in but invite email is not configured yet. Do not store SMTP passwords or provider tokens in docs, MC, chat, or code.
 
-## Implementation slices
+## Implementation Status
 
-1. Add temporary default-tenant allowlist and enable it in Railway.
-2. Add `family_memberships` schema + helpers.
-3. Add `resolveRequestScope(req)` middleware.
-4. Convert dashboard/API DB calls from default IDs to `req.scope`.
-5. Add first-login onboarding for clean-slate families.
-6. Add invite/admin-add flow for shared caregiver access.
-7. Migrate Daniel’s Clerk identity to the existing default family/patient membership.
-8. Add tenant-isolation tests/probes.
-9. Update Alexa account-linking resolution to require membership-backed scope.
+Implemented:
+
+- Temporary default-tenant allowlist.
+- `family_memberships` and invitation schema/helpers.
+- Clerk request-scope resolution through `req.scope`.
+- Dashboard/API DB calls scoped by resolved family/patient context.
+- First-login onboarding for clean-slate families.
+- Settings-page caregiver invitation flow.
+- Tenant-scope and route-contract tests.
+- Alexa linked-account resolution through membership-backed scope when a token is present.
+
+Remaining or conditional:
+
+- Keep the default-tenant allowlist only as long as the original Touma/Elina bridge is needed.
+- Decide later whether to map internal memberships to Clerk Organizations for managed org switching/invites.
+- Require Alexa account linking for all Alexa requests only after reviewer-safe linking is verified.

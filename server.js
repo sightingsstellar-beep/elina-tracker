@@ -38,7 +38,6 @@ const PORT = process.env.PORT || 3000;
 const API_KEY = process.env.API_KEY; // Programmatic access (Mr. Stellar)
 const truthy = (value) => ['1', 'true', 'yes'].includes(String(value || '').toLowerCase());
 const CLERK_AUTH_ENABLED = truthy(process.env.CLERK_AUTH_ENABLED);
-const CLERK_SPIKE_ENABLED = truthy(process.env.CLERK_SPIKE_ENABLED);
 const CLERK_PUBLISHABLE_KEY = process.env.CLERK_PUBLISHABLE_KEY || '';
 const CLERK_SECRET_KEY = process.env.CLERK_SECRET_KEY || '';
 const ALEXA_ACCOUNT_LINKING_REQUIRED = truthy(process.env.ALEXA_ACCOUNT_LINKING_REQUIRED);
@@ -58,7 +57,7 @@ app.set('trust proxy', 1);
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
-if ((CLERK_AUTH_ENABLED || CLERK_SPIKE_ENABLED) && CLERK_CONFIGURED) {
+if (CLERK_AUTH_ENABLED && CLERK_CONFIGURED) {
   app.use(clerkMiddleware());
 }
 
@@ -556,121 +555,6 @@ app.post('/api/onboarding', clerkPageAuth, async (req, res) => {
     console.error('[POST /api/onboarding]', err);
     res.status(500).json({ ok: false, error: err.message });
   }
-});
-
-// ---------------------------------------------------------------------------
-// Clerk auth spike (public, explicitly gated; does not replace shared login)
-// ---------------------------------------------------------------------------
-
-function clerkSpikeStatus() {
-  return {
-    enabled: CLERK_SPIKE_ENABLED,
-    configured: Boolean(CLERK_PUBLISHABLE_KEY && CLERK_SECRET_KEY && clerkClient),
-    appVersion: APP_VERSION,
-  };
-}
-
-app.get('/clerk-spike', (req, res) => {
-  const status = clerkSpikeStatus();
-  if (!status.enabled || !status.configured) {
-    return res.status(404).send('Clerk spike is disabled. Set CLERK_SPIKE_ENABLED=true plus Clerk keys to test it.');
-  }
-
-  res.type('html').send(`<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Clerk Auth Spike · Glide Bedside</title>
-  <style>
-    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; max-width: 760px; margin: 2rem auto; padding: 0 1rem; color: #172033; }
-    code, pre { background: #f4f6fb; border-radius: 8px; padding: 0.75rem; }
-    pre { white-space: pre-wrap; }
-    .card { border: 1px solid #d9e0ef; border-radius: 14px; padding: 1rem; margin: 1rem 0; }
-    button { border: 0; border-radius: 999px; padding: 0.7rem 1rem; background: #365cff; color: white; font-weight: 700; cursor: pointer; }
-    button.secondary { background: #edf1ff; color: #24356a; }
-  </style>
-</head>
-<body>
-  <h1>Clerk Auth Spike</h1>
-  <p>This isolated page validates Clerk login/session plumbing only. It does not replace the production shared-password login.</p>
-  <div id="signed-out" class="card" hidden>
-    <h2>Sign in</h2>
-    <p>The embedded Clerk UI may not render for every Clerk development instance, so this spike uses Clerk's hosted redirect flow as the reliable path.</p>
-    <p><button id="hosted-sign-in">Sign in with Clerk</button></p>
-    <div id="sign-in"></div>
-    <pre id="sign-in-output" hidden></pre>
-  </div>
-  <div id="signed-in" class="card" hidden>
-    <h2>Signed in</h2>
-    <p><button id="check-session">Check backend session</button> <button class="secondary" id="sign-out">Sign out</button></p>
-    <pre id="session-output">Waiting…</pre>
-  </div>
-  <script async crossorigin="anonymous" data-clerk-publishable-key="${CLERK_PUBLISHABLE_KEY}" src="https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js"></script>
-  <script>
-    window.addEventListener('load', async () => {
-      await window.Clerk.load();
-      const signedIn = Boolean(window.Clerk.user);
-      document.getElementById('signed-out').hidden = signedIn;
-      document.getElementById('signed-in').hidden = !signedIn;
-      if (!signedIn) {
-        document.getElementById('hosted-sign-in').addEventListener('click', () => {
-          window.Clerk.redirectToSignIn({ redirectUrl: window.location.href });
-        });
-        try {
-          window.Clerk.mountSignIn(document.getElementById('sign-in'));
-        } catch (error) {
-          const output = document.getElementById('sign-in-output');
-          output.hidden = false;
-          output.textContent = 'Embedded sign-in unavailable; use the Sign in with Clerk button above. Detail: ' + error.message;
-        }
-        return;
-      }
-      const check = async () => {
-        const response = await fetch('/api/clerk-spike/session');
-        document.getElementById('session-output').textContent = JSON.stringify(await response.json(), null, 2);
-      };
-      document.getElementById('check-session').addEventListener('click', check);
-      document.getElementById('sign-out').addEventListener('click', () => window.Clerk.signOut(() => location.reload()));
-      await check();
-    });
-  </script>
-</body>
-</html>`);
-});
-
-app.get('/api/clerk-spike/status', (req, res) => {
-  res.json(clerkSpikeStatus());
-});
-
-const clerkSpikeMiddleware = (req, res, next) => {
-  const status = clerkSpikeStatus();
-  if (!status.enabled || !status.configured) {
-    return res.status(404).json({ error: 'clerk_spike_disabled', ...status });
-  }
-  return clerkMiddleware()(req, res, next);
-};
-
-app.get('/api/clerk-spike/session', clerkSpikeMiddleware, async (req, res) => {
-  const auth = getAuth(req);
-  if (!auth.isAuthenticated || !auth.userId) {
-    return res.status(401).json({ authenticated: false });
-  }
-
-  const user = await clerkClient.users.getUser(auth.userId);
-  res.json({
-    authenticated: true,
-    clerkUserId: auth.userId,
-    sessionId: auth.sessionId,
-    primaryEmail: user.primaryEmailAddress?.emailAddress || null,
-    firstName: user.firstName || null,
-    lastName: user.lastName || null,
-    proposedInternalMapping: {
-      familyId: process.env.DEFAULT_FAMILY_ID || '00000000-0000-4000-8000-000000000001',
-      patientId: process.env.DEFAULT_PATIENT_ID || '00000000-0000-4000-8000-000000000101',
-      role: 'caregiver',
-    },
-  });
 });
 
 // ---------------------------------------------------------------------------

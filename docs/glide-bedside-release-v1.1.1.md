@@ -2,7 +2,9 @@
 
 ## Summary
 
-Baseline accountability release for the live Glide Bedside web app and Alexa skill under the Family Care Bundle / Enounce AI product line.
+Baseline accountability release for the live Glide Bedside web app and Alexa skill.
+
+Historical note: this release shipped before the repository and package were renamed from Smart Patient Tracker to Glide Bedside. The observed package names, Railway service names, URLs, and Mission Control lineage below are retained as release-history evidence, not current operational naming.
 
 This release adds explicit version surfaces without changing the core fluid-tracking workflow:
 
@@ -26,7 +28,7 @@ This release adds explicit version surfaces without changing the core fluid-trac
 
 ## Local verification
 
-Run from `smart-patient-tracker/`:
+Run from the app repository:
 
 ```bash
 node --check app-version.js
@@ -98,4 +100,3 @@ Alexa endpoint verification passed by POSTing a `VersionIntent` request with the
 ```
 
 Remaining follow-up: deploy/rebuild the Alexa interaction model in the Alexa developer console/SMAPI so real-user utterances for `VersionIntent` are recognized. The production endpoint already handles the intent.
-
