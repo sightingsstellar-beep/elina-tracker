@@ -89,13 +89,34 @@ function trendIconHtml(iconClass) {
   return `<span class="trend-heading-icon" aria-hidden="true"><i class="ph ${escapeHtml(iconClass)}"></i></span>`;
 }
 
+function getTrendDensityClass(pointCount) {
+  if (pointCount > 60) return ' trend-card--dense';
+  if (pointCount > 24) return ' trend-card--compact';
+  return '';
+}
+
+function getTrendLabelStep(pointCount) {
+  if (pointCount > 60) return 10;
+  if (pointCount > 45) return 7;
+  if (pointCount > 24) return 5;
+  if (pointCount > 14) return 3;
+  return 1;
+}
+
+function shouldShowTrendLabel(index, pointCount) {
+  const labelStep = getTrendLabelStep(pointCount);
+  return index === 0 || index === pointCount - 1 || index % labelStep === 0;
+}
+
 function buildTrendCard({ icon, title, subtitle, unit, points, colorClass, latestLabel, averageLabel, signed = false, negativeColorClass = 'trend-bar--red' }) {
   const validValues = points.map((point) => point.value).filter((value) => typeof value === 'number' && !Number.isNaN(value));
   const maxValue = signed
     ? (validValues.length ? Math.max(...validValues.map((value) => Math.abs(value))) : 1)
     : (validValues.length ? Math.max(...validValues) : 1);
 
-  const bars = points.map((point) => {
+  const densityClass = getTrendDensityClass(points.length);
+
+  const bars = points.map((point, index) => {
     const isNumber = typeof point.value === 'number' && !Number.isNaN(point.value);
     const magnitude = isNumber ? Math.abs(point.value) : 0;
     const heightPct = isNumber && maxValue > 0
@@ -120,13 +141,13 @@ function buildTrendCard({ icon, title, subtitle, unit, points, colorClass, lates
         <span class="${barShellClass}">
           ${barHtml}
         </span>
-        <span class="trend-bar-date">${escapeHtml(shortDayLabel(point.dayKey))}</span>
+        <span class="trend-bar-date${shouldShowTrendLabel(index, points.length) ? '' : ' trend-date--hidden'}">${escapeHtml(shortDayLabel(point.dayKey))}</span>
       </button>
     `;
   }).join('');
 
   return `
-    <section class="trend-card card">
+    <section class="trend-card card${densityClass}">
       <div class="trend-card-header">
         <div>
           <h3>${trendIconHtml(icon)} <span>${escapeHtml(title)}</span></h3>
@@ -144,7 +165,7 @@ function buildTrendCard({ icon, title, subtitle, unit, points, colorClass, lates
         </div>
       </div>
       <div class="trend-chart-scroll">
-        <div class="trend-bars" style="grid-template-columns: repeat(${points.length}, minmax(28px, 1fr));">
+        <div class="trend-bars" style="grid-template-columns: repeat(${points.length}, minmax(0, 1fr));">
           ${bars}
         </div>
       </div>
@@ -160,7 +181,7 @@ function buildLineTrendCard({ icon, title, subtitle, unit, points, colorClass, l
   const minValue = values.length ? Math.min(...values) : 0;
   const maxValue = values.length ? Math.max(...values) : 1;
   const range = maxValue - minValue || 1;
-  const chartWidth = Math.max(points.length * 44, 220);
+  const densityClass = getTrendDensityClass(points.length);
 
   const toX = (index) => (points.length <= 1 ? 50 : 4 + ((index / (points.length - 1)) * 92));
   const toY = (value) => {
@@ -192,18 +213,18 @@ function buildLineTrendCard({ icon, title, subtitle, unit, points, colorClass, l
     `;
   }).join('');
 
-  const labels = points.map((point) => {
+  const labels = points.map((point, index) => {
     const isNumber = typeof point.value === 'number' && !Number.isNaN(point.value);
     const labelValue = isNumber ? `${formatNumber(point.value)}${unit}` : 'No data';
     return `
       <button class="trend-line-label-btn${isNumber ? '' : ' trend-line-label-btn--empty'}" data-day-key="${point.dayKey}" title="${escapeHtml(point.label)}: ${escapeHtml(labelValue)}">
-        <span class="trend-line-label-date">${escapeHtml(shortDayLabel(point.dayKey))}</span>
+        <span class="trend-line-label-date${shouldShowTrendLabel(index, points.length) ? '' : ' trend-date--hidden'}">${escapeHtml(shortDayLabel(point.dayKey))}</span>
       </button>
     `;
   }).join('');
 
   return `
-    <section class="trend-card card">
+    <section class="trend-card card${densityClass}">
       <div class="trend-card-header">
         <div>
           <h3>${trendIconHtml(icon)} <span>${escapeHtml(title)}</span></h3>
@@ -221,7 +242,7 @@ function buildLineTrendCard({ icon, title, subtitle, unit, points, colorClass, l
         </div>
       </div>
       <div class="trend-chart-scroll">
-        <div class="trend-line-card-inner" style="min-width:${chartWidth}px;">
+        <div class="trend-line-card-inner">
           <div class="trend-line-shell">
             <div class="trend-line-plot">
               <div class="trend-line-grid">
@@ -235,7 +256,7 @@ function buildLineTrendCard({ icon, title, subtitle, unit, points, colorClass, l
               ${pointsHtml}
             </div>
           </div>
-          <div class="trend-line-labels" style="grid-template-columns: repeat(${points.length}, minmax(44px, 1fr));">
+          <div class="trend-line-labels" style="grid-template-columns: repeat(${points.length}, minmax(0, 1fr));">
             ${labels}
           </div>
         </div>

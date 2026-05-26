@@ -177,8 +177,7 @@
 }
 
 .trend-chart-scroll {
-  overflow-x: auto;
-  -webkit-overflow-scrolling: touch;
+  overflow: hidden;
   padding-bottom: 4px;
 }
 
@@ -225,6 +224,7 @@
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
 }
 
 .trend-line-point-btn {
@@ -251,7 +251,7 @@
 
 .trend-line-labels {
   display: grid;
-  gap: 8px;
+  gap: 2px;
   margin-top: 10px;
 }
 
@@ -259,7 +259,7 @@
   border: none;
   background: transparent;
   padding: 0;
-  min-width: 44px;
+  min-width: 0;
   cursor: pointer;
 }
 
@@ -277,7 +277,7 @@
 
 .trend-bars {
   display: grid;
-  gap: 6px;
+  gap: 4px;
   align-items: end;
   min-height: 164px;
   padding: 8px 2px 0;
@@ -294,7 +294,7 @@
   border: none;
   background: transparent;
   padding: 0;
-  min-width: 24px;
+  min-width: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -372,6 +372,48 @@
   transform: none;
   letter-spacing: -0.01em;
   white-space: nowrap;
+}
+
+.trend-date--hidden {
+  visibility: hidden;
+}
+
+.trend-card--compact .trend-bars {
+  gap: 3px;
+}
+
+.trend-card--dense .trend-bars {
+  gap: 2px;
+}
+
+.trend-card--compact .trend-bar,
+.trend-card--dense .trend-bar {
+  width: min(100%, 7px);
+}
+
+.trend-card--compact .trend-bar-date,
+.trend-card--compact .trend-line-label-date {
+  font-size: 0.62rem;
+}
+
+.trend-card--dense .trend-bar-date,
+.trend-card--dense .trend-line-label-date {
+  font-size: 0.58rem;
+}
+
+.trend-card--compact .trend-line-point-btn,
+.trend-card--dense .trend-line-point-btn {
+  width: 16px;
+  height: 16px;
+  margin-left: -8px;
+  margin-top: -8px;
+}
+
+.trend-card--compact .trend-line-point,
+.trend-card--dense .trend-line-point {
+  width: 7px;
+  height: 7px;
+  margin: 4.5px;
 }
 
 .trend-bar--blue {
