@@ -356,7 +356,7 @@
 
 @media (min-width: 480px) {
   .settings-field {
-    flex-direction: row;
+    flex-flow: row wrap;
     align-items: center;
     gap: 12px;
   }
@@ -378,6 +378,11 @@
     min-width: 0;
   }
 
+  .settings-field > .settings-help {
+    flex: 0 0 calc(100% - 212px);
+    margin: -4px 0 0 212px;
+  }
+
   .radio-group {
     flex: 1;
     min-width: 0;
@@ -395,7 +400,7 @@
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 16px;
-    align-items: start;
+    align-items: stretch;
   }
 
   .settings-main[data-settings-view="settings"] .settings-heading,
@@ -405,10 +410,23 @@
 
   .settings-main[data-settings-view="settings"] .settings-card {
     margin-bottom: 0;
+    min-height: 100%;
   }
 
   .settings-main[data-settings-view="settings"] .settings-save-row {
     padding-top: 0;
+  }
+
+  .settings-main[data-settings-view="settings"] .about-card {
+    grid-column: 1 / -1;
+    justify-self: center;
+    width: 100%;
+    max-width: 640px;
+    min-height: 0;
+  }
+
+  .settings-main[data-settings-view="settings"] .about-card .settings-section-title {
+    justify-content: center;
   }
 }
 
