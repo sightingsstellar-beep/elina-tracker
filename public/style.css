@@ -411,6 +411,7 @@ body.quick-log-modal-open {
 }
 
 .mobile-menu-header,
+.top-nav-mobile-account,
 .top-nav-mobile-logout {
   display: none;
 }
@@ -2660,6 +2661,10 @@ body.quick-log-modal-open {
   .account-menu .top-nav-trigger,
   .account-menu-panel a[href="/logout"] {
     display: none;
+  }
+
+  .top-nav-mobile-account {
+    display: inline-flex;
   }
 
   .top-nav-mobile-logout {
