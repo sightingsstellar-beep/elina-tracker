@@ -337,7 +337,7 @@ body.quick-log-modal-open {
 }
 
 .header-left {
-  flex: 1 1 210px;
+  flex: 0 0 auto;
   min-width: 0;
 }
 
@@ -345,7 +345,7 @@ body.quick-log-modal-open {
   display: flex;
   align-items: flex-start;
   gap: 12px;
-  flex: 1 1 680px;
+  flex: 1 1 auto;
   justify-content: flex-end;
   text-align: right;
   min-width: 0;
