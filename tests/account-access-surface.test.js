@@ -19,6 +19,8 @@ test('account shell owns care team access without a separate caregivers surface'
 
   assert.match(shell, /settings-template-account/);
   assert.match(shell, /Care Team Access/);
+  assert.match(shell, /account-menu-panel[\s\S]*href="\/account"/);
+  assert.doesNotMatch(shell, /top-nav-item[^>]*data-route="account"/);
   assert.doesNotMatch(shell, /settings-template-caregivers/);
   assert.doesNotMatch(shell, /href="\/caregivers"/);
   assert.doesNotMatch(router, /\/caregivers/);

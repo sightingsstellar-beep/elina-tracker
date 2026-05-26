@@ -39,11 +39,10 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  font-size: 1.18rem;
-  font-weight: 750;
-  color: var(--blue-dark);
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--text);
   margin-bottom: 4px;
-  letter-spacing: -0.02em;
 }
 
 .trends-heading .heading-icon {
@@ -54,10 +53,12 @@
   place-items: center;
   background: linear-gradient(135deg, rgba(47, 127, 159, 0.18), rgba(95, 199, 189, 0.16));
   color: var(--blue);
-  font-size: 1.18rem;
+  font-size: 1.26rem;
+  line-height: 1;
+  flex: 0 0 auto;
   box-shadow:
     inset 0 0 0 1px var(--bedside-nav-border),
-    0 8px 18px rgba(47, 127, 159, 0.14);
+    0 8px 18px rgba(47, 127, 159, 0.16);
 }
 
 .trends-subheading {
@@ -109,25 +110,27 @@
 .trend-card-header h3 {
   display: flex;
   align-items: center;
-  gap: 9px;
-  font-size: 1.03rem;
-  font-weight: 750;
+  gap: 10px;
+  font-size: 1.05rem;
+  font-weight: 600;
   color: var(--text);
   margin-bottom: 4px;
-  letter-spacing: -0.015em;
 }
 
 .trend-heading-icon {
-  width: 30px;
-  height: 30px;
+  width: 34px;
+  height: 34px;
   border-radius: 999px;
   display: inline-grid;
   place-items: center;
   background: linear-gradient(135deg, rgba(47, 127, 159, 0.18), rgba(95, 199, 189, 0.16));
   color: var(--blue);
-  font-size: 1.08rem;
+  font-size: 1.26rem;
+  line-height: 1;
   flex: 0 0 auto;
-  box-shadow: inset 0 0 0 1px var(--bedside-nav-border);
+  box-shadow:
+    inset 0 0 0 1px var(--bedside-nav-border),
+    0 8px 18px rgba(47, 127, 159, 0.16);
 }
 
 .trend-card-header p {
