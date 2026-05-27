@@ -317,7 +317,7 @@ async function clerkFrontendApiProxy(req, res) {
   const headers = new Headers();
   for (const [name, value] of Object.entries(req.headers)) {
     const lower = name.toLowerCase();
-    if (['host', 'connection', 'content-length', 'transfer-encoding'].includes(lower)) continue;
+    if (['host', 'connection', 'content-length', 'transfer-encoding', 'forwarded', 'x-forwarded-host', 'x-forwarded-proto', 'x-forwarded-port'].includes(lower)) continue;
     if (Array.isArray(value)) headers.set(name, value.join(', '));
     else if (value !== undefined) headers.set(name, String(value));
   }
