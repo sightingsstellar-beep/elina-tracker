@@ -54,6 +54,10 @@ const CLERK_DEFAULT_TENANT_ALLOWED_EMAILS = new Set(
 // secure cookies and correct req.ip / req.protocol values.
 app.set('trust proxy', 1);
 
+if (CLERK_AUTH_ENABLED && CLERK_CONFIGURED) {
+  app.use('/__clerk', express.raw({ type: '*/*', limit: '10mb' }), clerkFrontendApiProxy);
+}
+
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 
@@ -178,7 +182,8 @@ async function authStatus(req = null) {
     clerkLoginProvider,
     legacySessionAuthenticated: Boolean(req?.session?.authenticated),
     clerkPublishableKey: CLERK_AUTH_ENABLED && CLERK_CONFIGURED ? CLERK_PUBLISHABLE_KEY : null,
-    clerkScriptSrc: CLERK_AUTH_ENABLED && CLERK_CONFIGURED ? getClerkScriptSrc() : null,
+    clerkScriptSrc: CLERK_AUTH_ENABLED && CLERK_CONFIGURED ? getClerkScriptSrc(req) : null,
+    clerkProxyUrl: CLERK_AUTH_ENABLED && CLERK_CONFIGURED && req ? getClerkProxyUrl(req) : null,
     appVersion: APP_VERSION,
   };
 }
@@ -259,24 +264,93 @@ function publishCareChange(scope, detail = {}) {
   realtime.publishCareChange(scope, detail);
 }
 
-function getClerkScriptSrc() {
-  const configuredScriptSrc = String(process.env.CLERK_SCRIPT_SRC || '').trim();
-  if (configuredScriptSrc) return configuredScriptSrc;
-  let clerkScriptSrc = 'https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js';
+function getDecodedClerkHost() {
   try {
     const encoded = CLERK_PUBLISHABLE_KEY.split('_').pop() || '';
     const decoded = Buffer.from(encoded, 'base64').toString('utf8');
-    const clerkHost = decoded.replace(/\$$/, '');
-    if (clerkHost) {
-      clerkScriptSrc = `https://${clerkHost}/npm/@clerk/clerk-js@latest/dist/clerk.browser.js`;
-    }
-  } catch (_) {}
+    return decoded.replace(/\$$/, '');
+  } catch (_) {
+    return '';
+  }
+}
+
+function getClerkFrontendApiOrigin() {
+  const clerkHost = getDecodedClerkHost();
+  return clerkHost ? `https://${clerkHost}` : '';
+}
+
+function requestOrigin(req) {
+  return `${req.protocol}://${req.get('host')}`;
+}
+
+function shouldUseClerkProxy(req) {
+  const host = String(req?.hostname || '').toLowerCase();
+  return host.endsWith('.up.railway.app');
+}
+
+function getClerkProxyUrl(req) {
+  return shouldUseClerkProxy(req) ? `${requestOrigin(req)}/__clerk` : null;
+}
+
+function getClerkScriptSrc(req = null) {
+  if (req && shouldUseClerkProxy(req)) {
+    return 'https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js';
+  }
+  const configuredScriptSrc = String(process.env.CLERK_SCRIPT_SRC || '').trim();
+  if (configuredScriptSrc) return configuredScriptSrc;
+  let clerkScriptSrc = 'https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js';
+  const clerkHost = getDecodedClerkHost();
+  if (clerkHost) {
+    clerkScriptSrc = `https://${clerkHost}/npm/@clerk/clerk-js@latest/dist/clerk.browser.js`;
+  }
   return clerkScriptSrc;
 }
 
-function renderClerkLoginPage({ misconfigured = false } = {}) {
+async function clerkFrontendApiProxy(req, res) {
+  const frontendApiOrigin = getClerkFrontendApiOrigin();
+  if (!frontendApiOrigin || !CLERK_SECRET_KEY) {
+    return res.status(503).json({ ok: false, error: 'Clerk proxy is not configured.' });
+  }
+
+  const upstreamPath = req.originalUrl.replace(/^\/__clerk/, '') || '/';
+  const upstreamUrl = new URL(upstreamPath, frontendApiOrigin);
+  const headers = new Headers();
+  for (const [name, value] of Object.entries(req.headers)) {
+    const lower = name.toLowerCase();
+    if (['host', 'connection', 'content-length', 'transfer-encoding'].includes(lower)) continue;
+    if (Array.isArray(value)) headers.set(name, value.join(', '));
+    else if (value !== undefined) headers.set(name, String(value));
+  }
+  headers.set('Clerk-Proxy-Url', `${requestOrigin(req)}/__clerk`);
+  headers.set('Clerk-Secret-Key', CLERK_SECRET_KEY);
+  headers.set('X-Forwarded-For', req.ip || req.socket.remoteAddress || '');
+
+  try {
+    const upstream = await fetch(upstreamUrl, {
+      method: req.method,
+      headers,
+      body: ['GET', 'HEAD'].includes(req.method) ? undefined : req.body,
+      redirect: 'manual',
+    });
+    res.status(upstream.status);
+    upstream.headers.forEach((value, name) => {
+      const lower = name.toLowerCase();
+      if (['connection', 'content-encoding', 'content-length', 'transfer-encoding'].includes(lower)) return;
+      res.setHeader(name, value);
+    });
+    const body = Buffer.from(await upstream.arrayBuffer());
+    return res.send(body);
+  } catch (err) {
+    console.error('[auth] Clerk Frontend API proxy failed:', err.message);
+    return res.status(502).json({ ok: false, error: 'Clerk proxy request failed.' });
+  }
+}
+
+function renderClerkLoginPage(req, { misconfigured = false } = {}) {
   const key = JSON.stringify(CLERK_PUBLISHABLE_KEY);
-  const clerkScriptSrc = getClerkScriptSrc();
+  const clerkScriptSrc = getClerkScriptSrc(req);
+  const clerkProxyUrl = getClerkProxyUrl(req);
+  const proxyLine = clerkProxyUrl ? `clerkLoadOptions.proxyUrl = ${JSON.stringify(clerkProxyUrl)};` : '';
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -350,8 +424,10 @@ function renderClerkLoginPage({ misconfigured = false } = {}) {
             },
           },
         };
+        const clerkLoadOptions = { publishableKey: ${key}, localization: clerkLocalization };
+        ${proxyLine}
         await Promise.race([
-          window.Clerk.load({ publishableKey: ${key}, localization: clerkLocalization }),
+          window.Clerk.load(clerkLoadOptions),
           new Promise((_, reject) => setTimeout(() => reject(new Error('Clerk browser library timed out while loading.')), 8000)),
         ]);
         const params = new URLSearchParams(window.location.search);
@@ -391,10 +467,10 @@ app.get('/api/auth/status', async (req, res) => res.json(await authStatus(req)))
 app.get('/login', (req, res) => {
   res.set('Cache-Control', 'no-store, max-age=0');
   if (CLERK_AUTH_ENABLED) {
-    if (!CLERK_CONFIGURED) return res.status(503).type('html').send(renderClerkLoginPage({ misconfigured: true }));
+    if (!CLERK_CONFIGURED) return res.status(503).type('html').send(renderClerkLoginPage(req, { misconfigured: true }));
     const auth = getAuth(req);
     if (auth?.isAuthenticated && auth?.userId) return res.redirect('/');
-    return res.type('html').send(renderClerkLoginPage());
+    return res.type('html').send(renderClerkLoginPage(req));
   }
   if (req.session && req.session.authenticated) return res.redirect('/');
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
@@ -429,7 +505,9 @@ app.get('/logout', (req, res) => {
   if (CLERK_AUTH_ENABLED) {
     if (!CLERK_CONFIGURED) return res.redirect('/login');
     const key = JSON.stringify(CLERK_PUBLISHABLE_KEY);
-    const clerkScriptSrc = getClerkScriptSrc();
+    const clerkScriptSrc = getClerkScriptSrc(req);
+    const clerkProxyUrl = getClerkProxyUrl(req);
+    const proxyLine = clerkProxyUrl ? `clerkLoadOptions.proxyUrl = ${JSON.stringify(clerkProxyUrl)};` : '';
     return res.type('html').send(`<!doctype html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover"><title>Signing out — Glide Bedside</title></head>
 <body><p>Signing out…</p>
@@ -440,8 +518,10 @@ app.get('/logout', (req, res) => {
     const destination = '/login?signed_out=1';
     try {
       if (!window.Clerk) throw new Error('Clerk browser library did not load.');
+      const clerkLoadOptions = { publishableKey: ${key} };
+      ${proxyLine}
       await Promise.race([
-        window.Clerk.load({ publishableKey: ${key} }),
+        window.Clerk.load(clerkLoadOptions),
         new Promise((_, reject) => setTimeout(() => reject(new Error('Clerk browser library timed out while loading.')), 8000)),
       ]);
       await Promise.race([

@@ -65,7 +65,9 @@
         }
         if (!window.Clerk) return null;
         if (!window.Clerk.loaded) {
-          await window.Clerk.load({ publishableKey: status.clerkPublishableKey });
+          const loadOptions = { publishableKey: status.clerkPublishableKey };
+          if (status.clerkProxyUrl) loadOptions.proxyUrl = status.clerkProxyUrl;
+          await window.Clerk.load(loadOptions);
         }
         return window.Clerk;
       })().catch((err) => {
