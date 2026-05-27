@@ -32,7 +32,7 @@
     return statusPromise;
   }
 
-  function injectClerkScript(src, publishableKey) {
+  function injectClerkScript(src, publishableKey, proxyUrl = null) {
     return new Promise((resolve, reject) => {
       const existing = document.querySelector('script[data-glide-clerk="true"], script[data-clerk-publishable-key]');
       if (existing) {
@@ -46,6 +46,7 @@
       script.crossOrigin = 'anonymous';
       script.dataset.glideClerk = 'true';
       script.dataset.clerkPublishableKey = publishableKey;
+      if (proxyUrl) script.dataset.clerkProxyUrl = proxyUrl;
       script.src = src;
       script.addEventListener('load', resolve, { once: true });
       script.addEventListener('error', () => reject(new Error('Clerk browser library failed to load.')), { once: true });
@@ -61,7 +62,7 @@
     if (!clerkReadyPromise) {
       clerkReadyPromise = (async () => {
         if (!window.Clerk) {
-          await injectClerkScript(status.clerkScriptSrc, status.clerkPublishableKey);
+          await injectClerkScript(status.clerkScriptSrc, status.clerkPublishableKey, status.clerkProxyUrl);
         }
         if (!window.Clerk) return null;
         if (!window.Clerk.loaded) {

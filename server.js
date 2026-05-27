@@ -294,7 +294,7 @@ function getClerkProxyUrl(req) {
 
 function getClerkScriptSrc(req = null) {
   if (req && shouldUseClerkProxy(req)) {
-    return 'https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js';
+    return 'https://cdn.jsdelivr.net/npm/@clerk/clerk-js@4.73.14/dist/clerk.browser.js';
   }
   const configuredScriptSrc = String(process.env.CLERK_SCRIPT_SRC || '').trim();
   if (configuredScriptSrc) return configuredScriptSrc;
@@ -304,6 +304,11 @@ function getClerkScriptSrc(req = null) {
     clerkScriptSrc = `https://${clerkHost}/npm/@clerk/clerk-js@latest/dist/clerk.browser.js`;
   }
   return clerkScriptSrc;
+}
+
+function getClerkScriptAttributes(req) {
+  const clerkProxyUrl = getClerkProxyUrl(req);
+  return clerkProxyUrl ? ` data-clerk-proxy-url=${JSON.stringify(clerkProxyUrl)}` : '';
 }
 
 async function clerkFrontendApiProxy(req, res) {
@@ -347,6 +352,7 @@ async function clerkFrontendApiProxy(req, res) {
 function renderClerkLoginPage(req, { misconfigured = false } = {}) {
   const key = JSON.stringify(CLERK_PUBLISHABLE_KEY);
   const clerkScriptSrc = getClerkScriptSrc(req);
+  const clerkScriptAttributes = getClerkScriptAttributes(req);
   const clerkProxyUrl = getClerkProxyUrl(req);
   const proxyLine = clerkProxyUrl ? `clerkLoadOptions.proxyUrl = ${JSON.stringify(clerkProxyUrl)};` : '';
   return `<!doctype html>
@@ -391,7 +397,7 @@ function renderClerkLoginPage(req, { misconfigured = false } = {}) {
     <div class="version" id="app-version">Version loading…</div>
   </div>
   <script src="viewport-guard.js"></script>
-  ${misconfigured ? '' : `<script async crossorigin="anonymous" data-clerk-publishable-key=${key} src="${clerkScriptSrc}"></script>
+  ${misconfigured ? '' : `<script async crossorigin="anonymous" data-clerk-publishable-key=${key}${clerkScriptAttributes} src="${clerkScriptSrc}"></script>
   <script>
     window.addEventListener('load', async () => {
       const version = document.getElementById('app-version');
@@ -504,13 +510,14 @@ app.get('/logout', (req, res) => {
     if (!CLERK_CONFIGURED) return res.redirect('/login');
     const key = JSON.stringify(CLERK_PUBLISHABLE_KEY);
     const clerkScriptSrc = getClerkScriptSrc(req);
+    const clerkScriptAttributes = getClerkScriptAttributes(req);
     const clerkProxyUrl = getClerkProxyUrl(req);
     const proxyLine = clerkProxyUrl ? `clerkLoadOptions.proxyUrl = ${JSON.stringify(clerkProxyUrl)};` : '';
     return res.type('html').send(`<!doctype html>
 <html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover"><title>Signing out — Glide Bedside</title></head>
 <body><p>Signing out…</p>
 <script src="viewport-guard.js"></script>
-<script async crossorigin="anonymous" data-clerk-publishable-key=${key} src="${clerkScriptSrc}"></script>
+<script async crossorigin="anonymous" data-clerk-publishable-key=${key}${clerkScriptAttributes} src="${clerkScriptSrc}"></script>
 <script>
   window.addEventListener('load', async () => {
     const destination = '/login?signed_out=1';
