@@ -260,6 +260,8 @@ function publishCareChange(scope, detail = {}) {
 }
 
 function getClerkScriptSrc() {
+  const configuredScriptSrc = String(process.env.CLERK_SCRIPT_SRC || '').trim();
+  if (configuredScriptSrc) return configuredScriptSrc;
   let clerkScriptSrc = 'https://cdn.jsdelivr.net/npm/@clerk/clerk-js@latest/dist/clerk.browser.js';
   try {
     const encoded = CLERK_PUBLISHABLE_KEY.split('_').pop() || '';
