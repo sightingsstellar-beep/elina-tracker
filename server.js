@@ -321,8 +321,6 @@ async function clerkFrontendApiProxy(req, res) {
     if (Array.isArray(value)) headers.set(name, value.join(', '));
     else if (value !== undefined) headers.set(name, String(value));
   }
-  headers.set('Clerk-Proxy-Url', `${requestOrigin(req)}/__clerk`);
-  headers.set('Clerk-Secret-Key', CLERK_SECRET_KEY);
   headers.set('X-Forwarded-For', req.ip || req.socket.remoteAddress || '');
 
   try {
